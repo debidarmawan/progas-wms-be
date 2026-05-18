@@ -1,0 +1,14 @@
+info:
+  contact:
+    email: debidarmawan1998@gmail.com
+    name: DeboZero Corp Tech Team
+  description: This is an API documentation of Progas WMS
+  title: PROGAS WMS Backend API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
