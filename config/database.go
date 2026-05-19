@@ -32,6 +32,7 @@ func ConnectDatabase(maxOpenConn int) *gorm.DB {
 	sqlDb.SetMaxOpenConns(maxOpenConn)
 
 	Migrate(db)
+	SeedRBAC(db)
 
 	return db
 }

@@ -28,6 +28,7 @@ func (h *UserHandler) Routes(group fiber.Router) {
 //	@Tags			User
 //	@Accept			json
 //	@Produce		json
+//	@Security		Bearer
 //	@Param			request	body		dto.CreateUserRequest	true	"Create user request"
 //	@Success		200		{object}	global.Response[dto.Message]
 //	@Router			/users [post]
@@ -37,7 +38,8 @@ func (h *UserHandler) CreateUser(c fiber.Ctx) error {
 		return err.ToResponse(c)
 	}
 
-	err := h.userUsecase.CreateUser(&req)
+	actorUserId, _ := c.Locals("user_id").(string)
+	err := h.userUsecase.CreateUser(actorUserId, &req)
 	if err != nil {
 		return err.ToResponse(c)
 	}

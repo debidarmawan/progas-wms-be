@@ -20,11 +20,15 @@ type AuthUseCase interface {
 }
 
 type authUseCase struct {
-	userRepo repository.UserRepository
+	userRepo     repository.UserRepository
+	auditLogRepo repository.AuditLogRepository
 }
 
-func NewAuthUseCase(userRepo repository.UserRepository) AuthUseCase {
-	return &authUseCase{userRepo}
+func NewAuthUseCase(userRepo repository.UserRepository, auditLogRepo repository.AuditLogRepository) AuthUseCase {
+	return &authUseCase{
+		userRepo:     userRepo,
+		auditLogRepo: auditLogRepo,
+	}
 }
 
 func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.ErrorResponse) {
@@ -75,6 +79,10 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 			RoleName: roleName,
 		},
 	}
+
+	_ = u.auditLogRepo.Log(user.Id, constant.AuditUserLogin, constant.AuditObjectUser, user.Id, map[string]string{
+		"email": user.Email,
+	})
 
 	return res, nil
 }

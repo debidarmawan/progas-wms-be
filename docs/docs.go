@@ -54,6 +54,11 @@ const docTemplate = `{
         },
         "/logout": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Logout",
                 "consumes": [
                     "application/json"
@@ -111,6 +116,11 @@ const docTemplate = `{
         },
         "/roles": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find all roles",
                 "consumes": [
                     "application/json"
@@ -137,6 +147,11 @@ const docTemplate = `{
         },
         "/roles/:id": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find role by id",
                 "consumes": [
                     "application/json"
@@ -169,6 +184,11 @@ const docTemplate = `{
         },
         "/users": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create user",
                 "consumes": [
                     "application/json"

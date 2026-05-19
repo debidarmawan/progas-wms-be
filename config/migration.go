@@ -13,6 +13,7 @@ func Migrate(db *gorm.DB) {
 		&model.Role{},
 		&model.RoleKey{},
 		&model.RoleKeyMapping{},
+		&model.AuditLog{},
 	)
 
 	if err != nil {

@@ -46,6 +46,11 @@
         },
         "/logout": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Logout",
                 "consumes": [
                     "application/json"
@@ -103,6 +108,11 @@
         },
         "/roles": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find all roles",
                 "consumes": [
                     "application/json"
@@ -129,6 +139,11 @@
         },
         "/roles/:id": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find role by id",
                 "consumes": [
                     "application/json"
@@ -161,6 +176,11 @@
         },
         "/users": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create user",
                 "consumes": [
                     "application/json"

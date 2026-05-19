@@ -20,7 +20,6 @@ func NewAuthHandler(authUsecase usecase.AuthUseCase) *AuthHandler {
 func (h *AuthHandler) Routes(group fiber.Router) {
 	group.Post("/login", h.Login)
 	group.Post("/refresh-token", h.RefreshToken)
-	group.Post("/logout", h.Logout)
 }
 
 //	@Summary		Login
@@ -72,13 +71,16 @@ func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//	@Security		Bearer
 //	@Success		200	{object}	global.Response[dto.Message]
 //	@Router			/logout [post]
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
-	// Optional: extract user ID from locals if we need to do something in DB
-	// userId := c.Locals("user_id").(string)
+	userId, ok := c.Locals("user_id").(string)
+	if !ok || userId == "" {
+		return global.UnauthorizedError().ToResponse(c)
+	}
 
-	err := h.authUsecase.Logout("")
+	err := h.authUsecase.Logout(userId)
 	if err != nil {
 		return err.ToResponse(c)
 	}

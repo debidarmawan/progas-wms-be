@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"progas-wms-be/global"
 	"progas-wms-be/model"
 
@@ -33,6 +34,9 @@ func (r *roleRepository) FindById(id string) (*model.Role, global.ErrorResponse)
 	var role model.Role
 	err := r.db.Where("id = ?", id).First(&role).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, global.NotFoundError("Role not found")
+		}
 		return nil, global.InternalServerError(err)
 	}
 	return &role, nil

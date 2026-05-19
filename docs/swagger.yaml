@@ -166,6 +166,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
       summary: Logout
       tags:
       - Auth
@@ -205,6 +207,8 @@ paths:
             items:
               $ref: '#/definitions/global.Response-array_dto_RoleResponse'
             type: array
+      security:
+      - Bearer: []
       summary: Find all roles
       tags:
       - Role
@@ -226,6 +230,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/global.Response-dto_RoleResponse'
+      security:
+      - Bearer: []
       summary: Find role by id
       tags:
       - Role
@@ -248,6 +254,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
       summary: Create user
       tags:
       - User

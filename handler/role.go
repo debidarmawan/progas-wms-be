@@ -27,6 +27,7 @@ func (h *RoleHandler) Routes(group fiber.Router) {
 //	@Tags			Role
 //	@Accept			json
 //	@Produce		json
+//	@Security		Bearer
 //	@Success		200	{array}	global.Response[[]dto.RoleResponse]
 //	@Router			/roles [get]
 func (h *RoleHandler) FindAll(c fiber.Ctx) error {
@@ -45,6 +46,7 @@ func (h *RoleHandler) FindAll(c fiber.Ctx) error {
 //	@Tags			Role
 //	@Accept			json
 //	@Produce		json
+//	@Security		Bearer
 //	@Param			id	path		string	true	"Role ID"
 //	@Success		200	{object}	global.Response[dto.RoleResponse]
 //	@Router			/roles/:id [get]
