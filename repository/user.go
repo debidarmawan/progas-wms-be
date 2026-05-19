@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"errors"
 	"progas-wms-be/global"
+	"progas-wms-be/helper"
 	"progas-wms-be/model"
 	"time"
 
@@ -11,8 +13,8 @@ import (
 type UserRepository interface {
 	FindByEmail(email string) (*model.User, global.ErrorResponse)
 	FindById(id string) (*model.User, global.ErrorResponse)
-	UpdateLastLogin(id string) global.ErrorResponse
-	Create(user *model.User) global.ErrorResponse
+	UpdateLastLogin(tx helper.Tx, id string) global.ErrorResponse
+	Create(tx helper.Tx, user *model.User) global.ErrorResponse
 }
 
 type userRepository struct {
@@ -27,7 +29,11 @@ func (r *userRepository) FindByEmail(email string) (*model.User, global.ErrorRes
 	var user model.User
 	err := r.db.Preload("Role").Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return nil, global.InternalServerError(err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, global.NotFoundError("User not found")
+		} else {
+			return nil, global.InternalServerError(err)
+		}
 	}
 	return &user, nil
 }
@@ -36,22 +42,36 @@ func (r *userRepository) FindById(id string) (*model.User, global.ErrorResponse)
 	var user model.User
 	err := r.db.Preload("Role").Where("id = ?", id).First(&user).Error
 	if err != nil {
-		return nil, global.InternalServerError(err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, global.NotFoundError("User not found")
+		} else {
+			return nil, global.InternalServerError(err)
+		}
 	}
 	return &user, nil
 }
 
-func (r *userRepository) UpdateLastLogin(id string) global.ErrorResponse {
+func (r *userRepository) UpdateLastLogin(tx helper.Tx, id string) global.ErrorResponse {
+	db := r.db
+	if tx != nil {
+		db = tx.Get()
+	}
+
 	now := time.Now()
-	err := r.db.Model(&model.User{}).Where("id = ?", id).Update("last_logged_in_at", &now).Error
+	err := db.Model(&model.User{}).Where("id = ?", id).Update("last_logged_in_at", &now).Error
 	if err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil
 }
 
-func (r *userRepository) Create(user *model.User) global.ErrorResponse {
-	err := r.db.Create(user).Error
+func (r *userRepository) Create(tx helper.Tx, user *model.User) global.ErrorResponse {
+	db := r.db
+	if tx != nil {
+		db = tx.Get()
+	}
+
+	err := db.Create(user).Error
 	if err != nil {
 		return global.InternalServerError(err)
 	}

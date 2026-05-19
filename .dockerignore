@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+.env.local
+*.md
+LICENSE
+Dockerfile*
+docker-compose*
+.vscode
+.idea
+coverage.*
+*.out
+*.test
+tmp/

@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: progas-wms-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3131}:3131"
+    env_file:
+      - .env

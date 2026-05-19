@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUseCase interface {
@@ -41,7 +40,7 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 	}
 
 	// 3. Compare password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if !helper.CheckPasswordHash(req.Password, user.Password) {
 		return nil, global.BadRequestError("invalid email or password")
 	}
 
@@ -52,7 +51,7 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 	}
 
 	// 5. Update last logged in
-	_ = u.userRepo.UpdateLastLogin(user.Id)
+	_ = u.userRepo.UpdateLastLogin(nil, user.Id)
 
 	// 6. Build response
 	accessTokenExpiredInMinutes, _ := strconv.Atoi(config.GetEnv(constant.AuthTokenExpiredInMinutes))
@@ -114,7 +113,7 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 	}
 
 	// 4. Update last logged in
-	_ = u.userRepo.UpdateLastLogin(user.Id)
+	_ = u.userRepo.UpdateLastLogin(nil, user.Id)
 
 	// 5. Build response
 	accessTokenExpiredInMinutes, _ := strconv.Atoi(config.GetEnv(constant.AuthTokenExpiredInMinutes))
