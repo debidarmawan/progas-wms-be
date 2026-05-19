@@ -24,7 +24,7 @@
 |------|------|--------|--------|
 | **0** | Fondasi Auth & User | ✅ Selesai | Login JWT, user, role read, Docker |
 | **1** | RBAC + Audit Log | ✅ Selesai | Permission middleware, seed, audit trail |
-| **2** | Master Data | ⬜ Planned | Item, Cylinder, Customer, Warehouse |
+| **2** | Master Data | ✅ Selesai | Item, Cylinder, Customer (Warehouse → Fase 2.1 backlog) |
 | **3** | Inbound & Produksi | ⬜ Planned | Empty receiving, filling batch, QC |
 | **4** | Outbound & Logistik | ⬜ Planned | DO, swap, outstanding, fleet |
 | **5** | Maintenance & Laporan | ⬜ Planned | Work order, spare part, ledger, dashboard |
@@ -74,19 +74,35 @@
 
 ---
 
-## Fase 2 — Master Data (Epik 1 PRD)
+## Fase 2 — Master Data (Selesai)
 
-| ID | Task | Permission Key (rencana) | User Story PRD |
-|----|------|--------------------------|----------------|
-| 2.1 | Model `Item` (gas, spare part, `IsSerialized`, berat) | `item.*` | 1.2 |
-| 2.2 | Model `Cylinder` (barcode, ownership, status, hydrotest) | `cylinder.*` | 1.1 |
-| 2.3 | Model `Customer` (kuota tabung, outstanding) | `customer.*` | §4.1 |
-| 2.4 | Model `Warehouse` / lokasi rak | `warehouse.*` | §3 |
-| 2.5 | API registrasi tabung (validasi SN unik) | `cylinder.create` | AC 1.1 |
-| 2.6 | API master item non-serialized + min stock | `item.create` | AC 1.2 |
-| 2.7 | API CRUD pelanggan + kuota | `customer.manage` | §4.1 |
-| 2.8 | State machine validasi status tabung | — | §2.1 |
-| 2.9 | Seed permission Fase 2 ke RBAC | — | — |
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 2.1 | Model `MasterItem` + `SparepartStock` | `master_item.*` | ✅ |
+| 2.2 | Model `Cylinder` | `cylinder.*` | ✅ |
+| 2.3 | Model `Customer` (kuota, outstanding) | `customer.*` | ✅ |
+| 2.4 | Model `Warehouse` / lokasi rak | `warehouse.*` | ⬜ Backlog |
+| 2.5 | API registrasi tabung (validasi SN unik) | `cylinder.write` | ✅ |
+| 2.6 | API master item + min stock spare part | `master_item.write` | ✅ |
+| 2.7 | API CRUD pelanggan + kuota | `customer.write` | ✅ |
+| 2.8 | Enum status tabung + validasi hydrotest | — | ✅ |
+| 2.9 | Seed permission Fase 2 ke RBAC | — | ✅ |
+
+### API Fase 2
+
+| Method | Path | Permission |
+|--------|------|------------|
+| GET | `/api/v1/master-items` | `master_item.read` |
+| GET | `/api/v1/master-items/:id` | `master_item.read` |
+| POST | `/api/v1/master-items` | `master_item.write` |
+| PUT | `/api/v1/master-items/:id` | `master_item.write` |
+| GET | `/api/v1/cylinders` | `cylinder.read` |
+| GET | `/api/v1/cylinders/:id` | `cylinder.read` |
+| POST | `/api/v1/cylinders` | `cylinder.write` |
+| GET | `/api/v1/customers` | `customer.read` |
+| GET | `/api/v1/customers/:id` | `customer.read` |
+| POST | `/api/v1/customers` | `customer.write` |
+| PUT | `/api/v1/customers/:id` | `customer.write` |
 
 **Acceptance Criteria (dari PRD):**
 - Tolak barcode duplikat

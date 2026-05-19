@@ -52,6 +52,73 @@ func SeedRBAC(db *gorm.DB) {
 				constant.RoleSuperadmin,
 			},
 		},
+		{
+			Key:       constant.PermMasterItemRead,
+			Method:    "GET",
+			Path:      "/api/v1/master-items",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermMasterItemWrite,
+			Method:    "POST",
+			Path:      "/api/v1/master-items",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermCylinderRead,
+			Method:    "GET",
+			Path:      "/api/v1/cylinders",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermCylinderWrite,
+			Method:    "POST",
+			Path:      "/api/v1/cylinders",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermCustomerRead,
+			Method:    "GET",
+			Path:      "/api/v1/customers",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermCustomerWrite,
+			Method:    "POST",
+			Path:      "/api/v1/customers",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
 	}
 
 	for _, perm := range permissions {

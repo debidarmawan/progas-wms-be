@@ -22,6 +22,8 @@ func (h *AuthHandler) Routes(group fiber.Router) {
 	group.Post("/refresh-token", h.RefreshToken)
 }
 
+// Login godoc
+//
 //	@Summary		Login
 //	@Description	Login
 //	@Tags			Auth
@@ -44,6 +46,8 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// RefreshToken godoc
+//
 //	@Summary		Refresh token
 //	@Description	Refresh token
 //	@Tags			Auth
@@ -66,6 +70,8 @@ func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// Logout godoc
+//
 //	@Summary		Logout
 //	@Description	Logout
 //	@Tags			Auth

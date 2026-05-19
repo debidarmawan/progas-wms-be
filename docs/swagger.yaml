@@ -1,4 +1,62 @@
 definitions:
+  dto.CreateCustomerRequest:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      cylinder_quota_limit:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  dto.CreateCylinderRequest:
+    properties:
+      barcode_sn:
+        type: string
+      item_id:
+        type: string
+      last_hydrotest_date:
+        type: string
+      owner_id:
+        type: string
+      ownership_type:
+        type: string
+    required:
+    - barcode_sn
+    - item_id
+    - last_hydrotest_date
+    - ownership_type
+    type: object
+  dto.CreateMasterItemRequest:
+    properties:
+      empty_weight_kg:
+        minimum: 0
+        type: number
+      gas_type:
+        type: string
+      gas_weight_kg:
+        minimum: 0
+        type: number
+      is_serialized:
+        type: boolean
+      min_stock_alert:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+    required:
+    - name
+    - sku
+    type: object
   dto.CreateUserRequest:
     properties:
       email:
@@ -14,6 +72,46 @@ definitions:
     - name
     - password
     - role_id
+    type: object
+  dto.CustomerResponse:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      cylinder_quota_limit:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      outstanding_count:
+        type: integer
+      phone:
+        type: string
+    type: object
+  dto.CylinderResponse:
+    properties:
+      barcode_sn:
+        type: string
+      gas_type:
+        type: string
+      id:
+        type: string
+      item_id:
+        type: string
+      item_name:
+        type: string
+      last_hydrotest_date:
+        type: string
+      owner_id:
+        type: string
+      ownership_type:
+        type: string
+      status:
+        type: string
     type: object
   dto.LoginRequest:
     properties:
@@ -36,10 +134,78 @@ definitions:
       user:
         $ref: '#/definitions/dto.UserResponse'
     type: object
+  dto.MasterItemResponse:
+    properties:
+      empty_weight_kg:
+        type: number
+      gas_type:
+        type: string
+      gas_weight_kg:
+        type: number
+      id:
+        type: string
+      is_serialized:
+        type: boolean
+      min_stock_alert:
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+      stock_quantity:
+        type: integer
+    type: object
   dto.Message:
     properties:
       message:
         type: string
+    type: object
+  dto.PaginatedCustomerList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CustomerResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedCylinderList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CylinderResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedMasterItemList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.MasterItemResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedRoleList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.RoleResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
     type: object
   dto.RefreshTokenRequest:
     properties:
@@ -54,6 +220,40 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  dto.UpdateCustomerRequest:
+    properties:
+      address:
+        type: string
+      cylinder_quota_limit:
+        minimum: 0
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
+  dto.UpdateMasterItemRequest:
+    properties:
+      empty_weight_kg:
+        minimum: 0
+        type: number
+      gas_type:
+        type: string
+      gas_weight_kg:
+        minimum: 0
+        type: number
+      min_stock_alert:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+    required:
+    - name
     type: object
   dto.UserResponse:
     properties:
@@ -70,14 +270,25 @@ definitions:
       role_name:
         type: string
     type: object
-  global.Response-array_dto_RoleResponse:
+  global.Response-dto_CustomerResponse:
     properties:
       code:
         type: integer
       data:
-        items:
-          $ref: '#/definitions/dto.RoleResponse'
-        type: array
+        $ref: '#/definitions/dto.CustomerResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_CylinderResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CylinderResponse'
       error_code:
         type: string
       message:
@@ -98,12 +309,77 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_MasterItemResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.MasterItemResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_Message:
     properties:
       code:
         type: integer
       data:
         $ref: '#/definitions/dto.Message'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedCustomerList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedCustomerList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedCylinderList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedCylinderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedMasterItemList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedMasterItemList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedRoleList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedRoleList'
       error_code:
         type: string
       message:
@@ -132,6 +408,186 @@ info:
   title: PROGAS WMS Backend API
   version: "1.0"
 paths:
+  /customers:
+    get:
+      consumes:
+      - application/json
+      description: Find all customers with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by code, name, or phone
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedCustomerList'
+      security:
+      - Bearer: []
+      summary: Find all customers
+      tags:
+      - Customer
+    post:
+      consumes:
+      - application/json
+      description: Create customer with cylinder quota limit
+      parameters:
+      - description: Create customer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create customer
+      tags:
+      - Customer
+  /customers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Find customer by id
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CustomerResponse'
+      security:
+      - Bearer: []
+      summary: Find customer by id
+      tags:
+      - Customer
+    put:
+      consumes:
+      - application/json
+      description: Update customer by id
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update customer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update customer
+      tags:
+      - Customer
+  /cylinders:
+    get:
+      consumes:
+      - application/json
+      description: Find all registered cylinders with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by barcode, status, ownership, or item name/SKU/gas type
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedCylinderList'
+      security:
+      - Bearer: []
+      summary: Find all cylinders
+      tags:
+      - Cylinder
+    post:
+      consumes:
+      - application/json
+      description: Register a new cylinder with unique barcode
+      parameters:
+      - description: Register cylinder request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCylinderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Register cylinder
+      tags:
+      - Cylinder
+  /cylinders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Find cylinder by id
+      parameters:
+      - description: Cylinder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CylinderResponse'
+      security:
+      - Bearer: []
+      summary: Find cylinder by id
+      tags:
+      - Cylinder
   /login:
     post:
       consumes:
@@ -171,6 +627,110 @@ paths:
       summary: Logout
       tags:
       - Auth
+  /master-items:
+    get:
+      consumes:
+      - application/json
+      description: Find all master items with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, SKU, or gas type
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedMasterItemList'
+      security:
+      - Bearer: []
+      summary: Find all master items
+      tags:
+      - Master Item
+    post:
+      consumes:
+      - application/json
+      description: Create master item (serialized gas or non-serialized spare part)
+      parameters:
+      - description: Create master item request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMasterItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create master item
+      tags:
+      - Master Item
+  /master-items/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Find master item by id
+      parameters:
+      - description: Master Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_MasterItemResponse'
+      security:
+      - Bearer: []
+      summary: Find master item by id
+      tags:
+      - Master Item
+    put:
+      consumes:
+      - application/json
+      description: Update master item by id
+      parameters:
+      - description: Master Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update master item request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateMasterItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update master item
+      tags:
+      - Master Item
   /refresh-token:
     post:
       consumes:
@@ -193,26 +753,37 @@ paths:
       summary: Refresh token
       tags:
       - Auth
-  /roles:
+  /roles/:
     get:
       consumes:
       - application/json
-      description: Find all roles
+      description: Find all roles with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by role name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/global.Response-array_dto_RoleResponse'
-            type: array
+            $ref: '#/definitions/global.Response-dto_PaginatedRoleList'
       security:
       - Bearer: []
       summary: Find all roles
       tags:
       - Role
-  /roles/:id:
+  /roles/{id}:
     get:
       consumes:
       - application/json
