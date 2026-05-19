@@ -12,4 +12,9 @@ const (
 	PermCylinderWrite   = "cylinder.write"
 	PermCustomerRead    = "customer.read"
 	PermCustomerWrite   = "customer.write"
+
+	PermInboundEmptyReceive   = "inbound.empty_receive"
+	PermProductionQC          = "production.qc"
+	PermFillingBatchRead      = "production.filling_batch.read"
+	PermFillingBatchWrite     = "production.filling_batch.write"
 )

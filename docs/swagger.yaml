@@ -1,4 +1,23 @@
 definitions:
+  dto.BarcodeListRequest:
+    properties:
+      barcodes:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - barcodes
+    type: object
+  dto.BarcodeOperationResponse:
+    properties:
+      barcodes:
+        items:
+          type: string
+        type: array
+      processed_count:
+        type: integer
+    type: object
   dto.CreateCustomerRequest:
     properties:
       address:
@@ -113,6 +132,40 @@ definitions:
       status:
         type: string
     type: object
+  dto.FillingBatchDetailResponse:
+    properties:
+      barcode_sn:
+        type: string
+      cylinder_id:
+        type: string
+      id:
+        type: string
+    type: object
+  dto.FillingBatchResponse:
+    properties:
+      batch_number:
+        type: string
+      created_at:
+        type: string
+      cylinder_qty:
+        type: integer
+      details:
+        items:
+          $ref: '#/definitions/dto.FillingBatchDetailResponse'
+        type: array
+      gas_type:
+        type: string
+      id:
+        type: string
+      item_id:
+        type: string
+      item_name:
+        type: string
+      notes:
+        type: string
+      status:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -178,6 +231,15 @@ definitions:
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
     type: object
+  dto.PaginatedFillingBatchList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.FillingBatchResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedMasterItemList:
     properties:
       items:
@@ -220,6 +282,21 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  dto.SubmitFillingBatchRequest:
+    properties:
+      barcodes:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      item_id:
+        type: string
+      notes:
+        type: string
+    required:
+    - barcodes
+    - item_id
     type: object
   dto.UpdateCustomerRequest:
     properties:
@@ -270,6 +347,19 @@ definitions:
       role_name:
         type: string
     type: object
+  global.Response-dto_BarcodeOperationResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.BarcodeOperationResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_CustomerResponse:
     properties:
       code:
@@ -289,6 +379,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.CylinderResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_FillingBatchResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.FillingBatchResponse'
       error_code:
         type: string
       message:
@@ -354,6 +457,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.PaginatedCylinderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedFillingBatchList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedFillingBatchList'
       error_code:
         type: string
       message:
@@ -588,6 +704,31 @@ paths:
       summary: Find cylinder by id
       tags:
       - Cylinder
+  /inbound/empty-receive:
+    post:
+      consumes:
+      - application/json
+      description: Receive empty cylinders returned from customer (OUTSTANDING/IN_TRANSIT
+        → EMPTY)
+      parameters:
+      - description: Barcode list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BarcodeListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_BarcodeOperationResponse'
+      security:
+      - Bearer: []
+      summary: Empty cylinder receiving
+      tags:
+      - Inbound
   /login:
     post:
       consumes:
@@ -731,6 +872,107 @@ paths:
       summary: Update master item
       tags:
       - Master Item
+  /production/filling-batches:
+    get:
+      consumes:
+      - application/json
+      description: List filling batches with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by batch number or gas type
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedFillingBatchList'
+      security:
+      - Bearer: []
+      summary: List filling batches
+      tags:
+      - Production
+    post:
+      consumes:
+      - application/json
+      description: Create and complete a filling batch atomically (validates status
+        & cross-gas, sets cylinders to READY)
+      parameters:
+      - description: Filling batch request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubmitFillingBatchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_FillingBatchResponse'
+      security:
+      - Bearer: []
+      summary: Submit filling batch
+      tags:
+      - Production
+  /production/filling-batches/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get filling batch detail including scanned cylinders
+      parameters:
+      - description: Filling batch ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_FillingBatchResponse'
+      security:
+      - Bearer: []
+      summary: Get filling batch by id
+      tags:
+      - Production
+  /production/qc/pre-fill:
+    post:
+      consumes:
+      - application/json
+      description: Pass pre-fill inspection (EMPTY → READY_TO_FILL)
+      parameters:
+      - description: Barcode list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BarcodeListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_BarcodeOperationResponse'
+      security:
+      - Bearer: []
+      summary: Pre-fill QC
+      tags:
+      - Production
   /refresh-token:
     post:
       consumes:

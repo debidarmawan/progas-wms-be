@@ -2,9 +2,12 @@ package repository
 
 import (
 	"errors"
+	"fmt"
+	"progas-wms-be/enum"
 	"progas-wms-be/global"
 	"progas-wms-be/helper"
 	"progas-wms-be/model"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -13,6 +16,8 @@ type CylinderRepository interface {
 	FindAll(page, limit int, search string) ([]model.Cylinder, int64, global.ErrorResponse)
 	FindById(id string) (*model.Cylinder, global.ErrorResponse)
 	FindByBarcode(barcode string) (*model.Cylinder, global.ErrorResponse)
+	FindByBarcodes(tx helper.Tx, barcodes []string) ([]model.Cylinder, global.ErrorResponse)
+	UpdateStatusByIds(tx helper.Tx, ids []string, status enum.CylinderStatus) global.ErrorResponse
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 }
 
@@ -88,9 +93,61 @@ func (r *cylinderRepository) FindByBarcode(barcode string) (*model.Cylinder, glo
 	return &cylinder, nil
 }
 
+func (r *cylinderRepository) FindByBarcodes(tx helper.Tx, barcodes []string) ([]model.Cylinder, global.ErrorResponse) {
+	if len(barcodes) == 0 {
+		return nil, global.BadRequestError("barcodes are required")
+	}
+
+	unique := uniqueBarcodes(barcodes)
+	var cylinders []model.Cylinder
+	if err := r.dbFromTx(tx).Preload("MasterItem").Where("barcode_sn IN ?", unique).Find(&cylinders).Error; err != nil {
+		return nil, global.InternalServerError(err)
+	}
+
+	if len(cylinders) != len(unique) {
+		found := make(map[string]bool, len(cylinders))
+		for _, c := range cylinders {
+			found[c.BarcodeSN] = true
+		}
+		var missing []string
+		for _, b := range unique {
+			if !found[b] {
+				missing = append(missing, b)
+			}
+		}
+		return nil, global.BadRequestError(fmt.Sprintf("barcodes not found: %s", strings.Join(missing, ", ")))
+	}
+
+	return cylinders, nil
+}
+
+func (r *cylinderRepository) UpdateStatusByIds(tx helper.Tx, ids []string, status enum.CylinderStatus) global.ErrorResponse {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("status", status).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
 func (r *cylinderRepository) Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse {
 	if err := r.dbFromTx(tx).Create(cylinder).Error; err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil
+}
+
+func uniqueBarcodes(barcodes []string) []string {
+	seen := make(map[string]bool)
+	var unique []string
+	for _, b := range barcodes {
+		b = strings.TrimSpace(b)
+		if b == "" || seen[b] {
+			continue
+		}
+		seen[b] = true
+		unique = append(unique, b)
+	}
+	return unique
 }

@@ -119,6 +119,48 @@ func SeedRBAC(db *gorm.DB) {
 				constant.RoleLogisticAdmin,
 			},
 		},
+		{
+			Key:       constant.PermInboundEmptyReceive,
+			Method:    "POST",
+			Path:      "/api/v1/inbound/empty-receive",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermProductionQC,
+			Method:    "POST",
+			Path:      "/api/v1/production/qc/pre-fill",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermFillingBatchWrite,
+			Method:    "POST",
+			Path:      "/api/v1/production/filling-batches",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermFillingBatchRead,
+			Method:    "GET",
+			Path:      "/api/v1/production/filling-batches",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
 	}
 
 	for _, perm := range permissions {

@@ -306,6 +306,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/inbound/empty-receive": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Receive empty cylinders returned from customer (OUTSTANDING/IN_TRANSIT → EMPTY)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inbound"
+                ],
+                "summary": "Empty cylinder receiving",
+                "parameters": [
+                    {
+                        "description": "Barcode list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BarcodeListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login",
@@ -534,6 +573,167 @@ const docTemplate = `{
                 }
             }
         },
+        "/production/filling-batches": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List filling batches with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "List filling batches",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by batch number or gas type",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedFillingBatchList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create and complete a filling batch atomically (validates status \u0026 cross-gas, sets cylinders to READY)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Submit filling batch",
+                "parameters": [
+                    {
+                        "description": "Filling batch request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubmitFillingBatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_FillingBatchResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/filling-batches/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get filling batch detail including scanned cylinders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Get filling batch by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filling batch ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_FillingBatchResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/qc/pre-fill": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Pass pre-fill inspection (EMPTY → READY_TO_FILL)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Pre-fill QC",
+                "parameters": [
+                    {
+                        "description": "Barcode list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BarcodeListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/refresh-token": {
             "post": {
                 "description": "Refresh token",
@@ -694,6 +894,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.BarcodeListRequest": {
+            "type": "object",
+            "required": [
+                "barcodes"
+            ],
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.BarcodeOperationResponse": {
+            "type": "object",
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "processed_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateCustomerRequest": {
             "type": "object",
             "required": [
@@ -862,6 +1091,58 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.FillingBatchDetailResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "cylinder_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FillingBatchResponse": {
+            "type": "object",
+            "properties": {
+                "batch_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "cylinder_qty": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FillingBatchDetailResponse"
+                    }
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -962,6 +1243,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaginatedFillingBatchList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FillingBatchResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
         "dto.PaginatedMasterItemList": {
             "type": "object",
             "properties": {
@@ -1025,6 +1320,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SubmitFillingBatchRequest": {
+            "type": "object",
+            "required": [
+                "barcodes",
+                "item_id"
+            ],
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "notes": {
                     "type": "string"
                 }
             }
@@ -1102,6 +1419,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_BarcodeOperationResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.BarcodeOperationResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_CustomerResponse": {
             "type": "object",
             "properties": {
@@ -1130,6 +1467,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.CylinderResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_FillingBatchResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.FillingBatchResponse"
                 },
                 "error_code": {
                     "type": "string"
@@ -1230,6 +1587,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.PaginatedCylinderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedFillingBatchList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedFillingBatchList"
                 },
                 "error_code": {
                     "type": "string"

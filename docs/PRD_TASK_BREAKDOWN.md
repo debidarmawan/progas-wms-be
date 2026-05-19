@@ -25,7 +25,7 @@
 | **0** | Fondasi Auth & User | ✅ Selesai | Login JWT, user, role read, Docker |
 | **1** | RBAC + Audit Log | ✅ Selesai | Permission middleware, seed, audit trail |
 | **2** | Master Data | ✅ Selesai | Item, Cylinder, Customer (Warehouse → Fase 2.1 backlog) |
-| **3** | Inbound & Produksi | ⬜ Planned | Empty receiving, filling batch, QC |
+| **3** | Inbound & Produksi | ✅ Selesai | Empty receiving, filling batch, QC |
 | **4** | Outbound & Logistik | ⬜ Planned | DO, swap, outstanding, fleet |
 | **5** | Maintenance & Laporan | ⬜ Planned | Work order, spare part, ledger, dashboard |
 
@@ -113,18 +113,28 @@
 
 ---
 
-## Fase 3 — Inbound & Produksi (Epik 2 PRD)
+## Fase 3 — Inbound & Produksi (Selesai)
 
-| ID | Task | Permission Key | User Story |
-|----|------|----------------|------------|
-| 3.1 | Empty receiving | `inbound.empty_receive` | §3 Inbound |
-| 3.2 | Filling batch log | `production.filling_batch` | 2.1 |
-| 3.3 | Cross-gas validation | — | AC 2.1 |
-| 3.4 | Batch rollback jika status tabung invalid | — | AC 2.1 |
-| 3.5 | QC pre/post filling | `production.qc` | §3 |
-| 3.6 | Auto status → READY setelah batch sukses | — | AC 2.1 |
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 3.1 | Empty receiving | `inbound.empty_receive` | ✅ |
+| 3.2 | Filling batch log (atomic submit) | `production.filling_batch.write` | ✅ |
+| 3.3 | Cross-gas validation | — | ✅ |
+| 3.4 | Batch rollback jika status tabung invalid | — | ✅ |
+| 3.5 | QC pre-fill (EMPTY → READY_TO_FILL) | `production.qc` | ✅ |
+| 3.6 | Auto status → READY setelah batch sukses | — | ✅ |
 
-**Role akses (PRD §5):** Warehouse Admin ✅ | Logistic Admin ❌ | Manager read-only
+### API Fase 3
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| POST | `/api/v1/inbound/empty-receive` | `inbound.empty_receive` | OUTSTANDING/IN_TRANSIT → EMPTY |
+| POST | `/api/v1/production/qc/pre-fill` | `production.qc` | EMPTY → READY_TO_FILL |
+| POST | `/api/v1/production/filling-batches` | `production.filling_batch.write` | Submit batch (validasi + READY) |
+| GET | `/api/v1/production/filling-batches` | `production.filling_batch.read` | List batch (pagination + search) |
+| GET | `/api/v1/production/filling-batches/:id` | `production.filling_batch.read` | Detail batch + tabung |
+
+**Role akses:** Warehouse Admin + Superadmin (write) | Manager + Logistic (read batch only)
 
 ---
 

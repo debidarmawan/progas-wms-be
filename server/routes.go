@@ -41,6 +41,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	sparepartStockRepo := repository.NewSparepartStockRepository(db)
 	cylinderRepo := repository.NewCylinderRepository(db)
 	customerRepo := repository.NewCustomerRepository(db)
+	fillingBatchRepo := repository.NewFillingBatchRepository(db)
 
 	authUsecase := usecase.NewAuthUseCase(userRepo, auditLogRepo)
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
@@ -48,6 +49,8 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, sparepartStockRepo, auditLogRepo)
 	cylinderUsecase := usecase.NewCylinderUsecase(txManager, cylinderRepo, masterItemRepo, customerRepo, auditLogRepo)
 	customerUsecase := usecase.NewCustomerUsecase(txManager, customerRepo, auditLogRepo)
+	inboundUsecase := usecase.NewInboundUsecase(txManager, cylinderRepo, auditLogRepo)
+	fillingBatchUsecase := usecase.NewFillingBatchUsecase(txManager, fillingBatchRepo, cylinderRepo, masterItemRepo, auditLogRepo)
 
 	authHandler := handler.NewAuthHandler(authUsecase)
 	roleHandler := handler.NewRoleHandler(roleUsecase)
@@ -55,6 +58,8 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	masterItemHandler := handler.NewMasterItemHandler(masterItemUsecase)
 	cylinderHandler := handler.NewCylinderHandler(cylinderUsecase)
 	customerHandler := handler.NewCustomerHandler(customerUsecase)
+	inboundHandler := handler.NewInboundHandler(inboundUsecase)
+	fillingBatchHandler := handler.NewFillingBatchHandler(fillingBatchUsecase)
 
 	authHandler.Routes(routerGroup)
 
@@ -85,4 +90,17 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	customerWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCustomerWrite))
 	customerWrite.Post("/customers", customerHandler.Create)
 	customerWrite.Put("/customers/:id", customerHandler.Update)
+
+	inboundWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermInboundEmptyReceive))
+	inboundWrite.Post("/inbound/empty-receive", inboundHandler.EmptyReceive)
+
+	productionQC := protected.Group("", middleware.Authorize(rbacRepo, constant.PermProductionQC))
+	productionQC.Post("/production/qc/pre-fill", inboundHandler.PreFillQC)
+
+	fillingBatchRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermFillingBatchRead))
+	fillingBatchRead.Get("/production/filling-batches", fillingBatchHandler.FindAll)
+	fillingBatchRead.Get("/production/filling-batches/:id", fillingBatchHandler.FindById)
+
+	fillingBatchWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermFillingBatchWrite))
+	fillingBatchWrite.Post("/production/filling-batches", fillingBatchHandler.Submit)
 }

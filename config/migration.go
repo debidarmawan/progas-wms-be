@@ -18,6 +18,8 @@ func Migrate(db *gorm.DB) {
 		&model.Cylinder{},
 		&model.Customer{},
 		&model.SparepartStock{},
+		&model.FillingBatch{},
+		&model.FillingBatchDetail{},
 	)
 
 	if err != nil {
