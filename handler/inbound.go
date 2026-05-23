@@ -64,3 +64,27 @@ func (h *InboundHandler) PreFillQC(c fiber.Ctx) error {
 	}
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
+
+// PostFillQC godoc
+//
+//	@Summary		Post-fill QC
+//	@Description	Pass post-fill inspection after gas filling (FILLED → READY)
+//	@Tags			Production
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			request	body		dto.BarcodeListRequest	true	"Barcode list"
+//	@Success		200		{object}	global.Response[dto.BarcodeOperationResponse]
+//	@Router			/production/qc/post-fill [post]
+func (h *InboundHandler) PostFillQC(c fiber.Ctx) error {
+	var req dto.BarcodeListRequest
+	if err := helper.ValidateBody(c, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	actorUserId, _ := c.Locals("user_id").(string)
+	res, err := h.usecase.PostFillQC(actorUserId, &req)
+	if err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}

@@ -45,6 +45,10 @@ func CanEnterFillingBatch(status enum.CylinderStatus) bool {
 	return status == enum.CylinderStatusEmpty || status == enum.CylinderStatusReadyToFill
 }
 
+func CanPostFillQC(status enum.CylinderStatus) bool {
+	return status == enum.CylinderStatusFilled
+}
+
 func ValidateFillingBatchCylinders(cylinders []model.Cylinder, batchItem *model.MasterItem) error {
 	if !batchItem.IsSerialized {
 		return fmt.Errorf("batch item must be a serialized gas product")

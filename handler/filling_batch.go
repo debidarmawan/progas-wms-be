@@ -20,7 +20,7 @@ func NewFillingBatchHandler(usecase usecase.FillingBatchUsecase) *FillingBatchHa
 // Submit godoc
 //
 //	@Summary		Submit filling batch
-//	@Description	Create and complete a filling batch atomically (validates status & cross-gas, sets cylinders to READY)
+//	@Description	Create and complete a filling batch atomically (validates status & cross-gas, sets cylinders to FILLED; use post-fill QC for READY)
 //	@Tags			Production
 //	@Accept			json
 //	@Produce		json

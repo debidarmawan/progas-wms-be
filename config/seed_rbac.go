@@ -44,12 +44,23 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
-			Key:       constant.PermUserCreate,
+			Key:       constant.PermUserRead,
+			Method:    "GET",
+			Path:      "/api/v1/users",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermUserWrite,
 			Method:    "POST",
 			Path:      "/api/v1/users",
 			KeyAccess: "write",
 			Roles: []string{
 				constant.RoleSuperadmin,
+				constant.RoleManager,
 			},
 		},
 		{
@@ -130,9 +141,19 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
-			Key:       constant.PermProductionQC,
+			Key:       constant.PermProductionQCPreFill,
 			Method:    "POST",
 			Path:      "/api/v1/production/qc/pre-fill",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermProductionQCPostFill,
+			Method:    "POST",
+			Path:      "/api/v1/production/qc/post-fill",
 			KeyAccess: "write",
 			Roles: []string{
 				constant.RoleSuperadmin,
@@ -153,6 +174,154 @@ func SeedRBAC(db *gorm.DB) {
 			Key:       constant.PermFillingBatchRead,
 			Method:    "GET",
 			Path:      "/api/v1/production/filling-batches",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermFleetRead,
+			Method:    "GET",
+			Path:      "/api/v1/logistics/fleet",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermFleetWrite,
+			Method:    "POST",
+			Path:      "/api/v1/logistics/fleet",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
+		{
+			Key:       constant.PermDORead,
+			Method:    "GET",
+			Path:      "/api/v1/outbound/delivery-orders",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermDOCreate,
+			Method:    "POST",
+			Path:      "/api/v1/outbound/delivery-orders",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
+		{
+			Key:       constant.PermExchangeProcess,
+			Method:    "POST",
+			Path:      "/api/v1/outbound/exchange",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
+		{
+			Key:       constant.PermExchangeApprove,
+			Method:    "POST",
+			Path:      "/api/v1/outbound/exchange",
+			KeyAccess: "approve",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermWorkOrderRead,
+			Method:    "GET",
+			Path:      "/api/v1/maintenance/work-orders",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermWorkOrderWrite,
+			Method:    "POST",
+			Path:      "/api/v1/maintenance/work-orders",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermInventoryStockOpname,
+			Method:    "POST",
+			Path:      "/api/v1/inventory/spareparts/stock-opname",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
+			Key:       constant.PermCylinderHydrotest,
+			Method:    "GET",
+			Path:      "/api/v1/maintenance/hydrotest/due",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermDashboardRead,
+			Method:    "GET",
+			Path:      "/api/v1/dashboard/summary",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermReportLedger,
+			Method:    "GET",
+			Path:      "/api/v1/reports/stock-ledger",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermReportTurnaround,
+			Method:    "GET",
+			Path:      "/api/v1/reports/turnaround",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermInventoryVirtual,
+			Method:    "GET",
+			Path:      "/api/v1/inventory/virtual-warehouse",
 			KeyAccess: "read",
 			Roles: []string{
 				constant.RoleSuperadmin,

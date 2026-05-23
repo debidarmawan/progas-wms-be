@@ -26,8 +26,8 @@
 | **1** | RBAC + Audit Log | ✅ Selesai | Permission middleware, seed, audit trail |
 | **2** | Master Data | ✅ Selesai | Item, Cylinder, Customer (Warehouse → Fase 2.1 backlog) |
 | **3** | Inbound & Produksi | ✅ Selesai | Empty receiving, filling batch, QC |
-| **4** | Outbound & Logistik | ⬜ Planned | DO, swap, outstanding, fleet |
-| **5** | Maintenance & Laporan | ⬜ Planned | Work order, spare part, ledger, dashboard |
+| **4** | Outbound & Logistik | ✅ Selesai | DO, swap, outstanding, fleet |
+| **5** | Maintenance & Laporan | ✅ Selesai | Work order, spare part, ledger, dashboard |
 
 ---
 
@@ -40,7 +40,7 @@
 | 0.3 | Login + JWT access/refresh | `POST /api/v1/login` | ✅ |
 | 0.4 | Refresh token | `POST /api/v1/refresh-token` | ✅ |
 | 0.5 | Logout (stateless) | `POST /api/v1/logout` | ✅ |
-| 0.6 | Create user + bcrypt | `POST /api/v1/users` | ✅ |
+| 0.6 | User management CRUD + bcrypt | `user.read` / `user.write` | ✅ |
 | 0.7 | List & detail role | `GET /api/v1/roles`, `GET /api/v1/roles/:id` | ✅ |
 | 0.8 | JWT middleware protected routes | `VerifyAuthToken` | ✅ |
 | 0.9 | Docker + Compose | `Dockerfile`, `docker-compose.yml` | ✅ |
@@ -68,7 +68,8 @@
 |----------------|--------|------|:----------:|:---------------:|:--------------:|:-------:|
 | `auth.logout` | POST | `/api/v1/logout` | ✅ | ✅ | ✅ | ✅ |
 | `role.read` | GET | `/api/v1/roles/*` | ✅ | ✅ | ✅ | ✅ |
-| `user.create` | POST | `/api/v1/users` | ✅ | ❌ | ❌ | ❌ |
+| `user.read` | GET | `/api/v1/users/*` | ✅ | ❌ | ❌ | ✅ |
+| `user.write` | POST/PUT/DELETE | `/api/v1/users/*` | ✅ | ❌ | ❌ | ✅ |
 
 > **Superadmin** bypass penuh di middleware (selaras PRD: akses tanpa batas).
 
@@ -129,8 +130,9 @@
 | Method | Path | Permission | Deskripsi |
 |--------|------|------------|-----------|
 | POST | `/api/v1/inbound/empty-receive` | `inbound.empty_receive` | OUTSTANDING/IN_TRANSIT → EMPTY |
-| POST | `/api/v1/production/qc/pre-fill` | `production.qc` | EMPTY → READY_TO_FILL |
-| POST | `/api/v1/production/filling-batches` | `production.filling_batch.write` | Submit batch (validasi + READY) |
+| POST | `/api/v1/production/qc/pre-fill` | `production.qc.pre_fill` | EMPTY → READY_TO_FILL |
+| POST | `/api/v1/production/filling-batches` | `production.filling_batch.write` | Submit batch → status FILLED |
+| POST | `/api/v1/production/qc/post-fill` | `production.qc.post_fill` | FILLED → READY |
 | GET | `/api/v1/production/filling-batches` | `production.filling_batch.read` | List batch (pagination + search) |
 | GET | `/api/v1/production/filling-batches/:id` | `production.filling_batch.read` | Detail batch + tabung |
 
@@ -138,36 +140,74 @@
 
 ---
 
-## Fase 4 — Outbound & Logistik (Epik 3 PRD)
+## Fase 4 — Outbound & Logistik (Selesai)
 
-| ID | Task | Permission Key | User Story |
-|----|------|----------------|------------|
-| 4.1 | Model Delivery Order (DO) | `do.*` | 3.1 |
-| 4.2 | Manifest barcode + hitung berat | `do.create` | AC 3.1 |
-| 4.3 | Overload protection (`MaxWeightKg`) | — | §4.4, AC 3.1 |
-| 4.4 | Status tabung → IN_TRANSIT | — | AC 3.1 |
-| 4.5 | Cylinder swap / gate in-out | `exchange.process` | 3.2 |
-| 4.6 | Rumus outstanding: `Lama + OUT - IN` | — | §4.1 |
-| 4.7 | Abaikan CUSTOMER ownership dari outstanding | — | AC 3.2 |
-| 4.8 | Blokir / approval jika melebihi kuota | `exchange.approve` | AC 3.2 |
-| 4.9 | Alert tabung tertukar antar pelanggan | — | §4.1 |
-| 4.10 | Fleet management | `fleet.*` | §3 modul 5 |
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 4.1 | Model Delivery Order (DO) | `do.*` | ✅ |
+| 4.2 | Manifest barcode + hitung berat | `do.create` | ✅ |
+| 4.3 | Overload protection (`MaxWeightKg`) | — | ✅ |
+| 4.4 | Status tabung → IN_TRANSIT | — | ✅ |
+| 4.5 | Cylinder swap / gate in-out | `exchange.process` | ✅ |
+| 4.6 | Rumus outstanding: `Lama + OUT - IN` | — | ✅ |
+| 4.7 | Abaikan CUSTOMER ownership dari outstanding | — | ✅ |
+| 4.8 | Blokir / approval jika melebihi kuota | `exchange.approve` | ✅ |
+| 4.9 | Alert tabung tertukar antar pelanggan | — | ✅ |
+| 4.10 | Fleet management | `fleet.*` | ✅ |
 
-**Role akses:** Logistic Admin ✅ | Warehouse Admin ❌ (DO) | Manager read-only
+### API Fase 4
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| GET | `/api/v1/logistics/fleet` | `fleet.read` | List armada |
+| GET | `/api/v1/logistics/fleet/:id` | `fleet.read` | Detail armada |
+| POST | `/api/v1/logistics/fleet` | `fleet.write` | Tambah armada |
+| PUT | `/api/v1/logistics/fleet/:id` | `fleet.write` | Update armada |
+| GET | `/api/v1/outbound/delivery-orders` | `do.read` | List DO |
+| GET | `/api/v1/outbound/delivery-orders/:id` | `do.read` | Detail DO + manifest |
+| POST | `/api/v1/outbound/delivery-orders` | `do.create` | Terbitkan DO (READY → IN_TRANSIT) |
+| POST | `/api/v1/outbound/exchange` | `exchange.process` | Gate swap OUT/IN + outstanding |
+
+**Alur logistik:**
+```
+READY → (issue DO) → IN_TRANSIT
+IN_TRANSIT → (exchange OUT) → OUTSTANDING  (+outstanding jika COMPANY-owned)
+OUTSTANDING → (exchange IN) → EMPTY        (-outstanding jika COMPANY-owned)
+```
+
+**Role akses:** Logistic Admin (write DO/exchange/fleet) | Warehouse Admin ❌ DO | Manager (read + `exchange.approve`)
 
 ---
 
-## Fase 5 — Maintenance, Dashboard & Laporan
+## Fase 5 — Maintenance, Dashboard & Laporan (Selesai)
 
-| ID | Task | Permission Key | Modul PRD |
-|----|------|----------------|-----------|
-| 5.1 | Work order + kurangi spare part | `workorder.*` | §6 |
-| 5.2 | Stok opname spare part | `inventory.stockopname` | §6 |
-| 5.3 | Jadwal hydrotest / servis | `cylinder.hydrotest` | §3 modul 4 |
-| 5.4 | Dashboard API (stok, outstanding, alert) | `dashboard.read` | §3 modul 1 |
-| 5.5 | Stock ledger per barcode | `report.ledger` | §3 modul 8 |
-| 5.6 | Turn-around rate report | `report.turnaround` | §3 modul 8 |
-| 5.7 | Virtual warehouse (outstanding customer) | `inventory.virtual` | §3 modul 4 |
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 5.1 | Work order + kurangi spare part | `workorder.*` | ✅ |
+| 5.2 | Stok opname spare part | `inventory.stockopname` | ✅ |
+| 5.3 | Jadwal hydrotest / servis | `cylinder.hydrotest` | ✅ |
+| 5.4 | Dashboard API (stok, outstanding, alert) | `dashboard.read` | ✅ |
+| 5.5 | Stock ledger per barcode | `report.ledger` | ✅ |
+| 5.6 | Turn-around rate report | `report.turnaround` | ✅ |
+| 5.7 | Virtual warehouse (outstanding customer) | `inventory.virtual` | ✅ |
+
+### API Fase 5
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| GET | `/api/v1/maintenance/work-orders` | `workorder.read` | List work order |
+| GET | `/api/v1/maintenance/work-orders/:id` | `workorder.read` | Detail WO + spare parts |
+| POST | `/api/v1/maintenance/work-orders` | `workorder.write` | Buat WO (OPEN) |
+| POST | `/api/v1/maintenance/work-orders/:id/complete` | `workorder.write` | Selesaikan WO, kurangi stok |
+| POST | `/api/v1/inventory/spareparts/stock-opname` | `inventory.stockopname` | Set stok aktual spare part |
+| GET | `/api/v1/maintenance/hydrotest/due` | `cylinder.hydrotest` | Tabung due/expired hydrotest |
+| POST | `/api/v1/maintenance/cylinders/:id/hydrotest` | `cylinder.hydrotest` | Catat hydrotest → MAINTENANCE |
+| GET | `/api/v1/dashboard/summary` | `dashboard.read` | Ringkasan stok, alert, outstanding |
+| GET | `/api/v1/reports/stock-ledger?barcode=` | `report.ledger` | Riwayat status per barcode |
+| GET | `/api/v1/reports/turnaround?from=&to=` | `report.turnaround` | Rata-rata hari EMPTY→READY |
+| GET | `/api/v1/inventory/virtual-warehouse` | `inventory.virtual` | Outstanding per pelanggan |
+
+**Cylinder ledger:** Setiap perubahan status tabung (Fase 3–5) dicatat di `cylinder_ledger` untuk laporan.
 
 ---
 
@@ -177,8 +217,8 @@
 |------------|:----------:|:---------------:|:--------------:|:-------:|
 | `auth.logout` | ✅ | ✅ | ✅ | ✅ |
 | `role.read` | ✅ | ✅ | ✅ | ✅ |
-| `user.create` | ✅ | ❌ | ❌ | ❌ |
-| `user.manage` | ✅ | ❌ | ❌ | ❌ |
+| `user.read` | ✅ | ❌ | ❌ | ✅ |
+| `user.write` | ✅ | ❌ | ❌ | ✅ |
 | `item.*` | ✅ | ✅ read/write | ❌ | ✅ read |
 | `cylinder.*` | ✅ | ✅ | ❌ read | ✅ read |
 | `customer.*` | ✅ | ✅ read | ✅ read | ✅ read |

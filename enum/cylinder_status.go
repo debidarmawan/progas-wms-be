@@ -7,6 +7,7 @@ type CylinderStatus string
 const (
 	CylinderStatusEmpty       CylinderStatus = "EMPTY"
 	CylinderStatusReadyToFill CylinderStatus = "READY_TO_FILL"
+	CylinderStatusFilled      CylinderStatus = "FILLED"
 	CylinderStatusReady       CylinderStatus = "READY"
 	CylinderStatusInTransit   CylinderStatus = "IN_TRANSIT"
 	CylinderStatusOutstanding CylinderStatus = "OUTSTANDING"
@@ -17,7 +18,7 @@ const (
 
 func (s CylinderStatus) IsValid() bool {
 	switch s {
-	case CylinderStatusEmpty, CylinderStatusReadyToFill, CylinderStatusReady,
+	case CylinderStatusEmpty, CylinderStatusReadyToFill, CylinderStatusFilled, CylinderStatusReady,
 		CylinderStatusInTransit, CylinderStatusOutstanding, CylinderStatusMaintenance,
 		CylinderStatusLost, CylinderStatusWriteOff:
 		return true

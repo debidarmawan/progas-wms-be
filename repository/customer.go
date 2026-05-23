@@ -12,9 +12,11 @@ import (
 type CustomerRepository interface {
 	FindAll(page, limit int, search string) ([]model.Customer, int64, global.ErrorResponse)
 	FindById(id string) (*model.Customer, global.ErrorResponse)
+	FindByIdForUpdate(tx helper.Tx, id string) (*model.Customer, global.ErrorResponse)
 	FindByCode(code string) (*model.Customer, global.ErrorResponse)
 	Create(tx helper.Tx, customer *model.Customer) global.ErrorResponse
 	Update(tx helper.Tx, customer *model.Customer) global.ErrorResponse
+	AdjustOutstanding(tx helper.Tx, customerId string, delta int) global.ErrorResponse
 }
 
 type customerRepository struct {
@@ -64,6 +66,17 @@ func (r *customerRepository) FindById(id string) (*model.Customer, global.ErrorR
 	return &customer, nil
 }
 
+func (r *customerRepository) FindByIdForUpdate(tx helper.Tx, id string) (*model.Customer, global.ErrorResponse) {
+	var customer model.Customer
+	if err := r.dbFromTx(tx).Where("id = ?", id).First(&customer).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, global.NotFoundError("Customer not found")
+		}
+		return nil, global.InternalServerError(err)
+	}
+	return &customer, nil
+}
+
 func (r *customerRepository) FindByCode(code string) (*model.Customer, global.ErrorResponse) {
 	var customer model.Customer
 	if err := r.db.Where("code = ?", code).First(&customer).Error; err != nil {
@@ -85,6 +98,19 @@ func (r *customerRepository) Create(tx helper.Tx, customer *model.Customer) glob
 func (r *customerRepository) Update(tx helper.Tx, customer *model.Customer) global.ErrorResponse {
 	if err := r.dbFromTx(tx).Save(customer).Error; err != nil {
 		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *customerRepository) AdjustOutstanding(tx helper.Tx, customerId string, delta int) global.ErrorResponse {
+	result := r.dbFromTx(tx).Model(&model.Customer{}).
+		Where("id = ?", customerId).
+		Update("outstanding_count", gorm.Expr("outstanding_count + ?", delta))
+	if result.Error != nil {
+		return global.InternalServerError(result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return global.NotFoundError("Customer not found")
 	}
 	return nil
 }

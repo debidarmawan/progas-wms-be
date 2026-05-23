@@ -53,6 +53,18 @@ definitions:
     - last_hydrotest_date
     - ownership_type
     type: object
+  dto.CreateFleetRequest:
+    properties:
+      driver_name:
+        type: string
+      max_weight_kg:
+        type: number
+      plate_number:
+        type: string
+    required:
+    - max_weight_kg
+    - plate_number
+    type: object
   dto.CreateMasterItemRequest:
     properties:
       empty_weight_kg:
@@ -83,6 +95,9 @@ definitions:
       name:
         type: string
       password:
+        minLength: 6
+        type: string
+      phone:
         type: string
       role_id:
         type: string
@@ -91,6 +106,34 @@ definitions:
     - name
     - password
     - role_id
+    type: object
+  dto.CreateWorkOrderRequest:
+    properties:
+      description:
+        type: string
+      spareparts:
+        items:
+          $ref: '#/definitions/dto.WorkOrderSparepartLine'
+        minItems: 1
+        type: array
+      title:
+        type: string
+    required:
+    - spareparts
+    - title
+    type: object
+  dto.CustomerQuotaAlert:
+    properties:
+      customer_code:
+        type: string
+      customer_id:
+        type: string
+      customer_name:
+        type: string
+      outstanding_count:
+        type: integer
+      quota_limit:
+        type: integer
     type: object
   dto.CustomerResponse:
     properties:
@@ -109,6 +152,25 @@ definitions:
       outstanding_count:
         type: integer
       phone:
+        type: string
+    type: object
+  dto.CylinderLedgerEntryResponse:
+    properties:
+      action:
+        type: string
+      barcode_sn:
+        type: string
+      created_at:
+        type: string
+      from_status:
+        type: string
+      id:
+        type: string
+      reference_id:
+        type: string
+      reference_type:
+        type: string
+      to_status:
         type: string
     type: object
   dto.CylinderResponse:
@@ -131,6 +193,94 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  dto.DashboardSummaryResponse:
+    properties:
+      customers_over_quota:
+        items:
+          $ref: '#/definitions/dto.CustomerQuotaAlert'
+        type: array
+      cylinders_by_status:
+        additionalProperties:
+          type: integer
+        type: object
+      hydrotest_due_soon_count:
+        type: integer
+      hydrotest_expired_count:
+        type: integer
+      low_stock_spareparts:
+        items:
+          $ref: '#/definitions/dto.LowStockSparepartAlert'
+        type: array
+      total_outstanding_cylinders:
+        type: integer
+    type: object
+  dto.DeliveryOrderDetailResponse:
+    properties:
+      barcode_sn:
+        type: string
+      cylinder_id:
+        type: string
+      id:
+        type: string
+      weight_kg:
+        type: number
+    type: object
+  dto.DeliveryOrderResponse:
+    properties:
+      created_at:
+        type: string
+      customer_id:
+        type: string
+      customer_name:
+        type: string
+      cylinder_qty:
+        type: integer
+      details:
+        items:
+          $ref: '#/definitions/dto.DeliveryOrderDetailResponse'
+        type: array
+      do_number:
+        type: string
+      fleet_id:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      plate_number:
+        type: string
+      status:
+        type: string
+      total_weight_kg:
+        type: number
+    type: object
+  dto.ExchangeResponse:
+    properties:
+      cross_customer_alerts:
+        items:
+          type: string
+        type: array
+      customer_id:
+        type: string
+      in_barcodes:
+        items:
+          type: string
+        type: array
+      in_count:
+        type: integer
+      out_barcodes:
+        items:
+          type: string
+        type: array
+      out_count:
+        type: integer
+      outstanding_after:
+        type: integer
+      outstanding_before:
+        type: integer
+      outstanding_delta:
+        type: integer
     type: object
   dto.FillingBatchDetailResponse:
     properties:
@@ -166,6 +316,61 @@ definitions:
       status:
         type: string
     type: object
+  dto.FleetResponse:
+    properties:
+      driver_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      max_weight_kg:
+        type: number
+      plate_number:
+        type: string
+    type: object
+  dto.HydrotestDueCylinder:
+    properties:
+      barcode_sn:
+        type: string
+      expiry_date:
+        type: string
+      id:
+        type: string
+      is_expired:
+        type: boolean
+      last_hydrotest_date:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.HydrotestDueResponse:
+    properties:
+      due_within_days:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/dto.HydrotestDueCylinder'
+        type: array
+    type: object
+  dto.IssueDeliveryOrderRequest:
+    properties:
+      barcodes:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      customer_id:
+        type: string
+      fleet_id:
+        type: string
+      notes:
+        type: string
+    required:
+    - barcodes
+    - customer_id
+    - fleet_id
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -186,6 +391,19 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.LowStockSparepartAlert:
+    properties:
+      item_id:
+        type: string
+      item_name:
+        type: string
+      min_stock:
+        type: integer
+      quantity:
+        type: integer
+      sku:
+        type: string
     type: object
   dto.MasterItemResponse:
     properties:
@@ -231,11 +449,29 @@ definitions:
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
     type: object
+  dto.PaginatedDeliveryOrderList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.DeliveryOrderResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedFillingBatchList:
     properties:
       items:
         items:
           $ref: '#/definitions/dto.FillingBatchResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedFleetList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.FleetResponse'
         type: array
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
@@ -258,6 +494,24 @@ definitions:
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
     type: object
+  dto.PaginatedUserList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.UserListResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedWorkOrderList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.WorkOrderResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginationMeta:
     properties:
       limit:
@@ -268,6 +522,36 @@ definitions:
         type: integer
       total_pages:
         type: integer
+    type: object
+  dto.ProcessExchangeRequest:
+    properties:
+      customer_id:
+        type: string
+      force_approve:
+        type: boolean
+      in_barcodes:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      out_barcodes:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - customer_id
+    - in_barcodes
+    - out_barcodes
+    type: object
+  dto.RecordHydrotestRequest:
+    properties:
+      last_hydrotest_date:
+        type: string
+      notes:
+        type: string
+    required:
+    - last_hydrotest_date
     type: object
   dto.RefreshTokenRequest:
     properties:
@@ -282,6 +566,40 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  dto.StockLedgerReportResponse:
+    properties:
+      barcode_sn:
+        type: string
+      entries:
+        items:
+          $ref: '#/definitions/dto.CylinderLedgerEntryResponse'
+        type: array
+    type: object
+  dto.StockOpnameRequest:
+    properties:
+      actual_quantity:
+        minimum: 0
+        type: integer
+      item_id:
+        type: string
+      notes:
+        type: string
+    required:
+    - item_id
+    type: object
+  dto.StockOpnameResponse:
+    properties:
+      item_id:
+        type: string
+      item_name:
+        type: string
+      quantity_after:
+        type: integer
+      quantity_before:
+        type: integer
+      quantity_delta:
+        type: integer
     type: object
   dto.SubmitFillingBatchRequest:
     properties:
@@ -298,6 +616,32 @@ definitions:
     - barcodes
     - item_id
     type: object
+  dto.TurnaroundReportResponse:
+    properties:
+      average_days:
+        type: number
+      from_date:
+        type: string
+      sample_count:
+        type: integer
+      samples:
+        items:
+          $ref: '#/definitions/dto.TurnaroundSample'
+        type: array
+      to_date:
+        type: string
+    type: object
+  dto.TurnaroundSample:
+    properties:
+      barcode_sn:
+        type: string
+      completed_at:
+        type: string
+      days:
+        type: number
+      started_at:
+        type: string
+    type: object
   dto.UpdateCustomerRequest:
     properties:
       address:
@@ -313,6 +657,17 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  dto.UpdateFleetRequest:
+    properties:
+      driver_name:
+        type: string
+      is_active:
+        type: boolean
+      max_weight_kg:
+        type: number
+    required:
+    - max_weight_kg
     type: object
   dto.UpdateMasterItemRequest:
     properties:
@@ -332,6 +687,47 @@ definitions:
     required:
     - name
     type: object
+  dto.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone:
+        type: string
+      role_id:
+        type: string
+    required:
+    - email
+    - name
+    - role_id
+    type: object
+  dto.UserListResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      last_logged_in_at:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      role_id:
+        type: string
+      role_name:
+        type: string
+    type: object
   dto.UserResponse:
     properties:
       email:
@@ -345,6 +741,68 @@ definitions:
       role_id:
         type: string
       role_name:
+        type: string
+    type: object
+  dto.VirtualWarehouseCustomer:
+    properties:
+      customer_code:
+        type: string
+      customer_id:
+        type: string
+      customer_name:
+        type: string
+      cylinder_barcodes:
+        items:
+          type: string
+        type: array
+      outstanding_count:
+        type: integer
+    type: object
+  dto.VirtualWarehouseResponse:
+    properties:
+      customers:
+        items:
+          $ref: '#/definitions/dto.VirtualWarehouseCustomer'
+        type: array
+    type: object
+  dto.WorkOrderResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      spareparts:
+        items:
+          $ref: '#/definitions/dto.WorkOrderSparepartResponse'
+        type: array
+      status:
+        type: string
+      title:
+        type: string
+      wo_number:
+        type: string
+    type: object
+  dto.WorkOrderSparepartLine:
+    properties:
+      item_id:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - item_id
+    - quantity
+    type: object
+  dto.WorkOrderSparepartResponse:
+    properties:
+      item_id:
+        type: string
+      item_name:
+        type: string
+      quantity:
+        type: integer
+      sku:
         type: string
     type: object
   global.Response-dto_BarcodeOperationResponse:
@@ -386,12 +844,77 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_DashboardSummaryResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.DashboardSummaryResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_DeliveryOrderResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.DeliveryOrderResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_ExchangeResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.ExchangeResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_FillingBatchResponse:
     properties:
       code:
         type: integer
       data:
         $ref: '#/definitions/dto.FillingBatchResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_FleetResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.FleetResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_HydrotestDueResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.HydrotestDueResponse'
       error_code:
         type: string
       message:
@@ -464,12 +987,38 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_PaginatedDeliveryOrderList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedDeliveryOrderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_PaginatedFillingBatchList:
     properties:
       code:
         type: integer
       data:
         $ref: '#/definitions/dto.PaginatedFillingBatchList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedFleetList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedFleetList'
       error_code:
         type: string
       message:
@@ -503,12 +1052,116 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_PaginatedUserList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedUserList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedWorkOrderList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedWorkOrderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_RoleResponse:
     properties:
       code:
         type: integer
       data:
         $ref: '#/definitions/dto.RoleResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_StockLedgerReportResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.StockLedgerReportResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_StockOpnameResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.StockOpnameResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_TurnaroundReportResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.TurnaroundReportResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_UserListResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.UserListResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_VirtualWarehouseResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.VirtualWarehouseResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_WorkOrderResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.WorkOrderResponse'
       error_code:
         type: string
       message:
@@ -704,6 +1357,19 @@ paths:
       summary: Find cylinder by id
       tags:
       - Cylinder
+  /dashboard/summary:
+    get:
+      description: Stock, outstanding, low stock alerts, hydrotest alerts, quota alerts
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_DashboardSummaryResponse'
+      security:
+      - Bearer: []
+      summary: Dashboard summary
+      tags:
+      - Dashboard
   /inbound/empty-receive:
     post:
       consumes:
@@ -729,6 +1395,40 @@ paths:
       summary: Empty cylinder receiving
       tags:
       - Inbound
+  /inventory/spareparts/stock-opname:
+    post:
+      description: Set actual spare part quantity (adjusts stock to counted value)
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.StockOpnameRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_StockOpnameResponse'
+      security:
+      - Bearer: []
+      summary: Spare part stock opname
+      tags:
+      - Inventory
+  /inventory/virtual-warehouse:
+    get:
+      description: Customers with outstanding cylinders (company inventory at customer
+        sites)
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_VirtualWarehouseResponse'
+      security:
+      - Bearer: []
+      summary: Virtual warehouse
+      tags:
+      - Inventory
   /login:
     post:
       consumes:
@@ -751,6 +1451,110 @@ paths:
       summary: Login
       tags:
       - Auth
+  /logistics/fleet:
+    get:
+      consumes:
+      - application/json
+      description: List fleet vehicles with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by plate number or driver name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedFleetList'
+      security:
+      - Bearer: []
+      summary: List fleet vehicles
+      tags:
+      - Logistics
+    post:
+      consumes:
+      - application/json
+      description: Register a fleet vehicle with max weight capacity
+      parameters:
+      - description: Create fleet request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateFleetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create fleet vehicle
+      tags:
+      - Logistics
+  /logistics/fleet/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get fleet vehicle detail
+      parameters:
+      - description: Fleet vehicle ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_FleetResponse'
+      security:
+      - Bearer: []
+      summary: Get fleet vehicle by id
+      tags:
+      - Logistics
+    put:
+      consumes:
+      - application/json
+      description: Update fleet vehicle driver, max weight, or active status
+      parameters:
+      - description: Fleet vehicle ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update fleet request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateFleetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update fleet vehicle
+      tags:
+      - Logistics
   /logout:
     post:
       consumes:
@@ -768,6 +1572,128 @@ paths:
       summary: Logout
       tags:
       - Auth
+  /maintenance/cylinders/{id}/hydrotest:
+    post:
+      description: Update last hydrotest date and set status to MAINTENANCE
+      parameters:
+      - description: Cylinder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RecordHydrotestRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Record cylinder hydrotest
+      tags:
+      - Maintenance
+  /maintenance/hydrotest/due:
+    get:
+      parameters:
+      - description: Due within days (default 30)
+        in: query
+        name: days
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_HydrotestDueResponse'
+      security:
+      - Bearer: []
+      summary: List cylinders due for hydrotest
+      tags:
+      - Maintenance
+  /maintenance/work-orders:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Search
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedWorkOrderList'
+      security:
+      - Bearer: []
+      summary: List work orders
+      tags:
+      - Maintenance
+    post:
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWorkOrderRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_WorkOrderResponse'
+      security:
+      - Bearer: []
+      summary: Create work order
+      tags:
+      - Maintenance
+  /maintenance/work-orders/{id}:
+    get:
+      parameters:
+      - description: Work order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_WorkOrderResponse'
+      security:
+      - Bearer: []
+      summary: Get work order by id
+      tags:
+      - Maintenance
+  /maintenance/work-orders/{id}/complete:
+    post:
+      description: Deduct spare part stock when completing
+      parameters:
+      - description: Work order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_WorkOrderResponse'
+      security:
+      - Bearer: []
+      summary: Complete work order
+      tags:
+      - Maintenance
   /master-items:
     get:
       consumes:
@@ -872,6 +1798,109 @@ paths:
       summary: Update master item
       tags:
       - Master Item
+  /outbound/delivery-orders:
+    get:
+      consumes:
+      - application/json
+      description: List delivery orders with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by DO number or customer
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedDeliveryOrderList'
+      security:
+      - Bearer: []
+      summary: List delivery orders
+      tags:
+      - Outbound
+    post:
+      consumes:
+      - application/json
+      description: Create delivery order manifest, validate weight vs fleet capacity,
+        set cylinders to IN_TRANSIT
+      parameters:
+      - description: Issue DO request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.IssueDeliveryOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_DeliveryOrderResponse'
+      security:
+      - Bearer: []
+      summary: Issue delivery order
+      tags:
+      - Outbound
+  /outbound/delivery-orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get delivery order detail including manifest cylinders
+      parameters:
+      - description: Delivery order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_DeliveryOrderResponse'
+      security:
+      - Bearer: []
+      summary: Get delivery order by id
+      tags:
+      - Outbound
+  /outbound/exchange:
+    post:
+      consumes:
+      - application/json
+      description: 'Gate swap: OUT (IN_TRANSIT→OUTSTANDING) and IN (OUTSTANDING→EMPTY).
+        Updates outstanding count (excludes CUSTOMER-owned cylinders). Use force_approve
+        with exchange.approve permission when over quota.'
+      parameters:
+      - description: Exchange request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProcessExchangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_ExchangeResponse'
+      security:
+      - Bearer: []
+      summary: Process cylinder exchange
+      tags:
+      - Outbound
   /production/filling-batches:
     get:
       consumes:
@@ -906,7 +1935,7 @@ paths:
       consumes:
       - application/json
       description: Create and complete a filling batch atomically (validates status
-        & cross-gas, sets cylinders to READY)
+        & cross-gas, sets cylinders to FILLED; use post-fill QC for READY)
       parameters:
       - description: Filling batch request
         in: body
@@ -947,6 +1976,30 @@ paths:
       security:
       - Bearer: []
       summary: Get filling batch by id
+      tags:
+      - Production
+  /production/qc/post-fill:
+    post:
+      consumes:
+      - application/json
+      description: Pass post-fill inspection after gas filling (FILLED → READY)
+      parameters:
+      - description: Barcode list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BarcodeListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_BarcodeOperationResponse'
+      security:
+      - Bearer: []
+      summary: Post-fill QC
       tags:
       - Production
   /production/qc/pre-fill:
@@ -995,6 +2048,47 @@ paths:
       summary: Refresh token
       tags:
       - Auth
+  /reports/stock-ledger:
+    get:
+      description: Status change history for a cylinder barcode
+      parameters:
+      - description: Cylinder barcode SN
+        in: query
+        name: barcode
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_StockLedgerReportResponse'
+      security:
+      - Bearer: []
+      summary: Stock ledger per barcode
+      tags:
+      - Report
+  /reports/turnaround:
+    get:
+      description: Average days from EMPTY to READY per cylinder in date range
+      parameters:
+      - description: From date YYYY-MM-DD
+        in: query
+        name: from
+        type: string
+      - description: To date YYYY-MM-DD
+        in: query
+        name: to
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_TurnaroundReportResponse'
+      security:
+      - Bearer: []
+      summary: Turn-around rate report
+      tags:
+      - Report
   /roles/:
     get:
       consumes:
@@ -1049,10 +2143,39 @@ paths:
       tags:
       - Role
   /users:
+    get:
+      consumes:
+      - application/json
+      description: List users with pagination and search (Superadmin & Manager only)
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, email, or phone
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedUserList'
+      security:
+      - Bearer: []
+      summary: List users
+      tags:
+      - User
     post:
       consumes:
       - application/json
-      description: Create user
+      description: Create user (Superadmin & Manager only)
       parameters:
       - description: Create user request
         in: body
@@ -1070,6 +2193,80 @@ paths:
       security:
       - Bearer: []
       summary: Create user
+      tags:
+      - User
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft-delete user (Superadmin & Manager only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete user
+      tags:
+      - User
+    get:
+      consumes:
+      - application/json
+      description: Get user detail (Superadmin & Manager only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_UserListResponse'
+      security:
+      - Bearer: []
+      summary: Get user by id
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update user profile, role, active status, or password (Superadmin
+        & Manager only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update user
       tags:
       - User
 securityDefinitions:

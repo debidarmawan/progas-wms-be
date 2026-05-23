@@ -18,17 +18,19 @@ type FillingBatchUsecase interface {
 }
 
 type fillingBatchUsecase struct {
-	txManager       helper.TxManager
+	txManager        helper.TxManager
 	fillingBatchRepo repository.FillingBatchRepository
-	cylinderRepo    repository.CylinderRepository
-	masterItemRepo  repository.MasterItemRepository
-	auditLogRepo    repository.AuditLogRepository
+	cylinderRepo     repository.CylinderRepository
+	ledgerRepo       repository.CylinderLedgerRepository
+	masterItemRepo   repository.MasterItemRepository
+	auditLogRepo     repository.AuditLogRepository
 }
 
 func NewFillingBatchUsecase(
 	txManager helper.TxManager,
 	fillingBatchRepo repository.FillingBatchRepository,
 	cylinderRepo repository.CylinderRepository,
+	ledgerRepo repository.CylinderLedgerRepository,
 	masterItemRepo repository.MasterItemRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) FillingBatchUsecase {
@@ -36,6 +38,7 @@ func NewFillingBatchUsecase(
 		txManager:        txManager,
 		fillingBatchRepo: fillingBatchRepo,
 		cylinderRepo:     cylinderRepo,
+		ledgerRepo:       ledgerRepo,
 		masterItemRepo:   masterItemRepo,
 		auditLogRepo:     auditLogRepo,
 	}
@@ -96,7 +99,8 @@ func (u *fillingBatchUsecase) Submit(actorUserId string, req *dto.SubmitFillingB
 		return nil, err
 	}
 
-	if err := u.cylinderRepo.UpdateStatusByIds(tx, cylinderIds, enum.CylinderStatusReady); err != nil {
+	repository.LogCylinderStatusChanges(u.ledgerRepo, tx, cylinders, enum.CylinderStatusFilled, constant.LedgerActionFillingBatch, constant.AuditObjectFillingBatch, batch.Id)
+	if err := u.cylinderRepo.UpdateStatusByIds(tx, cylinderIds, enum.CylinderStatusFilled); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
