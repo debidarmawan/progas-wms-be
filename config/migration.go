@@ -17,6 +17,7 @@ func Migrate(db *gorm.DB) {
 		&model.MasterItem{},
 		&model.Cylinder{},
 		&model.Customer{},
+		&model.Vendor{},
 		&model.SparepartStock{},
 		&model.FillingBatch{},
 		&model.FillingBatchDetail{},

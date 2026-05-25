@@ -107,6 +107,30 @@ definitions:
     - password
     - role_id
     type: object
+  dto.CreateVendorRequest:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contact_person:
+        type: string
+      contract_end_date:
+        type: string
+      contract_start_date:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+    required:
+    - code
+    - name
+    type: object
   dto.CreateWorkOrderRequest:
     properties:
       description:
@@ -188,6 +212,8 @@ definitions:
       last_hydrotest_date:
         type: string
       owner_id:
+        type: string
+      owner_name:
         type: string
       ownership_type:
         type: string
@@ -503,6 +529,15 @@ definitions:
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
     type: object
+  dto.PaginatedVendorList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.VendorResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedWorkOrderList:
     properties:
       items:
@@ -707,6 +742,29 @@ definitions:
     - name
     - role_id
     type: object
+  dto.UpdateVendorRequest:
+    properties:
+      address:
+        type: string
+      contact_person:
+        type: string
+      contract_end_date:
+        type: string
+      contract_start_date:
+        type: string
+      email:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
   dto.UserListResponse:
     properties:
       created_at:
@@ -741,6 +799,81 @@ definitions:
       role_id:
         type: string
       role_name:
+        type: string
+    type: object
+  dto.VendorCylinderSummary:
+    properties:
+      barcode_sn:
+        type: string
+      gas_type:
+        type: string
+      id:
+        type: string
+      item_name:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.VendorDetailResponse:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contact_person:
+        type: string
+      contract_end_date:
+        type: string
+      contract_start_date:
+        type: string
+      cylinder_count:
+        type: integer
+      cylinders:
+        items:
+          $ref: '#/definitions/dto.VendorCylinderSummary'
+        type: array
+      cylinders_by_status:
+        additionalProperties:
+          type: integer
+        type: object
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+    type: object
+  dto.VendorResponse:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contact_person:
+        type: string
+      contract_end_date:
+        type: string
+      contract_start_date:
+        type: string
+      cylinder_count:
+        type: integer
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
         type: string
     type: object
   dto.VirtualWarehouseCustomer:
@@ -1065,6 +1198,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_PaginatedVendorList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedVendorList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_PaginatedWorkOrderList:
     properties:
       code:
@@ -1136,6 +1282,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.UserListResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_VendorDetailResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.VendorDetailResponse'
       error_code:
         type: string
       message:
@@ -2269,6 +2428,111 @@ paths:
       summary: Update user
       tags:
       - User
+  /vendors:
+    get:
+      description: List rental vendors with cylinder count
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Search code, name, contact, phone, email
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedVendorList'
+      security:
+      - Bearer: []
+      summary: List vendors
+      tags:
+      - Vendor
+    post:
+      description: Register rental cylinder vendor
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateVendorRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create vendor
+      tags:
+      - Vendor
+  /vendors/{id}:
+    delete:
+      description: Soft-delete vendor (only when no rental cylinders linked)
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete vendor
+      tags:
+      - Vendor
+    get:
+      description: Get vendor detail including rented cylinders (ownership VENDOR)
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_VendorDetailResponse'
+      security:
+      - Bearer: []
+      summary: Get vendor by id
+      tags:
+      - Vendor
+    put:
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateVendorRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update vendor
+      tags:
+      - Vendor
 securityDefinitions:
   Bearer:
     in: header

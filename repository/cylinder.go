@@ -22,6 +22,9 @@ type CylinderRepository interface {
 	FindByBarcodes(tx helper.Tx, barcodes []string) ([]model.Cylinder, global.ErrorResponse)
 	FindHydrotestDue(withinDays int) ([]model.Cylinder, global.ErrorResponse)
 	FindOutstandingGroupedByCustomer() (map[string][]model.Cylinder, global.ErrorResponse)
+	FindByVendorId(vendorId string) ([]model.Cylinder, global.ErrorResponse)
+	CountByVendorIds(vendorIds []string) (map[string]int64, global.ErrorResponse)
+	CountByVendorId(vendorId string) (int64, global.ErrorResponse)
 	Update(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 	UpdateStatusByIds(tx helper.Tx, ids []string, status enum.CylinderStatus) global.ErrorResponse
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
@@ -99,6 +102,53 @@ func (r *cylinderRepository) FindHydrotestDue(withinDays int) ([]model.Cylinder,
 		return nil, global.InternalServerError(err)
 	}
 	return cylinders, nil
+}
+
+func (r *cylinderRepository) FindByVendorId(vendorId string) ([]model.Cylinder, global.ErrorResponse) {
+	var cylinders []model.Cylinder
+	err := r.db.Preload("MasterItem").
+		Where("ownership_type = ? AND owner_id = ?", enum.OwnershipVendor, vendorId).
+		Order("barcode_sn asc").
+		Find(&cylinders).Error
+	if err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return cylinders, nil
+}
+
+func (r *cylinderRepository) CountByVendorIds(vendorIds []string) (map[string]int64, global.ErrorResponse) {
+	counts := make(map[string]int64)
+	if len(vendorIds) == 0 {
+		return counts, nil
+	}
+	type row struct {
+		OwnerId string
+		Count   int64
+	}
+	var rows []row
+	err := r.db.Model(&model.Cylinder{}).
+		Select("owner_id, COUNT(*) as count").
+		Where("ownership_type = ? AND owner_id IN ?", enum.OwnershipVendor, vendorIds).
+		Group("owner_id").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	for _, row := range rows {
+		counts[row.OwnerId] = row.Count
+	}
+	return counts, nil
+}
+
+func (r *cylinderRepository) CountByVendorId(vendorId string) (int64, global.ErrorResponse) {
+	var count int64
+	err := r.db.Model(&model.Cylinder{}).
+		Where("ownership_type = ? AND owner_id = ?", enum.OwnershipVendor, vendorId).
+		Count(&count).Error
+	if err != nil {
+		return 0, global.InternalServerError(err)
+	}
+	return count, nil
 }
 
 func (r *cylinderRepository) FindOutstandingGroupedByCustomer() (map[string][]model.Cylinder, global.ErrorResponse) {

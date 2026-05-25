@@ -16,6 +16,7 @@ type CylinderResponse struct {
 	GasType           string `json:"gas_type"`
 	OwnershipType     string `json:"ownership_type"`
 	OwnerId           string `json:"owner_id,omitempty"`
+	OwnerName         string `json:"owner_name,omitempty"`
 	Status            string `json:"status"`
 	LastHydrotestDate string `json:"last_hydrotest_date"`
 }

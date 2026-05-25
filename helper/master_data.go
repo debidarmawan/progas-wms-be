@@ -19,8 +19,12 @@ func ValidateOwnership(ownerType enum.Ownership, ownerId *string) bool {
 	if !ownerType.IsValid() {
 		return false
 	}
-	if ownerType == enum.OwnershipCustomer {
+	switch ownerType {
+	case enum.OwnershipCompany:
+		return ownerId == nil || *ownerId == ""
+	case enum.OwnershipCustomer, enum.OwnershipVendor:
 		return ownerId != nil && *ownerId != ""
+	default:
+		return false
 	}
-	return true
 }

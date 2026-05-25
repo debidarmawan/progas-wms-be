@@ -1764,6 +1764,176 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/vendors": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List rental vendors with cylinder count",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "List vendors",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search code, name, contact, phone, email",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedVendorList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Register rental cylinder vendor",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Create vendor",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateVendorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendors/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get vendor detail including rented cylinders (ownership VENDOR)",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Get vendor by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_VendorDetailResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Update vendor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateVendorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Soft-delete vendor (only when no rental cylinders linked)",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Delete vendor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1925,6 +2095,42 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateVendorRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateWorkOrderRequest": {
             "type": "object",
             "required": [
@@ -2047,6 +2253,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "owner_id": {
+                    "type": "string"
+                },
+                "owner_name": {
                     "type": "string"
                 },
                 "ownership_type": {
@@ -2530,6 +2739,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaginatedVendorList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VendorResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
         "dto.PaginatedWorkOrderList": {
             "type": "object",
             "properties": {
@@ -2837,6 +3060,41 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateVendorRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UserListResponse": {
             "type": "object",
             "properties": {
@@ -2888,6 +3146,120 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorCylinderSummary": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorDetailResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "cylinder_count": {
+                    "type": "integer"
+                },
+                "cylinders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VendorCylinderSummary"
+                    }
+                },
+                "cylinders_by_status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "cylinder_count": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             }
@@ -3387,6 +3759,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_PaginatedVendorList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedVendorList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_PaginatedWorkOrderList": {
             "type": "object",
             "properties": {
@@ -3495,6 +3887,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.UserListResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_VendorDetailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.VendorDetailResponse"
                 },
                 "error_code": {
                     "type": "string"

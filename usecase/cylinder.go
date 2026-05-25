@@ -25,6 +25,7 @@ type cylinderUsecase struct {
 	cylinderRepo   repository.CylinderRepository
 	masterItemRepo repository.MasterItemRepository
 	customerRepo   repository.CustomerRepository
+	vendorRepo     repository.VendorRepository
 	auditLogRepo   repository.AuditLogRepository
 }
 
@@ -33,6 +34,7 @@ func NewCylinderUsecase(
 	cylinderRepo repository.CylinderRepository,
 	masterItemRepo repository.MasterItemRepository,
 	customerRepo repository.CustomerRepository,
+	vendorRepo repository.VendorRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) CylinderUsecase {
 	return &cylinderUsecase{
@@ -40,6 +42,7 @@ func NewCylinderUsecase(
 		cylinderRepo:   cylinderRepo,
 		masterItemRepo: masterItemRepo,
 		customerRepo:   customerRepo,
+		vendorRepo:     vendorRepo,
 		auditLogRepo:   auditLogRepo,
 	}
 }
@@ -91,7 +94,7 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		ownerId = &req.OwnerId
 	}
 	if !helper.ValidateOwnership(ownership, ownerId) {
-		return global.BadRequestError("invalid ownership: CUSTOMER ownership requires owner_id")
+		return global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
 	}
 	if ownership == enum.OwnershipCustomer {
 		if _, err := u.customerRepo.FindById(*ownerId); err != nil {
@@ -99,6 +102,18 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 				return global.BadRequestError("invalid customer owner_id")
 			}
 			return err
+		}
+	}
+	if ownership == enum.OwnershipVendor {
+		vendor, err := u.vendorRepo.FindById(*ownerId)
+		if err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return global.BadRequestError("invalid vendor owner_id")
+			}
+			return err
+		}
+		if !vendor.IsActive {
+			return global.BadRequestError("vendor is not active")
 		}
 	}
 
