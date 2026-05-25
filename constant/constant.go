@@ -9,4 +9,5 @@ const (
 	RefreshTokenExpiredInDays = "REFRESH_TOKEN_EXPIRED_IN_DAYS"
 	AuthTokenSecretKey        = "AUTH_TOKEN_SECRET_KEY"
 	RefreshTokenSecretKey     = "REFRESH_TOKEN_SECRET_KEY"
+	HashingCost               = 10
 )

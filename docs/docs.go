@@ -17,7 +17,3949 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/customers": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all customers with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Find all customers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by code, name, or phone",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedCustomerList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create customer with cylinder quota limit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Create customer",
+                "parameters": [
+                    {
+                        "description": "Create customer request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find customer by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Find customer by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CustomerResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update customer by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Update customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update customer request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all registered cylinders with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Find all cylinders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by barcode, status, ownership, or item name/SKU/gas type",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedCylinderList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Register a new cylinder with unique barcode",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Register cylinder",
+                "parameters": [
+                    {
+                        "description": "Register cylinder request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCylinderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find cylinder by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Find cylinder by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CylinderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/summary": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Stock, outstanding, low stock alerts, hydrotest alerts, quota alerts",
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Dashboard summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_DashboardSummaryResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inbound/empty-receive": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Receive empty cylinders returned from customer (OUTSTANDING/IN_TRANSIT → EMPTY)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inbound"
+                ],
+                "summary": "Empty cylinder receiving",
+                "parameters": [
+                    {
+                        "description": "Barcode list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BarcodeListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/spareparts/stock-opname": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Set actual spare part quantity (adjusts stock to counted value)",
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Spare part stock opname",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.StockOpnameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_StockOpnameResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/virtual-warehouse": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Customers with outstanding cylinders (company inventory at customer sites)",
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Virtual warehouse",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_VirtualWarehouseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_LoginResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/logistics/fleet": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List fleet vehicles with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "List fleet vehicles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by plate number or driver name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedFleetList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Register a fleet vehicle with max weight capacity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Create fleet vehicle",
+                "parameters": [
+                    {
+                        "description": "Create fleet request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateFleetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/logistics/fleet/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get fleet vehicle detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Get fleet vehicle by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fleet vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_FleetResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update fleet vehicle driver, max weight, or active status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Update fleet vehicle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fleet vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update fleet request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateFleetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Logout",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance/cylinders/{id}/hydrotest": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update last hydrotest date and set status to MAINTENANCE",
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Record cylinder hydrotest",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RecordHydrotestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance/hydrotest/due": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "List cylinders due for hydrotest",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Due within days (default 30)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_HydrotestDueResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance/work-orders": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "List work orders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedWorkOrderList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Create work order",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateWorkOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_WorkOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance/work-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Get work order by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Work order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_WorkOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance/work-orders/{id}/complete": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Deduct spare part stock when completing",
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Complete work order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Work order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_WorkOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/master-items": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all master items with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Item"
+                ],
+                "summary": "Find all master items",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name, SKU, or gas type",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedMasterItemList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create master item (serialized gas or non-serialized spare part)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Item"
+                ],
+                "summary": "Create master item",
+                "parameters": [
+                    {
+                        "description": "Create master item request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMasterItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/master-items/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find master item by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Item"
+                ],
+                "summary": "Find master item by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Master Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_MasterItemResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update master item by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Item"
+                ],
+                "summary": "Update master item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Master Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update master item request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateMasterItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/outbound/delivery-orders": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List delivery orders with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Outbound"
+                ],
+                "summary": "List delivery orders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by DO number or customer",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedDeliveryOrderList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create delivery order manifest, validate weight vs fleet capacity, set cylinders to IN_TRANSIT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Outbound"
+                ],
+                "summary": "Issue delivery order",
+                "parameters": [
+                    {
+                        "description": "Issue DO request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.IssueDeliveryOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_DeliveryOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/outbound/delivery-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get delivery order detail including manifest cylinders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Outbound"
+                ],
+                "summary": "Get delivery order by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Delivery order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_DeliveryOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/outbound/exchange": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Gate swap: OUT (IN_TRANSIT→OUTSTANDING) and IN (OUTSTANDING→EMPTY). Updates outstanding count (excludes CUSTOMER-owned cylinders). Use force_approve with exchange.approve permission when over quota.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Outbound"
+                ],
+                "summary": "Process cylinder exchange",
+                "parameters": [
+                    {
+                        "description": "Exchange request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProcessExchangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_ExchangeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/filling-batches": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List filling batches with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "List filling batches",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by batch number or gas type",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedFillingBatchList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create and complete a filling batch atomically (validates status \u0026 cross-gas, sets cylinders to FILLED; use post-fill QC for READY)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Submit filling batch",
+                "parameters": [
+                    {
+                        "description": "Filling batch request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubmitFillingBatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_FillingBatchResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/filling-batches/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get filling batch detail including scanned cylinders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Get filling batch by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filling batch ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_FillingBatchResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/qc/post-fill": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Pass post-fill inspection after gas filling (FILLED → READY)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Post-fill QC",
+                "parameters": [
+                    {
+                        "description": "Barcode list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BarcodeListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/production/qc/pre-fill": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Pass pre-fill inspection (EMPTY → READY_TO_FILL)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Pre-fill QC",
+                "parameters": [
+                    {
+                        "description": "Barcode list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BarcodeListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/refresh-token": {
+            "post": {
+                "description": "Refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh token",
+                "parameters": [
+                    {
+                        "description": "RefreshToken data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_LoginResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/stock-ledger": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Status change history for a cylinder barcode",
+                "tags": [
+                    "Report"
+                ],
+                "summary": "Stock ledger per barcode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder barcode SN",
+                        "name": "barcode",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_StockLedgerReportResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/turnaround": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Average days from EMPTY to READY per cylinder in date range",
+                "tags": [
+                    "Report"
+                ],
+                "summary": "Turn-around rate report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "From date YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_TurnaroundReportResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all roles with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Find all roles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by role name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedRoleList"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find role by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Find role by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_RoleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List users with pagination and search (Superadmin \u0026 Manager only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "List users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name, email, or phone",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedUserList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create user (Superadmin \u0026 Manager only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "description": "Create user request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get user detail (Superadmin \u0026 Manager only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_UserListResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update user profile, role, active status, or password (Superadmin \u0026 Manager only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update user request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Soft-delete user (Superadmin \u0026 Manager only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendors": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List rental vendors with cylinder count",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "List vendors",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search code, name, contact, phone, email",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedVendorList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Register rental cylinder vendor",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Create vendor",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateVendorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendors/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get vendor detail including rented cylinders (ownership VENDOR)",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Get vendor by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_VendorDetailResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Update vendor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateVendorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Soft-delete vendor (only when no rental cylinders linked)",
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Delete vendor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.BarcodeListRequest": {
+            "type": "object",
+            "required": [
+                "barcodes"
+            ],
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.BarcodeOperationResponse": {
+            "type": "object",
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "processed_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateCustomerRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "cylinder_quota_limit": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateCylinderRequest": {
+            "type": "object",
+            "required": [
+                "barcode_sn",
+                "item_id",
+                "last_hydrotest_date",
+                "ownership_type"
+            ],
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateFleetRequest": {
+            "type": "object",
+            "required": [
+                "max_weight_kg",
+                "plate_number"
+            ],
+            "properties": {
+                "driver_name": {
+                    "type": "string"
+                },
+                "max_weight_kg": {
+                    "type": "number"
+                },
+                "plate_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateMasterItemRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sku"
+            ],
+            "properties": {
+                "empty_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "gas_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "is_serialized": {
+                    "type": "boolean"
+                },
+                "min_stock_alert": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password",
+                "role_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateVendorRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateWorkOrderRequest": {
+            "type": "object",
+            "required": [
+                "spareparts",
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "spareparts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkOrderSparepartLine"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CustomerQuotaAlert": {
+            "type": "object",
+            "properties": {
+                "customer_code": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "outstanding_count": {
+                    "type": "integer"
+                },
+                "quota_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CustomerResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "cylinder_quota_limit": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "outstanding_count": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CylinderLedgerEntryResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_status": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference_id": {
+                    "type": "string"
+                },
+                "reference_type": {
+                    "type": "string"
+                },
+                "to_status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CylinderResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "owner_name": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DashboardSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "customers_over_quota": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CustomerQuotaAlert"
+                    }
+                },
+                "cylinders_by_status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "hydrotest_due_soon_count": {
+                    "type": "integer"
+                },
+                "hydrotest_expired_count": {
+                    "type": "integer"
+                },
+                "low_stock_spareparts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.LowStockSparepartAlert"
+                    }
+                },
+                "total_outstanding_cylinders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DeliveryOrderDetailResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "cylinder_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "weight_kg": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.DeliveryOrderResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "cylinder_qty": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeliveryOrderDetailResponse"
+                    }
+                },
+                "do_number": {
+                    "type": "string"
+                },
+                "fleet_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "plate_number": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_weight_kg": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.ExchangeResponse": {
+            "type": "object",
+            "properties": {
+                "cross_customer_alerts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "in_barcodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "in_count": {
+                    "type": "integer"
+                },
+                "out_barcodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "out_count": {
+                    "type": "integer"
+                },
+                "outstanding_after": {
+                    "type": "integer"
+                },
+                "outstanding_before": {
+                    "type": "integer"
+                },
+                "outstanding_delta": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.FillingBatchDetailResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "cylinder_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FillingBatchResponse": {
+            "type": "object",
+            "properties": {
+                "batch_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "cylinder_qty": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FillingBatchDetailResponse"
+                    }
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FleetResponse": {
+            "type": "object",
+            "properties": {
+                "driver_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_weight_kg": {
+                    "type": "number"
+                },
+                "plate_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.HydrotestDueCylinder": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_expired": {
+                    "type": "boolean"
+                },
+                "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.HydrotestDueResponse": {
+            "type": "object",
+            "properties": {
+                "due_within_days": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.HydrotestDueCylinder"
+                    }
+                }
+            }
+        },
+        "dto.IssueDeliveryOrderRequest": {
+            "type": "object",
+            "required": [
+                "barcodes",
+                "customer_id",
+                "fleet_id"
+            ],
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "fleet_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dto.UserResponse"
+                }
+            }
+        },
+        "dto.LowStockSparepartAlert": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "min_stock": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MasterItemResponse": {
+            "type": "object",
+            "properties": {
+                "empty_weight_kg": {
+                    "type": "number"
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "gas_weight_kg": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_serialized": {
+                    "type": "boolean"
+                },
+                "min_stock_alert": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "stock_quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Message": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PaginatedCustomerList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CustomerResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedCylinderList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CylinderResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedDeliveryOrderList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeliveryOrderResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedFillingBatchList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FillingBatchResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedFleetList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FleetResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedMasterItemList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MasterItemResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedRoleList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RoleResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedUserList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UserListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedVendorList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VendorResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedWorkOrderList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkOrderResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_items": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ProcessExchangeRequest": {
+            "type": "object",
+            "required": [
+                "customer_id",
+                "in_barcodes",
+                "out_barcodes"
+            ],
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "force_approve": {
+                    "type": "boolean"
+                },
+                "in_barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "out_barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.RecordHydrotestRequest": {
+            "type": "object",
+            "required": [
+                "last_hydrotest_date"
+            ],
+            "properties": {
+                "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RoleResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.StockLedgerReportResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CylinderLedgerEntryResponse"
+                    }
+                }
+            }
+        },
+        "dto.StockOpnameRequest": {
+            "type": "object",
+            "required": [
+                "item_id"
+            ],
+            "properties": {
+                "actual_quantity": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.StockOpnameResponse": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "quantity_after": {
+                    "type": "integer"
+                },
+                "quantity_before": {
+                    "type": "integer"
+                },
+                "quantity_delta": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SubmitFillingBatchRequest": {
+            "type": "object",
+            "required": [
+                "barcodes",
+                "item_id"
+            ],
+            "properties": {
+                "barcodes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TurnaroundReportResponse": {
+            "type": "object",
+            "properties": {
+                "average_days": {
+                    "type": "number"
+                },
+                "from_date": {
+                    "type": "string"
+                },
+                "sample_count": {
+                    "type": "integer"
+                },
+                "samples": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TurnaroundSample"
+                    }
+                },
+                "to_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TurnaroundSample": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "days": {
+                    "type": "number"
+                },
+                "started_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateCustomerRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cylinder_quota_limit": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateFleetRequest": {
+            "type": "object",
+            "required": [
+                "max_weight_kg"
+            ],
+            "properties": {
+                "driver_name": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_weight_kg": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.UpdateMasterItemRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "empty_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "gas_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "min_stock_alert": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "role_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateVendorRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserListResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "last_logged_in_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                },
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                },
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorCylinderSummary": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorDetailResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "cylinder_count": {
+                    "type": "integer"
+                },
+                "cylinders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VendorCylinderSummary"
+                    }
+                },
+                "cylinders_by_status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VendorResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contract_end_date": {
+                    "type": "string"
+                },
+                "contract_start_date": {
+                    "type": "string"
+                },
+                "cylinder_count": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VirtualWarehouseCustomer": {
+            "type": "object",
+            "properties": {
+                "customer_code": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "cylinder_barcodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outstanding_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.VirtualWarehouseResponse": {
+            "type": "object",
+            "properties": {
+                "customers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VirtualWarehouseCustomer"
+                    }
+                }
+            }
+        },
+        "dto.WorkOrderResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "spareparts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkOrderSparepartResponse"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "wo_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkOrderSparepartLine": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "quantity"
+            ],
+            "properties": {
+                "item_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.WorkOrderSparepartResponse": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_BarcodeOperationResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.BarcodeOperationResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_CustomerResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CustomerResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_CylinderResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CylinderResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_DashboardSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.DashboardSummaryResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_DeliveryOrderResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.DeliveryOrderResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_ExchangeResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.ExchangeResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_FillingBatchResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.FillingBatchResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_FleetResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.FleetResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_HydrotestDueResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.HydrotestDueResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.LoginResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_MasterItemResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.MasterItemResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_Message": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.Message"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedCustomerList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedCustomerList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedCylinderList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedCylinderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedDeliveryOrderList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedDeliveryOrderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedFillingBatchList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedFillingBatchList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedFleetList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedFleetList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedMasterItemList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedMasterItemList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedRoleList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedRoleList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedUserList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedUserList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedVendorList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedVendorList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedWorkOrderList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedWorkOrderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_RoleResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.RoleResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_StockLedgerReportResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.StockLedgerReportResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_StockOpnameResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.StockOpnameResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_TurnaroundReportResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.TurnaroundReportResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_UserListResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.UserListResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_VendorDetailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.VendorDetailResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_VirtualWarehouseResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.VirtualWarehouseResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_WorkOrderResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.WorkOrderResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "Bearer": {
             "type": "apiKey",

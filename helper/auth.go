@@ -22,7 +22,7 @@ func GenerateAuthToken(userId, roleId string) (string, string, error) {
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
-	tokenString, err := accessToken.SignedString(config.GetEnv(constant.AuthTokenSecretKey))
+	tokenString, err := accessToken.SignedString([]byte(config.GetEnv(constant.AuthTokenSecretKey)))
 	if err != nil {
 		return "", "", err
 	}
@@ -34,7 +34,7 @@ func GenerateAuthToken(userId, roleId string) (string, string, error) {
 		Subject:   string(userId),
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenClaims)
-	refreshTokenString, err := refreshToken.SignedString(config.GetEnv(constant.RefreshTokenSecretKey))
+	refreshTokenString, err := refreshToken.SignedString([]byte(config.GetEnv(constant.RefreshTokenSecretKey)))
 	if err != nil {
 		return "", "", err
 	}

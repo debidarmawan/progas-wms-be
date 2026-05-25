@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUseCase interface {
@@ -21,11 +20,15 @@ type AuthUseCase interface {
 }
 
 type authUseCase struct {
-	userRepo repository.UserRepository
+	userRepo     repository.UserRepository
+	auditLogRepo repository.AuditLogRepository
 }
 
-func NewAuthUseCase(userRepo repository.UserRepository) AuthUseCase {
-	return &authUseCase{userRepo}
+func NewAuthUseCase(userRepo repository.UserRepository, auditLogRepo repository.AuditLogRepository) AuthUseCase {
+	return &authUseCase{
+		userRepo:     userRepo,
+		auditLogRepo: auditLogRepo,
+	}
 }
 
 func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.ErrorResponse) {
@@ -41,7 +44,7 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 	}
 
 	// 3. Compare password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if !helper.CheckPasswordHash(req.Password, user.Password) {
 		return nil, global.BadRequestError("invalid email or password")
 	}
 
@@ -52,7 +55,7 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 	}
 
 	// 5. Update last logged in
-	_ = u.userRepo.UpdateLastLogin(user.Id)
+	_ = u.userRepo.UpdateLastLogin(nil, user.Id)
 
 	// 6. Build response
 	accessTokenExpiredInMinutes, _ := strconv.Atoi(config.GetEnv(constant.AuthTokenExpiredInMinutes))
@@ -76,6 +79,10 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 			RoleName: roleName,
 		},
 	}
+
+	_ = u.auditLogRepo.Log(user.Id, constant.AuditUserLogin, constant.AuditObjectUser, user.Id, map[string]string{
+		"email": user.Email,
+	})
 
 	return res, nil
 }
@@ -114,7 +121,7 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 	}
 
 	// 4. Update last logged in
-	_ = u.userRepo.UpdateLastLogin(user.Id)
+	_ = u.userRepo.UpdateLastLogin(nil, user.Id)
 
 	// 5. Build response
 	accessTokenExpiredInMinutes, _ := strconv.Atoi(config.GetEnv(constant.AuthTokenExpiredInMinutes))

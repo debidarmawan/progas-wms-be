@@ -1,0 +1,266 @@
+# PRD Implementation Task Breakdown
+## Warehouse Management System (WMS) — Gas Industri
+
+> **Dokumen sumber PRD:** [PRD Utama - WMS Gas Industri (Google Docs)](https://docs.google.com/document/d/1J1qM9D6UIt6z3YojPyuSHvUUYelAtX2vLUisuW44NdA/edit?tab=t.0)  
+> **Backend repo:** `progas-wms-be`  
+> **Terakhir diperbarui:** 2026-05-19
+
+---
+
+## Role yang Terdaftar di Database
+
+| Role (DB) | Pemetaan PRD | Deskripsi Singkat |
+|-----------|--------------|-------------------|
+| **Superadmin** | Super Admin | Akses penuh, manajemen user, audit |
+| **Warehouse Admin** | Admin Gudang & QC | Inbound, filling, inventory gudang, work order |
+| **Logistic Admin** | Admin Logistik & Distribusi | DO, armada, cylinder exchange |
+| **Manager** | Manajer / Direksi | Read-only dashboard & laporan |
+
+---
+
+## Ringkasan Fase
+
+| Fase | Nama | Status | Target |
+|------|------|--------|--------|
+| **0** | Fondasi Auth & User | ✅ Selesai | Login JWT, user, role read, Docker |
+| **1** | RBAC + Audit Log | ✅ Selesai | Permission middleware, seed, audit trail |
+| **2** | Master Data | ✅ Selesai | Item, Cylinder, Customer (Warehouse → Fase 2.1 backlog) |
+| **3** | Inbound & Produksi | ✅ Selesai | Empty receiving, filling batch, QC |
+| **4** | Outbound & Logistik | ✅ Selesai | DO, swap, outstanding, fleet |
+| **5** | Maintenance & Laporan | ✅ Selesai | Work order, spare part, ledger, dashboard |
+
+---
+
+## Fase 0 — Fondasi (Selesai)
+
+| ID | Task | Endpoint / Artefak | Status |
+|----|------|---------------------|--------|
+| 0.1 | Setup project Go + Fiber + GORM | `main.go`, `go.mod` | ✅ |
+| 0.2 | Koneksi MySQL + AutoMigrate | `config/database.go` | ✅ |
+| 0.3 | Login + JWT access/refresh | `POST /api/v1/login` | ✅ |
+| 0.4 | Refresh token | `POST /api/v1/refresh-token` | ✅ |
+| 0.5 | Logout (stateless) | `POST /api/v1/logout` | ✅ |
+| 0.6 | User management CRUD + bcrypt | `user.read` / `user.write` | ✅ |
+| 0.7 | List & detail role | `GET /api/v1/roles`, `GET /api/v1/roles/:id` | ✅ |
+| 0.8 | JWT middleware protected routes | `VerifyAuthToken` | ✅ |
+| 0.9 | Docker + Compose | `Dockerfile`, `docker-compose.yml` | ✅ |
+| 0.10 | Swagger (development) | `/swagger/*` | ✅ |
+
+---
+
+## Fase 1 — RBAC + Audit Log (Selesai)
+
+| ID | Task | Permission Key | Role yang Diizinkan | Status |
+|----|------|----------------|---------------------|--------|
+| 1.1 | Model `AuditLog` + migrate | — | — | ✅ |
+| 1.2 | Repository audit log | — | — | ✅ |
+| 1.3 | Repository RBAC (`HasPermission`, `IsSuperAdmin`) | — | — | ✅ |
+| 1.4 | Seed `role_key` + `role_key_mapping` (idempotent) | — | — | ✅ |
+| 1.5 | Middleware `Authorize(permissionKey)` | — | — | ✅ |
+| 1.6 | Pasang RBAC ke route existing | lihat tabel bawah | — | ✅ |
+| 1.7 | Audit: create user | `USER_CREATE` | — | ✅ |
+| 1.8 | Audit: login | `USER_LOGIN` | — | ✅ |
+| 1.9 | Forbidden response konsisten | — | — | ✅ |
+
+### Permission — API Saat Ini (Fase 1)
+
+| Permission Key | Method | Path | Superadmin | Warehouse Admin | Logistic Admin | Manager |
+|----------------|--------|------|:----------:|:---------------:|:--------------:|:-------:|
+| `auth.logout` | POST | `/api/v1/logout` | ✅ | ✅ | ✅ | ✅ |
+| `role.read` | GET | `/api/v1/roles/*` | ✅ | ✅ | ✅ | ✅ |
+| `user.read` | GET | `/api/v1/users/*` | ✅ | ❌ | ❌ | ✅ |
+| `user.write` | POST/PUT/DELETE | `/api/v1/users/*` | ✅ | ❌ | ❌ | ✅ |
+
+> **Superadmin** bypass penuh di middleware (selaras PRD: akses tanpa batas).
+
+---
+
+## Fase 2 — Master Data (Selesai)
+
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 2.1 | Model `MasterItem` + `SparepartStock` | `master_item.*` | ✅ |
+| 2.2 | Model `Cylinder` | `cylinder.*` | ✅ |
+| 2.3 | Model `Customer` (kuota, outstanding) | `customer.*` | ✅ |
+| 2.4 | Model `Warehouse` / lokasi rak | `warehouse.*` | ⬜ Backlog |
+| 2.5 | API registrasi tabung (validasi SN unik) | `cylinder.write` | ✅ |
+| 2.6 | API master item + min stock spare part | `master_item.write` | ✅ |
+| 2.7 | API CRUD pelanggan + kuota | `customer.write` | ✅ |
+| 2.8 | Enum status tabung + validasi hydrotest | — | ✅ |
+| 2.9 | Seed permission Fase 2 ke RBAC | — | ✅ |
+
+### API Fase 2
+
+| Method | Path | Permission |
+|--------|------|------------|
+| GET | `/api/v1/master-items` | `master_item.read` |
+| GET | `/api/v1/master-items/:id` | `master_item.read` |
+| POST | `/api/v1/master-items` | `master_item.write` |
+| PUT | `/api/v1/master-items/:id` | `master_item.write` |
+| GET | `/api/v1/cylinders` | `cylinder.read` |
+| GET | `/api/v1/cylinders/:id` | `cylinder.read` |
+| POST | `/api/v1/cylinders` | `cylinder.write` |
+| GET | `/api/v1/customers` | `customer.read` |
+| GET | `/api/v1/customers/:id` | `customer.read` |
+| POST | `/api/v1/customers` | `customer.write` |
+| PUT | `/api/v1/customers/:id` | `customer.write` |
+
+**Acceptance Criteria (dari PRD):**
+- Tolak barcode duplikat
+- Dropdown ownership: COMPANY, CUSTOMER, VENDOR
+- Validasi `LastHydrotestDate`
+- Flag `IsSerialized=false` abaikan barcode per unit
+- Min stock alert
+
+---
+
+## Fase 3 — Inbound & Produksi (Selesai)
+
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 3.1 | Empty receiving | `inbound.empty_receive` | ✅ |
+| 3.2 | Filling batch log (atomic submit) | `production.filling_batch.write` | ✅ |
+| 3.3 | Cross-gas validation | — | ✅ |
+| 3.4 | Batch rollback jika status tabung invalid | — | ✅ |
+| 3.5 | QC pre-fill (EMPTY → READY_TO_FILL) | `production.qc` | ✅ |
+| 3.6 | Auto status → READY setelah batch sukses | — | ✅ |
+
+### API Fase 3
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| POST | `/api/v1/inbound/empty-receive` | `inbound.empty_receive` | OUTSTANDING/IN_TRANSIT → EMPTY |
+| POST | `/api/v1/production/qc/pre-fill` | `production.qc.pre_fill` | EMPTY → READY_TO_FILL |
+| POST | `/api/v1/production/filling-batches` | `production.filling_batch.write` | Submit batch → status FILLED |
+| POST | `/api/v1/production/qc/post-fill` | `production.qc.post_fill` | FILLED → READY |
+| GET | `/api/v1/production/filling-batches` | `production.filling_batch.read` | List batch (pagination + search) |
+| GET | `/api/v1/production/filling-batches/:id` | `production.filling_batch.read` | Detail batch + tabung |
+
+**Role akses:** Warehouse Admin + Superadmin (write) | Manager + Logistic (read batch only)
+
+---
+
+## Fase 4 — Outbound & Logistik (Selesai)
+
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 4.1 | Model Delivery Order (DO) | `do.*` | ✅ |
+| 4.2 | Manifest barcode + hitung berat | `do.create` | ✅ |
+| 4.3 | Overload protection (`MaxWeightKg`) | — | ✅ |
+| 4.4 | Status tabung → IN_TRANSIT | — | ✅ |
+| 4.5 | Cylinder swap / gate in-out | `exchange.process` | ✅ |
+| 4.6 | Rumus outstanding: `Lama + OUT - IN` | — | ✅ |
+| 4.7 | Abaikan CUSTOMER ownership dari outstanding | — | ✅ |
+| 4.8 | Blokir / approval jika melebihi kuota | `exchange.approve` | ✅ |
+| 4.9 | Alert tabung tertukar antar pelanggan | — | ✅ |
+| 4.10 | Fleet management | `fleet.*` | ✅ |
+
+### API Fase 4
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| GET | `/api/v1/logistics/fleet` | `fleet.read` | List armada |
+| GET | `/api/v1/logistics/fleet/:id` | `fleet.read` | Detail armada |
+| POST | `/api/v1/logistics/fleet` | `fleet.write` | Tambah armada |
+| PUT | `/api/v1/logistics/fleet/:id` | `fleet.write` | Update armada |
+| GET | `/api/v1/outbound/delivery-orders` | `do.read` | List DO |
+| GET | `/api/v1/outbound/delivery-orders/:id` | `do.read` | Detail DO + manifest |
+| POST | `/api/v1/outbound/delivery-orders` | `do.create` | Terbitkan DO (READY → IN_TRANSIT) |
+| POST | `/api/v1/outbound/exchange` | `exchange.process` | Gate swap OUT/IN + outstanding |
+
+**Alur logistik:**
+```
+READY → (issue DO) → IN_TRANSIT
+IN_TRANSIT → (exchange OUT) → OUTSTANDING  (+outstanding jika COMPANY-owned)
+OUTSTANDING → (exchange IN) → EMPTY        (-outstanding jika COMPANY-owned)
+```
+
+**Role akses:** Logistic Admin (write DO/exchange/fleet) | Warehouse Admin ❌ DO | Manager (read + `exchange.approve`)
+
+---
+
+## Fase 5 — Maintenance, Dashboard & Laporan (Selesai)
+
+| ID | Task | Permission Key | Status |
+|----|------|----------------|--------|
+| 5.1 | Work order + kurangi spare part | `workorder.*` | ✅ |
+| 5.2 | Stok opname spare part | `inventory.stockopname` | ✅ |
+| 5.3 | Jadwal hydrotest / servis | `cylinder.hydrotest` | ✅ |
+| 5.4 | Dashboard API (stok, outstanding, alert) | `dashboard.read` | ✅ |
+| 5.5 | Stock ledger per barcode | `report.ledger` | ✅ |
+| 5.6 | Turn-around rate report | `report.turnaround` | ✅ |
+| 5.7 | Virtual warehouse (outstanding customer) | `inventory.virtual` | ✅ |
+
+### API Fase 5
+
+| Method | Path | Permission | Deskripsi |
+|--------|------|------------|-----------|
+| GET | `/api/v1/maintenance/work-orders` | `workorder.read` | List work order |
+| GET | `/api/v1/maintenance/work-orders/:id` | `workorder.read` | Detail WO + spare parts |
+| POST | `/api/v1/maintenance/work-orders` | `workorder.write` | Buat WO (OPEN) |
+| POST | `/api/v1/maintenance/work-orders/:id/complete` | `workorder.write` | Selesaikan WO, kurangi stok |
+| POST | `/api/v1/inventory/spareparts/stock-opname` | `inventory.stockopname` | Set stok aktual spare part |
+| GET | `/api/v1/maintenance/hydrotest/due` | `cylinder.hydrotest` | Tabung due/expired hydrotest |
+| POST | `/api/v1/maintenance/cylinders/:id/hydrotest` | `cylinder.hydrotest` | Catat hydrotest → MAINTENANCE |
+| GET | `/api/v1/dashboard/summary` | `dashboard.read` | Ringkasan stok, alert, outstanding |
+| GET | `/api/v1/reports/stock-ledger?barcode=` | `report.ledger` | Riwayat status per barcode |
+| GET | `/api/v1/reports/turnaround?from=&to=` | `report.turnaround` | Rata-rata hari EMPTY→READY |
+| GET | `/api/v1/inventory/virtual-warehouse` | `inventory.virtual` | Outstanding per pelanggan |
+
+**Cylinder ledger:** Setiap perubahan status tabung (Fase 3–5) dicatat di `cylinder_ledger` untuk laporan.
+
+---
+
+## Matriks RBAC Lengkap (Target Akhir — Semua Fase)
+
+| Permission | Superadmin | Warehouse Admin | Logistic Admin | Manager |
+|------------|:----------:|:---------------:|:--------------:|:-------:|
+| `auth.logout` | ✅ | ✅ | ✅ | ✅ |
+| `role.read` | ✅ | ✅ | ✅ | ✅ |
+| `user.read` | ✅ | ❌ | ❌ | ✅ |
+| `user.write` | ✅ | ❌ | ❌ | ✅ |
+| `item.*` | ✅ | ✅ read/write | ❌ | ✅ read |
+| `cylinder.*` | ✅ | ✅ | ❌ read | ✅ read |
+| `customer.*` | ✅ | ✅ read | ✅ read | ✅ read |
+| `inbound.*` | ✅ | ✅ | ❌ | ✅ read |
+| `production.*` | ✅ | ✅ | ❌ | ✅ read |
+| `inventory.warehouse` | ✅ | ✅ | ❌ | ✅ read |
+| `do.*` | ✅ | ❌ | ✅ | ✅ read |
+| `exchange.*` | ✅ | ❌ | ✅ | ✅ read |
+| `fleet.*` | ✅ | ❌ | ✅ | ✅ read |
+| `workorder.*` | ✅ | ✅ | ❌ | ✅ read |
+| `dashboard.read` | ✅ | ✅ | ✅ | ✅ |
+| `report.*` | ✅ | ❌ | ❌ | ✅ |
+| `audit.read` | ✅ | ❌ | ❌ | ✅ |
+
+---
+
+## Audit Log — Aksi yang Wajib Dicatat (PRD §5)
+
+| Action Code | Trigger | Fase |
+|-------------|---------|------|
+| `USER_CREATE` | Create user berhasil | 1 |
+| `USER_LOGIN` | Login berhasil | 1 (opsional) |
+| `CYLINDER_CREATE` | Registrasi tabung baru | 2 |
+| `CYLINDER_OWNERSHIP_CHANGE` | Ubah kepemilikan tabung | 2 |
+| `CYLINDER_DELETE` | Hapus nomor seri | 2 |
+| `TRANSACTION_UPDATE` | Ubah data transaksi | 3–4 |
+| `DO_ISSUE` | Terbitkan surat jalan | 4 |
+| `EXCHANGE_COMPLETE` | Selesai cylinder swap | 4 |
+
+**Field audit:** `user_id`, `action`, `object_type`, `object_id`, `details` (JSON), `created_at`
+
+---
+
+## Catatan untuk Google Docs
+
+Salin section **Fase 0–5** dan **Matriks RBAC** ke dokumen PRD utama sebagai **Section 7 — Implementation Task Breakdown & Backend Roadmap**, agar product & engineering satu sumber kebenaran.
+
+---
+
+## Referensi Teknis Backend
+
+- JWT claims: `user_id`, `role_id` → `dto.JWTClaims`
+- RBAC tables: `role`, `role_key`, `role_key_mapping`
+- Middleware chain: `VerifyAuthToken` → `Authorize(permissionKey)`
+- Seed RBAC: `config/seed_rbac.go` (idempotent, jalankan saat startup migrate)
