@@ -93,3 +93,27 @@ func (h *AuthHandler) Logout(c fiber.Ctx) error {
 
 	return global.MessageResponse("Logout successful", fiber.StatusOK, c)
 }
+
+// Profile godoc
+//
+//	@Summary		Get profile
+//	@Description	Get current user profile
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Success		200	{object}	global.Response[dto.UserResponse]
+//	@Router			/profile [get]
+func (h *AuthHandler) Profile(c fiber.Ctx) error {
+	userId, ok := c.Locals("user_id").(string)
+	if !ok || userId == "" {
+		return global.UnauthorizedError().ToResponse(c)
+	}
+
+	res, err := h.authUsecase.Profile(userId)
+	if err != nil {
+		return err.ToResponse(c)
+	}
+
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}

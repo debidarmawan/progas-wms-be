@@ -17,6 +17,7 @@ type AuthUseCase interface {
 	Login(req *dto.LoginRequest) (*dto.LoginResponse, global.ErrorResponse)
 	RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResponse, global.ErrorResponse)
 	Logout(userId string) global.ErrorResponse
+	Profile(userId string) (*dto.UserResponse, global.ErrorResponse)
 }
 
 type authUseCase struct {
@@ -152,4 +153,25 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 func (u *authUseCase) Logout(userId string) global.ErrorResponse {
 	// Stateless logout, so just return nil
 	return nil
+}
+
+func (u *authUseCase) Profile(userId string) (*dto.UserResponse, global.ErrorResponse) {
+	user, err := u.userRepo.FindById(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	roleName := ""
+	if user.Role.Id != "" {
+		roleName = user.Role.Name
+	}
+
+	return &dto.UserResponse{
+		Id:       user.Id,
+		Name:     user.Name,
+		Email:    user.Email,
+		Phone:    user.Phone,
+		RoleId:   user.RoleId,
+		RoleName: roleName,
+	}, nil
 }

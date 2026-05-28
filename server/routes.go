@@ -25,6 +25,9 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	}
 
 	routerGroup := f.Group("/api/v1")
+	routerGroup.Get("/health", func(c fiber.Ctx) error {
+		return c.SendString("ok")
+	})
 	routerGroup.Use(PanicHandler)
 	routerGroup.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -92,6 +95,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	protected := routerGroup.Group("", VerifyAuthToken)
 	protected.Post("/logout", middleware.Authorize(rbacRepo, constant.PermAuthLogout), authHandler.Logout)
+	protected.Get("/profile", authHandler.Profile)
 	roleHandler.Routes(protected.Group("", middleware.Authorize(rbacRepo, constant.PermRoleRead)))
 	userRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermUserRead))
 	userRead.Get("/users", userHandler.FindAll)

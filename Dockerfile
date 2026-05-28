@@ -32,6 +32,7 @@ COPY --from=builder /app/bin/main ./main
 
 USER app
 
+# Default app port for local/self-hosted deployments.
 EXPOSE 3131
 
 ENV GO_ENV=production
