@@ -14,6 +14,16 @@ if grep -q '^AUTH_TOKEN_SECRET_KEY=$' .env || grep -q '^REFRESH_TOKEN_SECRET_KEY
   exit 1
 fi
 
+if ! grep -q '^DB_URL=.\+' .env; then
+  echo "Isi DB_URL (MySQL Aiven) di .env"
+  exit 1
+fi
+
+if grep -q 'tls=aiven' .env && [[ ! -f certs/ca.pem ]]; then
+  echo "DB_URL memakai tls=aiven — letakkan ca.pem di deploy/certs/ atau pakai tls=skip-verify untuk dev open access"
+  exit 1
+fi
+
 echo "==> Build & start backend stack"
 docker compose up -d --build
 
