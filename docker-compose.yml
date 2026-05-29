@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     container_name: progas-wms-be
     restart: unless-stopped
-    mem_limit: 200m
-    ports:
-      - "${PORT:-3131}:3131"
+    mem_limit: 256m
     env_file:
       - .env
+    expose:
+      - "3131"
     networks:
       - progas
 
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     mem_limit: 64m
     ports:
-      - "80:80"
+      - "3131:3131"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:

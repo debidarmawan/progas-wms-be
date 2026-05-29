@@ -14,4 +14,13 @@ build:
 	docker compose build
 
 logs:
-	docker compose logs -f app
+	docker compose logs -f
+
+restart:
+	docker compose restart
+
+ps:
+	docker compose ps
+
+health:
+	@curl -sf http://127.0.0.1:3131/api/v1/health && echo
