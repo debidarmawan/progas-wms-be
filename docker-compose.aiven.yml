@@ -1,0 +1,37 @@
+# Jalankan backend + nginx saja (DB eksternal, mis. Aiven):
+#   docker compose -f docker-compose.aiven.yml up -d --build
+#
+# .env harus memakai DB_URL ke host eksternal (bukan mysql:3306).
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: progas-wms-be
+    restart: unless-stopped
+    mem_limit: 256m
+    env_file:
+      - .env
+    expose:
+      - "3131"
+    networks:
+      - progas
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: progas-nginx
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "3131:3131"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - progas
+
+networks:
+  progas:
+    driver: bridge

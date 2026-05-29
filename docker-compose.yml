@@ -1,4 +1,28 @@
 services:
+  mysql:
+    image: mysql:8.4
+    container_name: progas-mysql
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-progas_wms}
+      MYSQL_USER: ${MYSQL_USER:-progas_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+    ports:
+      # Default 127.0.0.1: hanya dari VPS / SSH tunnel. Untuk DBeaver langsung: MYSQL_BIND=0.0.0.0 + firewall.
+      - "${MYSQL_BIND:-127.0.0.1}:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - progas
+
   backend:
     build:
       context: .
@@ -10,6 +34,9 @@ services:
       - .env
     expose:
       - "3131"
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - progas
 
@@ -26,6 +53,9 @@ services:
       - backend
     networks:
       - progas
+
+volumes:
+  mysql_data:
 
 networks:
   progas:
