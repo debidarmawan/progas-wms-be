@@ -4,6 +4,7 @@ go 1.26
 
 require (
 	github.com/go-playground/validator/v10 v10.30.2
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/gofiber/contrib/v3/swaggo v1.0.6
 	github.com/gofiber/fiber/v3 v3.2.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -32,7 +33,6 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.26.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/gofiber/schema v1.7.1 // indirect
 	github.com/gofiber/utils/v2 v2.0.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
