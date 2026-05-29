@@ -1,11 +1,32 @@
 services:
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: progas-wms-app
+    container_name: progas-wms-be
     restart: unless-stopped
+    mem_limit: 200m`
     ports:
       - "${PORT:-3131}:3131"
     env_file:
       - .env
+    networks:
+      - progas
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: progas-nginx
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - progas
+
+networks:
+  progas:
+    driver: bridge
