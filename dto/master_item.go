@@ -10,6 +10,10 @@ type CreateMasterItemRequest struct {
 	MinStockAlert int     `json:"min_stock_alert" validate:"gte=0"`
 }
 
+type BulkCreateMasterItemRequest struct {
+	Items []CreateMasterItemRequest `json:"items" validate:"required,min=1,dive"`
+}
+
 type UpdateMasterItemRequest struct {
 	Name          string  `json:"name" validate:"required"`
 	GasType       string  `json:"gas_type"`

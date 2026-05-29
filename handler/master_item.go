@@ -85,6 +85,29 @@ func (h *MasterItemHandler) Create(c fiber.Ctx) error {
 	return global.CreateMessageResponse("Master item created successfully", fiber.StatusOK, c)
 }
 
+// CreateBulk godoc
+//
+//	@Summary		Create master items in bulk
+//	@Description	Create multiple master items in one request
+//	@Tags			Master Item
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			request	body		dto.BulkCreateMasterItemRequest	true	"Bulk create master item request"
+//	@Success		200		{object}	global.Response[dto.Message]
+//	@Router			/master-items/bulk [post]
+func (h *MasterItemHandler) CreateBulk(c fiber.Ctx) error {
+	var req dto.BulkCreateMasterItemRequest
+	if err := helper.ValidateBody(c, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	actorUserId, _ := c.Locals("user_id").(string)
+	if err := h.usecase.CreateBulk(actorUserId, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateMessageResponse("Master items created successfully", fiber.StatusOK, c)
+}
+
 // Update godoc
 //
 //	@Summary		Update master item

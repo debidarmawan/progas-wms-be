@@ -1,0 +1,66 @@
+# Backend + MySQL + Nginx (port 80)
+# Jalankan dari folder deploy/:  docker compose up -d --build
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: progas-mysql
+    restart: unless-stopped
+    mem_limit: 450m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    networks:
+      - progas
+
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: progas-backend
+    restart: unless-stopped
+    mem_limit: 180m
+    env_file:
+      - .env
+    environment:
+      GO_ENV: production
+      PORT: "3131"
+      DB_URL: ${DB_URL}
+      DB_MAX_POOL: ${DB_MAX_POOL:-5}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - progas
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: progas-nginx
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - progas
+
+volumes:
+  mysql_data:
+
+networks:
+  progas:
+    driver: bridge

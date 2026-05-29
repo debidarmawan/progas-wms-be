@@ -112,6 +112,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	masterItemWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermMasterItemWrite))
 	masterItemWrite.Post("/master-items", masterItemHandler.Create)
+	masterItemWrite.Post("/master-items/bulk", masterItemHandler.CreateBulk)
 	masterItemWrite.Put("/master-items/:id", masterItemHandler.Update)
 
 	cylinderRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCylinderRead))
