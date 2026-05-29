@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: progas-wms-be
     restart: unless-stopped
-    mem_limit: 200m`
+    mem_limit: 200m
     ports:
       - "${PORT:-3131}:3131"
     env_file:
