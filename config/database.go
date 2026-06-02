@@ -11,8 +11,6 @@ import (
 )
 
 func ConnectDatabase(maxOpenConn int) *gorm.DB {
-	// registerMySQLTLS()
-
 	db, err := gorm.Open(
 		mysql.Open(GetEnv(constant.DbUrl)),
 		&gorm.Config{

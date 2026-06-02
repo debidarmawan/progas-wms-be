@@ -1,147 +1,178 @@
-# Deploy di VPS (Docker + MySQL + Nginx, port 3131)
+# Deploy di VPS — Backend saja (Frontend di Vercel)
 
-Arsitektur:
+VPS Ubuntu 24.04 (~2 GB RAM) menjalankan **MySQL native + API (Docker) + Nginx (Docker)**. Frontend Next.js/React di-host di **Vercel** dan memanggil API lewat `https://...vercel.app` → `http://IP_VPS:3131/api/v1`.
+
+## Arsitektur
 
 ```
-Internet :3131                    PC Anda (DBeaver)
-    │                                  │
-    ▼                                  │ SSH tunnel atau :3306
-┌─────────────┐     ┌──────────────┐   │ (jika MYSQL_BIND=0.0.0.0)
-│   nginx     │────▶│   backend    │   │
-│  :3131      │     │   :3131      │   │
-└─────────────┘     └──────┬───────┘   │
-                           │           │
-                           ▼           ▼
-                    ┌─────────────────────────┐
-                    │  mysql (Docker) :3306   │
-                    │  volume: mysql_data     │
-                    └─────────────────────────┘
+┌─────────────────────┐         HTTP :3131          ┌──────────────────────────────┐
+│  Vercel (Frontend)  │ ──────────────────────────▶ │  VPS                         │
+│  NEXT_PUBLIC_API_   │      CORS_ORIGINS           │  nginx (Docker) :3131        │
+│  URL → VPS:3131     │                             │         │                    │
+└─────────────────────┘                             │         ▼                    │
+                                                    │  backend (Docker) :3131      │
+         DBeaver (opsional) ── SSH tunnel :3306 ──▶ │         │                    │
+                                                    │         ▼                    │
+                                                    │  MySQL native (127.0.0.1)    │
+                                                    └──────────────────────────────┘
 ```
+
+| Komponen | Lokasi | Port publik |
+|----------|--------|-------------|
+| Frontend | Vercel | 443 (HTTPS) |
+| API | VPS (Docker) | **3131** |
+| MySQL | VPS (native) | **127.0.0.1:3306** (disarankan) |
+
+Detail konfigurasi frontend: [`VERCEL_FRONTEND.md`](./VERCEL_FRONTEND.md).
 
 ---
 
-## 1. File `.env` di VPS
+## 1. Spesifikasi VPS
+
+Disarankan: **Ubuntu 24.04**, min. **2 GB RAM**, **2 vCPU**, **30 GB** disk.
+
+| Service | `mem_limit` | Catatan |
+|---------|-------------|---------|
+| backend | 256m | `DB_MAX_POOL=5` |
+| nginx | 64m | reverse proxy saja |
+| MySQL | — | Install native (`apt`), tune sesuai RAM VPS |
+
+Opsional: tambah swap 1–2 GB jika OOM saat build pertama.
+
+---
+
+## 2. MySQL native di VPS
+
+Install dan buat database/user (sesuaikan password):
+
+```bash
+sudo apt update && sudo apt install -y mysql-server
+sudo mysql -e "
+CREATE DATABASE progas_wms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'progas_app'@'localhost' IDENTIFIED BY '<password-app-kuat>';
+CREATE USER 'progas_app'@'172.17.%' IDENTIFIED BY '<password-app-kuat>';
+GRANT ALL PRIVILEGES ON progas_wms.* TO 'progas_app'@'localhost';
+GRANT ALL PRIVILEGES ON progas_wms.* TO 'progas_app'@'172.17.%';
+FLUSH PRIVILEGES;
+"
+```
+
+User `172.17.%` diperlukan agar container backend (Docker bridge) bisa connect ke MySQL host.
+
+Pastikan MySQL bisa menerima koneksi dari Docker bridge. Di `/etc/mysql/mysql.conf.d/mysqld.cnf`:
+
+```ini
+bind-address = 0.0.0.0
+```
+
+Lalu restart: `sudo systemctl restart mysql`
+
+**Jangan** buka port 3306 ke internet — lihat firewall di bawah.
+
+---
+
+## 3. File `.env` di VPS
 
 Salin dari `.env.example` dan isi (ganti semua password):
 
 ```env
 GO_ENV=production
 PORT=3131
-DB_MAX_POOL=10
+DB_MAX_POOL=5
+
+CORS_ORIGINS=https://progas-wms.vercel.app
+CORS_ALLOW_VERCEL_PREVIEW=true
 
 AUTH_TOKEN_EXPIRED_IN_MINUTES=15
 REFRESH_TOKEN_EXPIRED_IN_DAYS=7
 AUTH_TOKEN_SECRET_KEY=<random-32+>
 REFRESH_TOKEN_SECRET_KEY=<random-32+>
 
-MYSQL_ROOT_PASSWORD=<root-password-kuat>
 MYSQL_DATABASE=progas_wms
 MYSQL_USER=progas_app
 MYSQL_PASSWORD=<password-app-kuat>
 MYSQL_PORT=3306
-MYSQL_BIND=127.0.0.1
 
-# Penting: host "mysql" = nama service Docker, BUKAN localhost
-DB_URL=progas_app:<password-app-kuat>@tcp(mysql:3306)/progas_wms?charset=utf8mb4&parseTime=True&loc=Local
+# host.docker.internal = MySQL native di VPS (bukan localhost / mysql)
+DB_URL=progas_app:<password-app-kuat>@tcp(host.docker.internal:3306)/progas_wms?charset=utf8mb4&parseTime=True&loc=Local
 ```
 
 | Variabel | Fungsi |
 |----------|--------|
-| `MYSQL_BIND=127.0.0.1` | MySQL hanya di VPS (disarankan) + SSH tunnel ke DBeaver |
-| `MYSQL_BIND=0.0.0.0` | MySQL bisa diakses langsung dari internet (batasi IP di firewall) |
-| `DB_URL` … `@tcp(mysql:3306)` | Backend connect ke container MySQL |
+| `CORS_ORIGINS` | Origin frontend yang boleh memanggil API (HTTPS Vercel) |
+| `CORS_ALLOW_VERCEL_PREVIEW` | `true` = izinkan preview `*.vercel.app` |
+| `DB_URL` … `@tcp(host.docker.internal:3306)` | Backend container connect ke MySQL native di host |
 
 ---
 
-## 2. Jalankan stack
+## 4. Jalankan stack
 
 ```bash
 docker compose up -d --build
 docker compose ps
 ```
 
-Tunggu `progas-mysql` status **healthy**, lalu backend jalan (migrate + seed otomatis).
+Migrate + seed otomatis saat backend start.
 
 ```bash
 curl http://127.0.0.1:3131/api/v1/health
 ```
 
+Dari browser (setelah firewall): `http://IP_VPS:3131/api/v1/health`
+
 ---
 
-## 3. DBeaver dari PC Anda
+## 5. Firewall VPS
 
-### Opsi A — SSH tunnel (disarankan, `MYSQL_BIND=127.0.0.1`)
+```bash
+sudo ufw allow 3131/tcp    # API untuk Vercel & klien
+sudo ufw allow OpenSSH
+sudo ufw enable
+sudo ufw deny 3306         # MySQL tidak publik
+```
 
-Di PC (terminal), biarkan jendela ini terbuka:
+---
+
+## 6. HTTPS di VPS (opsional, disarankan)
+
+Browser di Vercel (HTTPS) **bisa** memanggil API HTTP (`http://IP:3131`) — tidak mixed-content untuk XHR/fetch. Namun untuk keamanan dan cookie `Secure`, pertimbangkan:
+
+- Subdomain API + Let's Encrypt (Caddy/nginx di depan), atau
+- Cloudflare Tunnel ke backend
+
+Tanpa HTTPS, pastikan frontend hanya menyimpan JWT di memory / httpOnly cookie dengan strategi yang aman.
+
+---
+
+## 7. DBeaver dari PC Anda
+
+### Opsi A — SSH tunnel (disarankan)
 
 ```bash
 ssh -L 3306:127.0.0.1:3306 user@IP_VPS_ANDA
 ```
 
-Di **DBeaver** → New Connection → MySQL:
-
-| Field | Nilai |
-|-------|--------|
-| Host | `127.0.0.1` |
-| Port | `3306` |
-| Database | `progas_wms` |
-| Username | `progas_app` |
-| Password | sama dengan `MYSQL_PASSWORD` di `.env` |
-
-Root (opsional): user `root`, password `MYSQL_ROOT_PASSWORD`.
-
-### Opsi B — Langsung ke IP VPS (`MYSQL_BIND=0.0.0.0`)
-
-1. Di `.env` VPS: `MYSQL_BIND=0.0.0.0`
-2. `docker compose up -d`
-3. Firewall **hanya IP Anda**:
-
-```bash
-sudo ufw allow from IP_PC_ANDA to any port 3306
-sudo ufw deny 3306
-```
-
-DBeaver:
-
-| Field | Nilai |
-|-------|--------|
-| Host | `IP_VPS` |
-| Port | `3306` |
-| Database | `progas_wms` |
-| Username | `progas_app` |
-
-> Jangan buka port 3306 ke `0.0.0.0/0` tanpa batasan — risiko brute-force.
+DBeaver → MySQL: Host `127.0.0.1`, Port `3306`, DB `progas_wms`, user `progas_app`.
 
 ---
 
-## 4. Firewall VPS
+## 8. Backup data MySQL
 
 ```bash
-sudo ufw allow 3131/tcp    # API
-sudo ufw allow OpenSSH
-# Port 3306: hanya jika pakai Opsi B + allow from IP tertentu
-sudo ufw enable
-```
-
----
-
-## 5. Backup data MySQL
-
-Data ada di volume Docker `mysql_data`:
-
-```bash
-docker compose exec mysql mysqldump -u root -p"${MYSQL_ROOT_PASSWORD}" progas_wms > backup.sql
+mysqldump -h 127.0.0.1 -u progas_app -p progas_wms > backup.sql
 ```
 
 Restore:
 
 ```bash
-docker compose exec -T mysql mysql -u root -p"${MYSQL_ROOT_PASSWORD}" progas_wms < backup.sql
+mysql -h 127.0.0.1 -u progas_app -p progas_wms < backup.sql
 ```
+
+Atau via Makefile: `make mysql-cli` (butuh client `mysql` terinstall di VPS).
 
 ---
 
-## 6. Update & troubleshooting
+## 9. Update & troubleshooting
 
 ```bash
 git pull
@@ -150,28 +181,26 @@ docker compose up -d --build
 
 | Masalah | Solusi |
 |---------|--------|
-| Backend restart loop | `docker compose logs backend` — cek `DB_URL` harus `mysql:3306` |
-| MySQL unhealthy | `docker compose logs mysql` — cek `MYSQL_ROOT_PASSWORD` |
-| DBeaver connection refused (Opsi A) | Pastikan SSH tunnel aktif |
-| DBeaver timeout (Opsi B) | `MYSQL_BIND`, firewall, `ss -tlnp \| grep 3306` |
+| CORS error di browser | Set `CORS_ORIGINS` = URL exact Vercel (dengan `https://`) |
+| Backend restart loop | `docker compose logs backend` — cek `DB_URL` harus `host.docker.internal:3306` |
+| Access denied for user | Pastikan user MySQL punya grant untuk `172.17.%` (Docker bridge) |
+| Connection refused ke MySQL | Cek `bind-address` MySQL & `sudo systemctl status mysql` |
+| Frontend tidak connect | Cek `NEXT_PUBLIC_API_URL` di Vercel & firewall 3131 |
 
 ```bash
-docker compose logs mysql --tail=50
 docker compose logs backend --tail=50
+sudo tail -50 /var/log/mysql/error.log
 ```
 
 ---
 
-## 7. Masih pakai Aiven di laptop lokal
+## 10. Dev lokal (DB cloud / Aiven)
 
-Di mesin dev (bukan VPS), Anda bisa tetap pakai Aiven di `.env` dan jalankan **tanpa** MySQL container:
+Untuk development laptop dengan DB eksternal, cukup set `DB_URL` ke host cloud di `.env`:
 
 ```bash
-# .env lokal — DB_URL ke Aiven
-docker compose up -d --build backend nginx
+docker compose up -d --build
 ```
-
-Service `mysql` tidak ikut jalan; pastikan `DB_URL` tidak memakai host `mysql`.
 
 ---
 
@@ -179,6 +208,8 @@ Service `mysql` tidak ikut jalan; pastikan `DB_URL` tidak memakai host `mysql`.
 
 | File | Fungsi |
 |------|--------|
-| `docker-compose.yml` | mysql + backend + nginx |
+| `docker-compose.yml` | backend + nginx (MySQL di host) |
+| `server/cors.go` | CORS dari env |
 | `nginx.conf` | Reverse proxy :3131 |
 | `.env.example` | Template env |
+| `docs/VERCEL_FRONTEND.md` | Env & setup frontend Vercel |

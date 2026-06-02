@@ -12,7 +12,6 @@ import (
 
 	"github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/cors"
 	"gorm.io/gorm"
 )
 
@@ -29,10 +28,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 		return c.SendString("ok")
 	})
 	routerGroup.Use(PanicHandler)
-	routerGroup.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"GET", "POST", "HEAD", "PUT", "DELETE", "PATCH"},
-	}))
+	routerGroup.Use(corsMiddleware())
 
 	txManager := helper.NewTxManager(db)
 
