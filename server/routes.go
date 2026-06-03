@@ -20,7 +20,10 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	if os.Getenv("GO_ENV") == "development" {
 		docs.SwaggerInfo.BasePath = "/api/v1"
-		f.Get("/swagger/*", swaggo.HandlerDefault)
+		f.Get("/swagger/*", swaggo.New(swaggo.Config{
+			InstanceName: "swagger",
+			URL:          "/swagger/doc.json",
+		}))
 	}
 
 	routerGroup := f.Group("/api/v1")

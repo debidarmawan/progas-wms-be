@@ -3,6 +3,7 @@ package main
 import (
 	"progas-wms-be/config"
 	"progas-wms-be/constant"
+	_ "progas-wms-be/docs"
 	"progas-wms-be/server"
 	"strconv"
 	"sync"
