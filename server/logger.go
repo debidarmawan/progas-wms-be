@@ -7,6 +7,6 @@ import (
 
 func RequestLogger() fiber.Handler {
 	return logger.New(logger.Config{
-		Format: "[${time}] ${method} ${path} - ${status} | ${latency} | ReqId ${reqHeader:X-RequestId} \n[Request Query Params] ${queryParams}\n[Request Body] ${body}\n[Response Body] ${resBody}\n\n",
+		Format: "[${reqHeader:X-RequestId}] ${method} ${path} - ${status} | ${latency} | ${time}\n[${reqHeader:X-RequestId} | Req Header]\n${reqHeaders}\n[${reqHeader:X-RequestId} | Request Query Params] ${queryParams}\n[${reqHeader:X-RequestId} | Request Body] ${body}\n[${reqHeader:X-RequestId} | Response Body] ${resBody}\n\n",
 	})
 }
