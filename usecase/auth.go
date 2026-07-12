@@ -23,13 +23,31 @@ type AuthUseCase interface {
 type authUseCase struct {
 	userRepo     repository.UserRepository
 	auditLogRepo repository.AuditLogRepository
+	rbacRepo     repository.RbacRepository
 }
 
-func NewAuthUseCase(userRepo repository.UserRepository, auditLogRepo repository.AuditLogRepository) AuthUseCase {
+func NewAuthUseCase(userRepo repository.UserRepository, auditLogRepo repository.AuditLogRepository, rbacRepo repository.RbacRepository) AuthUseCase {
 	return &authUseCase{
 		userRepo:     userRepo,
 		auditLogRepo: auditLogRepo,
+		rbacRepo:     rbacRepo,
 	}
+}
+
+// permissionsForRole returns the permission keys for a role.
+// Superadmin has no explicit mappings, so it receives every known key.
+func (u *authUseCase) permissionsForRole(roleId, roleName string) []string {
+	var keys []string
+	var err global.ErrorResponse
+	if roleName == constant.RoleSuperadmin {
+		keys, err = u.rbacRepo.FindAllPermissionKeys()
+	} else {
+		keys, err = u.rbacRepo.FindPermissionKeysByRoleId(roleId)
+	}
+	if err != nil {
+		return []string{}
+	}
+	return keys
 }
 
 func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.ErrorResponse) {
@@ -72,12 +90,13 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 		RefreshToken: refreshToken,
 		ExpiredAt:    expiredAt,
 		User: dto.UserResponse{
-			Id:       user.Id,
-			Name:     user.Name,
-			Email:    user.Email,
-			Phone:    user.Phone,
-			RoleId:   user.RoleId,
-			RoleName: roleName,
+			Id:          user.Id,
+			Name:        user.Name,
+			Email:       user.Email,
+			Phone:       user.Phone,
+			RoleId:      user.RoleId,
+			RoleName:    roleName,
+			Permissions: u.permissionsForRole(user.RoleId, roleName),
 		},
 	}
 
@@ -138,12 +157,13 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 		RefreshToken: newRefreshToken,
 		ExpiredAt:    expiredAt,
 		User: dto.UserResponse{
-			Id:       user.Id,
-			Name:     user.Name,
-			Email:    user.Email,
-			Phone:    user.Phone,
-			RoleId:   user.RoleId,
-			RoleName: roleName,
+			Id:          user.Id,
+			Name:        user.Name,
+			Email:       user.Email,
+			Phone:       user.Phone,
+			RoleId:      user.RoleId,
+			RoleName:    roleName,
+			Permissions: u.permissionsForRole(user.RoleId, roleName),
 		},
 	}
 
@@ -167,11 +187,12 @@ func (u *authUseCase) Profile(userId string) (*dto.UserResponse, global.ErrorRes
 	}
 
 	return &dto.UserResponse{
-		Id:       user.Id,
-		Name:     user.Name,
-		Email:    user.Email,
-		Phone:    user.Phone,
-		RoleId:   user.RoleId,
-		RoleName: roleName,
+		Id:          user.Id,
+		Name:        user.Name,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		RoleId:      user.RoleId,
+		RoleName:    roleName,
+		Permissions: u.permissionsForRole(user.RoleId, roleName),
 	}, nil
 }

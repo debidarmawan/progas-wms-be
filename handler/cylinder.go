@@ -62,6 +62,25 @@ func (h *CylinderHandler) FindById(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// FindByBarcode godoc
+//
+//	@Summary		Find cylinder by barcode
+//	@Description	Lookup a single cylinder by its barcode serial number (for scan validation)
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			sn	path		string	true	"Cylinder barcode serial number"
+//	@Success		200	{object}	global.Response[dto.CylinderResponse]
+//	@Router			/cylinders/by-barcode/{sn} [get]
+func (h *CylinderHandler) FindByBarcode(c fiber.Ctx) error {
+	res, err := h.usecase.FindByBarcode(c.Params("sn"))
+	if err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}
+
 // Create godoc
 //
 //	@Summary		Register cylinder

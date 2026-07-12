@@ -12,6 +12,8 @@ import (
 type RbacRepository interface {
 	IsSuperAdmin(roleId string) (bool, global.ErrorResponse)
 	HasPermission(roleId, permissionKey string) (bool, global.ErrorResponse)
+	FindPermissionKeysByRoleId(roleId string) ([]string, global.ErrorResponse)
+	FindAllPermissionKeys() ([]string, global.ErrorResponse)
 }
 
 type rbacRepository struct {
@@ -31,6 +33,32 @@ func (r *rbacRepository) IsSuperAdmin(roleId string) (bool, global.ErrorResponse
 		return false, global.InternalServerError(err)
 	}
 	return count > 0, nil
+}
+
+func (r *rbacRepository) FindPermissionKeysByRoleId(roleId string) ([]string, global.ErrorResponse) {
+	var keys []string
+	err := r.db.Table("role_key_mapping AS rkm").
+		Joins("INNER JOIN role_key AS rk ON rk.id = rkm.role_key_id AND rk.deleted_at IS NULL").
+		Where("rkm.role_id = ? AND rkm.is_allow = ? AND rkm.deleted_at IS NULL", roleId, true).
+		Distinct().
+		Order("rk.key asc").
+		Pluck("rk.key", &keys).Error
+	if err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return keys, nil
+}
+
+func (r *rbacRepository) FindAllPermissionKeys() ([]string, global.ErrorResponse) {
+	var keys []string
+	err := r.db.Model(&model.RoleKey{}).
+		Distinct().
+		Order("`key` asc").
+		Pluck("`key`", &keys).Error
+	if err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return keys, nil
 }
 
 func (r *rbacRepository) HasPermission(roleId, permissionKey string) (bool, global.ErrorResponse) {

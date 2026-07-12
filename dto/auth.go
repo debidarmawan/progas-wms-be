@@ -13,12 +13,13 @@ type JWTClaims struct {
 }
 
 type UserResponse struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	RoleId   string `json:"role_id"`
-	RoleName string `json:"role_name"`
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Email       string   `json:"email"`
+	Phone       string   `json:"phone"`
+	RoleId      string   `json:"role_id"`
+	RoleName    string   `json:"role_name"`
+	Permissions []string `json:"permissions,omitempty"`
 }
 
 type LoginResponse struct {

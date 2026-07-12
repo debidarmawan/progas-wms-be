@@ -9,6 +9,7 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -17,6 +18,7 @@ import (
 type CylinderUsecase interface {
 	FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.CylinderResponse], global.ErrorResponse)
 	FindById(id string) (*dto.CylinderResponse, global.ErrorResponse)
+	FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse)
 	Create(actorUserId string, req *dto.CreateCylinderRequest) global.ErrorResponse
 }
 
@@ -62,6 +64,18 @@ func (u *cylinderUsecase) FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[
 
 func (u *cylinderUsecase) FindById(id string) (*dto.CylinderResponse, global.ErrorResponse) {
 	cylinder, err := u.cylinderRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.ToCylinderResponse(cylinder), nil
+}
+
+func (u *cylinderUsecase) FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse) {
+	barcode = strings.TrimSpace(barcode)
+	if barcode == "" {
+		return nil, global.BadRequestError("barcode is required")
+	}
+	cylinder, err := u.cylinderRepo.FindByBarcode(barcode)
 	if err != nil {
 		return nil, err
 	}

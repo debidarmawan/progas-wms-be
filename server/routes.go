@@ -52,7 +52,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	sparepartMovementRepo := repository.NewSparepartMovementRepository(db)
 	dashboardRepo := repository.NewDashboardRepository(db)
 
-	authUsecase := usecase.NewAuthUseCase(userRepo, auditLogRepo)
+	authUsecase := usecase.NewAuthUseCase(userRepo, auditLogRepo, rbacRepo)
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
 	userUsecase := usecase.NewUserUsecase(txManager, userRepo, roleRepo, auditLogRepo)
 	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, sparepartStockRepo, auditLogRepo)
@@ -116,6 +116,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	cylinderRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCylinderRead))
 	cylinderRead.Get("/cylinders", cylinderHandler.FindAll)
+	cylinderRead.Get("/cylinders/by-barcode/:sn", cylinderHandler.FindByBarcode)
 	cylinderRead.Get("/cylinders/:id", cylinderHandler.FindById)
 
 	cylinderWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCylinderWrite))

@@ -189,7 +189,7 @@ func (r *cylinderRepository) FindById(id string) (*model.Cylinder, global.ErrorR
 
 func (r *cylinderRepository) FindByBarcode(barcode string) (*model.Cylinder, global.ErrorResponse) {
 	var cylinder model.Cylinder
-	err := r.db.Where("barcode_sn = ?", barcode).First(&cylinder).Error
+	err := r.db.Preload("MasterItem").Where("barcode_sn = ?", barcode).First(&cylinder).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, global.NotFoundError("Cylinder not found")
