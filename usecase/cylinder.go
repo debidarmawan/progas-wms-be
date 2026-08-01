@@ -20,6 +20,7 @@ type CylinderUsecase interface {
 	FindById(id string) (*dto.CylinderResponse, global.ErrorResponse)
 	FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse)
 	Create(actorUserId string, req *dto.CreateCylinderRequest) global.ErrorResponse
+	Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse
 }
 
 type cylinderUsecase struct {
@@ -165,6 +166,95 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 	}
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderCreate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
+		"barcode_sn":     cylinder.BarcodeSN,
+		"ownership_type": cylinder.OwnershipType,
+		"item_id":        cylinder.ItemId,
+	})
+
+	return nil
+}
+
+func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse {
+	cylinder, err := u.cylinderRepo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	if cylinder.Status != enum.CylinderStatusEmpty && cylinder.Status != enum.CylinderStatusReadyToFill {
+		return global.BadRequestError("tabung hanya bisa diedit saat status EMPTY atau READY_TO_FILL")
+	}
+
+	item, err := u.masterItemRepo.FindById(req.ItemId)
+	if err != nil {
+		if err.GetCode() == fiber.StatusNotFound {
+			return global.BadRequestError("invalid item")
+		}
+		return err
+	}
+	if !item.IsSerialized {
+		return global.BadRequestError("item is not serialized; cannot assign to cylinder")
+	}
+
+	ownership := enum.Ownership(req.OwnershipType)
+	var ownerId *string
+	if req.OwnerId != "" {
+		ownerId = &req.OwnerId
+	}
+	if !helper.ValidateOwnership(ownership, ownerId) {
+		return global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
+	}
+	if ownership == enum.OwnershipCustomer {
+		if _, err := u.customerRepo.FindById(*ownerId); err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return global.BadRequestError("invalid customer owner_id")
+			}
+			return err
+		}
+	}
+	if ownership == enum.OwnershipVendor {
+		vendor, err := u.vendorRepo.FindById(*ownerId)
+		if err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return global.BadRequestError("invalid vendor owner_id")
+			}
+			return err
+		}
+		if !vendor.IsActive {
+			return global.BadRequestError("vendor is not active")
+		}
+	}
+
+	hydrotestDate, parseErr := time.Parse(time.RFC3339, req.LastHydrotestDate)
+	if parseErr != nil {
+		hydrotestDate, parseErr = time.Parse("2006-01-02", req.LastHydrotestDate)
+	}
+	if parseErr != nil {
+		return global.BadRequestError("invalid last_hydrotest_date format (use YYYY-MM-DD or RFC3339)")
+	}
+	if !helper.ValidateHydrotestDate(hydrotestDate) {
+		return global.BadRequestError("last hydrotest date is invalid or expired")
+	}
+
+	cylinder.BarcodeSN = req.BarcodeSN
+	cylinder.ItemId = req.ItemId
+	cylinder.OwnershipType = ownership
+	cylinder.OwnerId = ownerId
+	cylinder.LastHydrotestDate = hydrotestDate
+
+	tx := u.txManager.New()
+	defer tx.CheckPanic()
+
+	if err = u.cylinderRepo.Update(tx, cylinder); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return global.InternalServerError(err)
+	}
+
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderUpdate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
 		"barcode_sn":     cylinder.BarcodeSN,
 		"ownership_type": cylinder.OwnershipType,
 		"item_id":        cylinder.ItemId,

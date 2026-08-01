@@ -103,3 +103,27 @@ func (h *CylinderHandler) Create(c fiber.Ctx) error {
 	}
 	return global.CreateMessageResponse("Cylinder registered successfully", fiber.StatusOK, c)
 }
+
+// Update godoc
+//
+//	@Summary		Update cylinder
+//	@Description	Update an existing cylinder's metadata
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			id		path		string						true	"Cylinder ID"
+//	@Param			request	body		dto.UpdateCylinderRequest	true	"Update cylinder request"
+//	@Success		200		{object}	global.Response[dto.Message]
+//	@Router			/cylinders/{id} [put]
+func (h *CylinderHandler) Update(c fiber.Ctx) error {
+	var req dto.UpdateCylinderRequest
+	if err := helper.ValidateBody(c, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	actorUserId, _ := c.Locals("user_id").(string)
+	if err := h.usecase.Update(actorUserId, c.Params("id"), &req); err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateMessageResponse("Tabung diperbarui", fiber.StatusOK, c)
+}

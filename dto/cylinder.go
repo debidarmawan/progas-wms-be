@@ -8,6 +8,14 @@ type CreateCylinderRequest struct {
 	LastHydrotestDate string `json:"last_hydrotest_date" validate:"required"`
 }
 
+type UpdateCylinderRequest struct {
+	BarcodeSN         string `json:"barcode_sn" validate:"required"`
+	ItemId            string `json:"item_id" validate:"required"`
+	OwnershipType     string `json:"ownership_type" validate:"required"`
+	OwnerId           string `json:"owner_id"`
+	LastHydrotestDate string `json:"last_hydrotest_date" validate:"required"`
+}
+
 type CylinderResponse struct {
 	Id                string `json:"id"`
 	BarcodeSN         string `json:"barcode_sn"`

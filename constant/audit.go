@@ -9,6 +9,7 @@ const (
 	AuditMasterItemCreate   = "MASTER_ITEM_CREATE"
 	AuditMasterItemUpdate   = "MASTER_ITEM_UPDATE"
 	AuditCylinderCreate     = "CYLINDER_CREATE"
+	AuditCylinderUpdate     = "CYLINDER_UPDATE"
 	AuditCustomerCreate     = "CUSTOMER_CREATE"
 	AuditCustomerUpdate     = "CUSTOMER_UPDATE"
 	AuditVendorCreate       = "VENDOR_CREATE"
@@ -43,15 +44,15 @@ const (
 
 // Cylinder ledger actions.
 const (
-	LedgerActionEmptyReceive     = "EMPTY_RECEIVE"
-	LedgerActionPreFillQC        = "PRE_FILL_QC"
-	LedgerActionFillingBatch     = "FILLING_BATCH"
-	LedgerActionPostFillQC       = "POST_FILL_QC"
-	LedgerActionDOIssue          = "DO_ISSUE"
-	LedgerActionExchangeOut      = "EXCHANGE_OUT"
-	LedgerActionExchangeIn       = "EXCHANGE_IN"
-	LedgerActionHydrotest        = "HYDROTEST"
-	LedgerActionCylinderCreate   = "CYLINDER_CREATE"
+	LedgerActionEmptyReceive   = "EMPTY_RECEIVE"
+	LedgerActionPreFillQC      = "PRE_FILL_QC"
+	LedgerActionFillingBatch   = "FILLING_BATCH"
+	LedgerActionPostFillQC     = "POST_FILL_QC"
+	LedgerActionDOIssue        = "DO_ISSUE"
+	LedgerActionExchangeOut    = "EXCHANGE_OUT"
+	LedgerActionExchangeIn     = "EXCHANGE_IN"
+	LedgerActionHydrotest      = "HYDROTEST"
+	LedgerActionCylinderCreate = "CYLINDER_CREATE"
 )
 
 // Sparepart movement types.

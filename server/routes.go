@@ -121,6 +121,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	cylinderWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCylinderWrite))
 	cylinderWrite.Post("/cylinders", cylinderHandler.Create)
+	cylinderWrite.Put("/cylinders/:id", cylinderHandler.Update)
 
 	customerRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCustomerRead))
 	customerRead.Get("/customers", customerHandler.FindAll)
