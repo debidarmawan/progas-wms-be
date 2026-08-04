@@ -11,6 +11,7 @@ import (
 type AuditLogRepository interface {
 	Create(log *model.AuditLog) global.ErrorResponse
 	Log(userId, action, objectType, objectId string, details any) global.ErrorResponse
+	FindByObject(objectType, objectId string) ([]model.AuditLog, global.ErrorResponse)
 }
 
 type auditLogRepository struct {
@@ -41,4 +42,14 @@ func (r *auditLogRepository) Log(userId, action, objectType, objectId string, de
 		}
 	}
 	return r.Create(logEntry)
+}
+
+func (r *auditLogRepository) FindByObject(objectType, objectId string) ([]model.AuditLog, global.ErrorResponse) {
+	var logs []model.AuditLog
+	if err := r.db.Where("object_type = ? AND object_id = ?", objectType, objectId).
+		Order("created_at asc").
+		Find(&logs).Error; err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return logs, nil
 }

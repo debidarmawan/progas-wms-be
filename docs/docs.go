@@ -269,6 +269,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/cylinders/by-barcode/{sn}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Lookup a single cylinder by its barcode serial number (for scan validation)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Find cylinder by barcode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder barcode serial number",
+                        "name": "sn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CylinderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cylinders/{id}": {
             "get": {
                 "security": [
@@ -301,6 +338,87 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/global.Response-dto_CylinderResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update an existing cylinder's metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Update cylinder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update cylinder request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCylinderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders/{id}/history": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get history of master data changes (product, ownership, hydrotest date, remarks) and status changes for a cylinder",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Get cylinder change history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CylinderHistoryResponse"
                         }
                     }
                 }
@@ -936,6 +1054,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/master-items/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create multiple master items in one request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Item"
+                ],
+                "summary": "Create master items in bulk",
+                "parameters": [
+                    {
+                        "description": "Bulk create master item request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BulkCreateMasterItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/master-items/{id}": {
             "get": {
                 "security": [
@@ -1373,6 +1530,34 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/global.Response-dto_BarcodeOperationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get current user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_UserResponse"
                         }
                     }
                 }
@@ -1966,6 +2151,21 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BulkCreateMasterItemRequest": {
+            "type": "object",
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateMasterItemRequest"
+                    }
+                }
+            }
+        },
         "dto.CreateCustomerRequest": {
             "type": "object",
             "required": [
@@ -2013,6 +2213,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownership_type": {
+                    "type": "string"
+                },
+                "remarks": {
                     "type": "string"
                 }
             }
@@ -2202,6 +2405,69 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CylinderHistoryChange": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "new": {
+                    "type": "string"
+                },
+                "old": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CylinderHistoryEntry": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "action_label": {
+                    "type": "string"
+                },
+                "changes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CylinderHistoryChange"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CylinderHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "cylinder_id": {
+                    "type": "string"
+                },
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CylinderHistoryEntry"
+                    }
+                }
+            }
+        },
         "dto.CylinderLedgerEntryResponse": {
             "type": "object",
             "properties": {
@@ -2259,6 +2525,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownership_type": {
+                    "type": "string"
+                },
+                "remarks": {
                     "type": "string"
                 },
                 "status": {
@@ -2988,6 +3257,35 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateCylinderRequest": {
+            "type": "object",
+            "required": [
+                "barcode_sn",
+                "item_id",
+                "last_hydrotest_date",
+                "ownership_type"
+            ],
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string"
+                },
+                "remarks": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateFleetRequest": {
             "type": "object",
             "required": [
@@ -3138,6 +3436,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "phone": {
                     "type": "string"
@@ -3387,6 +3691,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.CustomerResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_CylinderHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CylinderHistoryResponse"
                 },
                 "error_code": {
                     "type": "string"
@@ -3887,6 +4211,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.UserListResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_UserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.UserResponse"
                 },
                 "error_code": {
                     "type": "string"

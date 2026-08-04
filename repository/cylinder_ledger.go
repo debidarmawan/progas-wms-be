@@ -13,6 +13,7 @@ import (
 type CylinderLedgerRepository interface {
 	CreateBatch(tx helper.Tx, entries []model.CylinderLedger) global.ErrorResponse
 	FindByBarcode(barcode string) ([]model.CylinderLedger, global.ErrorResponse)
+	FindByCylinderId(cylinderId string) ([]model.CylinderLedger, global.ErrorResponse)
 	FindByDateRange(from, to time.Time) ([]model.CylinderLedger, global.ErrorResponse)
 }
 
@@ -66,6 +67,14 @@ func (r *cylinderLedgerRepository) CreateBatch(tx helper.Tx, entries []model.Cyl
 func (r *cylinderLedgerRepository) FindByBarcode(barcode string) ([]model.CylinderLedger, global.ErrorResponse) {
 	var entries []model.CylinderLedger
 	if err := r.db.Order("created_at asc").Where("barcode_sn = ?", barcode).Find(&entries).Error; err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return entries, nil
+}
+
+func (r *cylinderLedgerRepository) FindByCylinderId(cylinderId string) ([]model.CylinderLedger, global.ErrorResponse) {
+	var entries []model.CylinderLedger
+	if err := r.db.Order("created_at asc").Where("cylinder_id = ?", cylinderId).Find(&entries).Error; err != nil {
 		return nil, global.InternalServerError(err)
 	}
 	return entries, nil

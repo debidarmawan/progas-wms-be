@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"progas-wms-be/config"
 	"progas-wms-be/constant"
 	_ "progas-wms-be/docs"
@@ -23,7 +24,27 @@ func main() {
 	config.Init()
 
 	maxPool, _ := strconv.Atoi(config.GetEnv(constant.DbMaxPool))
-	db := config.ConnectDatabase(maxPool)
+	db, sshConn, err := config.ConnectDatabase(maxPool)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if sshConn != nil {
+		defer func() {
+			log.Println("Menutup SSH Tunnel...")
+			sshConn.Close()
+		}()
+	}
+
+	if db != nil {
+		defer func() {
+			sqlDB, err := db.DB()
+			if err == nil {
+				log.Println("Menutup koneksi database pool...")
+				sqlDB.Close()
+			}
+		}()
+	}
 
 	waitGroup := sync.WaitGroup{}
 

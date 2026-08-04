@@ -81,6 +81,25 @@ func (h *CylinderHandler) FindByBarcode(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// History godoc
+//
+//	@Summary		Get cylinder change history
+//	@Description	Get history of master data changes (product, ownership, hydrotest date, remarks) and status changes for a cylinder
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			id	path		string	true	"Cylinder ID"
+//	@Success		200	{object}	global.Response[dto.CylinderHistoryResponse]
+//	@Router			/cylinders/{id}/history [get]
+func (h *CylinderHandler) History(c fiber.Ctx) error {
+	res, err := h.usecase.History(c.Params("id"))
+	if err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}
+
 // Create godoc
 //
 //	@Summary		Register cylinder

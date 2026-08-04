@@ -9,6 +9,7 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ type CylinderUsecase interface {
 	FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse)
 	Create(actorUserId string, req *dto.CreateCylinderRequest) global.ErrorResponse
 	Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse
+	History(id string) (*dto.CylinderHistoryResponse, global.ErrorResponse)
 }
 
 type cylinderUsecase struct {
@@ -29,6 +31,8 @@ type cylinderUsecase struct {
 	masterItemRepo repository.MasterItemRepository
 	customerRepo   repository.CustomerRepository
 	vendorRepo     repository.VendorRepository
+	ledgerRepo     repository.CylinderLedgerRepository
+	userRepo       repository.UserRepository
 	auditLogRepo   repository.AuditLogRepository
 }
 
@@ -38,6 +42,8 @@ func NewCylinderUsecase(
 	masterItemRepo repository.MasterItemRepository,
 	customerRepo repository.CustomerRepository,
 	vendorRepo repository.VendorRepository,
+	ledgerRepo repository.CylinderLedgerRepository,
+	userRepo repository.UserRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) CylinderUsecase {
 	return &cylinderUsecase{
@@ -46,6 +52,8 @@ func NewCylinderUsecase(
 		masterItemRepo: masterItemRepo,
 		customerRepo:   customerRepo,
 		vendorRepo:     vendorRepo,
+		ledgerRepo:     ledgerRepo,
+		userRepo:       userRepo,
 		auditLogRepo:   auditLogRepo,
 	}
 }
@@ -104,6 +112,7 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 	}
 
 	ownership := enum.Ownership(req.OwnershipType)
+	ownerName := ""
 	var ownerId *string
 	if req.OwnerId != "" {
 		ownerId = &req.OwnerId
@@ -112,12 +121,14 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		return global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
 	}
 	if ownership == enum.OwnershipCustomer {
-		if _, err := u.customerRepo.FindById(*ownerId); err != nil {
+		customer, err := u.customerRepo.FindById(*ownerId)
+		if err != nil {
 			if err.GetCode() == fiber.StatusNotFound {
 				return global.BadRequestError("invalid customer owner_id")
 			}
 			return err
 		}
+		ownerName = customer.Name
 	}
 	if ownership == enum.OwnershipVendor {
 		vendor, err := u.vendorRepo.FindById(*ownerId)
@@ -130,6 +141,7 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		if !vendor.IsActive {
 			return global.BadRequestError("vendor is not active")
 		}
+		ownerName = vendor.Name
 	}
 
 	hydrotestDate, parseErr := time.Parse(time.RFC3339, req.LastHydrotestDate)
@@ -150,6 +162,7 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		OwnerId:           ownerId,
 		Status:            enum.CylinderStatusEmpty,
 		LastHydrotestDate: hydrotestDate,
+		Remarks:           req.Remarks,
 	}
 
 	tx := u.txManager.New()
@@ -165,10 +178,17 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		return global.InternalServerError(err)
 	}
 
+	changes := []dto.CylinderHistoryChange{
+		{Field: "barcode_sn", Label: "Barcode", New: cylinder.BarcodeSN},
+		{Field: "item_id", Label: "Produk Gas", New: item.Name},
+		{Field: "ownership_type", Label: "Kepemilikan", New: string(cylinder.OwnershipType)},
+		{Field: "owner_id", Label: "Pemilik", New: ownerName},
+		{Field: "last_hydrotest_date", Label: "Tanggal Hydrotest", New: cylinder.LastHydrotestDate.Format("2006-01-02")},
+		{Field: "remarks", Label: "Remarks", New: cylinder.Remarks},
+	}
+
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderCreate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
-		"barcode_sn":     cylinder.BarcodeSN,
-		"ownership_type": cylinder.OwnershipType,
-		"item_id":        cylinder.ItemId,
+		"changes": changes,
 	})
 
 	return nil
@@ -196,6 +216,7 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	}
 
 	ownership := enum.Ownership(req.OwnershipType)
+	ownerName := ""
 	var ownerId *string
 	if req.OwnerId != "" {
 		ownerId = &req.OwnerId
@@ -204,12 +225,14 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 		return global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
 	}
 	if ownership == enum.OwnershipCustomer {
-		if _, err := u.customerRepo.FindById(*ownerId); err != nil {
+		customer, err := u.customerRepo.FindById(*ownerId)
+		if err != nil {
 			if err.GetCode() == fiber.StatusNotFound {
 				return global.BadRequestError("invalid customer owner_id")
 			}
 			return err
 		}
+		ownerName = customer.Name
 	}
 	if ownership == enum.OwnershipVendor {
 		vendor, err := u.vendorRepo.FindById(*ownerId)
@@ -221,6 +244,20 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 		}
 		if !vendor.IsActive {
 			return global.BadRequestError("vendor is not active")
+		}
+		ownerName = vendor.Name
+	}
+
+	oldOwnerName := ""
+	if cylinder.OwnerId != nil && *cylinder.OwnerId != "" {
+		if cylinder.OwnershipType == enum.OwnershipCustomer {
+			if customer, err := u.customerRepo.FindById(*cylinder.OwnerId); err == nil {
+				oldOwnerName = customer.Name
+			}
+		} else if cylinder.OwnershipType == enum.OwnershipVendor {
+			if vendor, err := u.vendorRepo.FindById(*cylinder.OwnerId); err == nil {
+				oldOwnerName = vendor.Name
+			}
 		}
 	}
 
@@ -235,11 +272,25 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 		return global.BadRequestError("last hydrotest date is invalid or expired")
 	}
 
+	oldItemName := ""
+	if cylinder.MasterItem.Id != "" {
+		oldItemName = cylinder.MasterItem.Name
+	}
+
+	changes := []dto.CylinderHistoryChange{}
+	appendCylinderChange(&changes, "barcode_sn", "Barcode", cylinder.BarcodeSN, req.BarcodeSN)
+	appendCylinderChange(&changes, "item_id", "Produk Gas", oldItemName, item.Name)
+	appendCylinderChange(&changes, "ownership_type", "Kepemilikan", string(cylinder.OwnershipType), string(ownership))
+	appendCylinderChange(&changes, "owner_id", "Pemilik", oldOwnerName, ownerName)
+	appendCylinderChange(&changes, "last_hydrotest_date", "Tanggal Hydrotest", cylinder.LastHydrotestDate.Format("2006-01-02"), hydrotestDate.Format("2006-01-02"))
+	appendCylinderChange(&changes, "remarks", "Remarks", cylinder.Remarks, req.Remarks)
+
 	cylinder.BarcodeSN = req.BarcodeSN
 	cylinder.ItemId = req.ItemId
 	cylinder.OwnershipType = ownership
 	cylinder.OwnerId = ownerId
 	cylinder.LastHydrotestDate = hydrotestDate
+	cylinder.Remarks = req.Remarks
 
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
@@ -255,10 +306,82 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	}
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderUpdate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
-		"barcode_sn":     cylinder.BarcodeSN,
-		"ownership_type": cylinder.OwnershipType,
-		"item_id":        cylinder.ItemId,
+		"changes": changes,
 	})
 
 	return nil
+}
+
+func appendCylinderChange(changes *[]dto.CylinderHistoryChange, field, label, oldV, newV string) {
+	if strings.TrimSpace(oldV) == strings.TrimSpace(newV) {
+		return
+	}
+	*changes = append(*changes, dto.CylinderHistoryChange{Field: field, Label: label, Old: oldV, New: newV})
+}
+
+func (u *cylinderUsecase) History(id string) (*dto.CylinderHistoryResponse, global.ErrorResponse) {
+	cylinder, err := u.cylinderRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	auditLogs, err := u.auditLogRepo.FindByObject(constant.AuditObjectCylinder, cylinder.Id)
+	if err != nil {
+		return nil, err
+	}
+	ledgerEntries, err := u.ledgerRepo.FindByCylinderId(cylinder.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	userIds := map[string]bool{}
+	entries := make([]dto.CylinderHistoryEntry, 0, len(auditLogs)+len(ledgerEntries))
+	itemName := func(id string) string {
+		if item, err := u.masterItemRepo.FindById(id); err == nil {
+			return item.Name
+		}
+		return ""
+	}
+	for _, log := range auditLogs {
+		if log.Action != constant.AuditCylinderCreate && log.Action != constant.AuditCylinderUpdate {
+			continue
+		}
+		userIds[log.UserId] = true
+		entries = append(entries, dto.CylinderHistoryEntry{
+			Id:          log.Id,
+			Action:      log.Action,
+			ActionLabel: mapper.CylinderHistoryActionLabel(log.Action),
+			UserId:      log.UserId,
+			CreatedAt:   log.CreatedAt.Format(time.RFC3339),
+			Changes:     mapper.ParseCylinderHistoryChanges(log.Details, itemName),
+		})
+	}
+
+	userNames := map[string]string{}
+	for userId := range userIds {
+		if user, err := u.userRepo.FindById(userId); err == nil {
+			userNames[userId] = user.Name
+		}
+	}
+	for i := range entries {
+		entries[i].UserName = userNames[entries[i].UserId]
+	}
+
+	for _, entry := range ledgerEntries {
+		entries = append(entries, dto.CylinderHistoryEntry{
+			Id:          entry.Id,
+			Action:      entry.Action,
+			ActionLabel: mapper.CylinderHistoryActionLabel(entry.Action),
+			CreatedAt:   entry.CreatedAt.Format(time.RFC3339),
+			Changes: []dto.CylinderHistoryChange{
+				{Field: "status", Label: "Status", Old: string(entry.FromStatus), New: string(entry.ToStatus)},
+			},
+		})
+	}
+
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].CreatedAt < entries[j].CreatedAt
+	})
+
+	return mapper.ToCylinderHistoryResponse(cylinder, entries), nil
 }

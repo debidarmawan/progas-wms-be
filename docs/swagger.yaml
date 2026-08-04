@@ -18,6 +18,16 @@ definitions:
       processed_count:
         type: integer
     type: object
+  dto.BulkCreateMasterItemRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CreateMasterItemRequest'
+        minItems: 1
+        type: array
+    required:
+    - items
+    type: object
   dto.CreateCustomerRequest:
     properties:
       address:
@@ -46,6 +56,8 @@ definitions:
       owner_id:
         type: string
       ownership_type:
+        type: string
+      remarks:
         type: string
     required:
     - barcode_sn
@@ -178,6 +190,47 @@ definitions:
       phone:
         type: string
     type: object
+  dto.CylinderHistoryChange:
+    properties:
+      field:
+        type: string
+      label:
+        type: string
+      new:
+        type: string
+      old:
+        type: string
+    type: object
+  dto.CylinderHistoryEntry:
+    properties:
+      action:
+        type: string
+      action_label:
+        type: string
+      changes:
+        items:
+          $ref: '#/definitions/dto.CylinderHistoryChange'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: string
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
+  dto.CylinderHistoryResponse:
+    properties:
+      barcode_sn:
+        type: string
+      cylinder_id:
+        type: string
+      entries:
+        items:
+          $ref: '#/definitions/dto.CylinderHistoryEntry'
+        type: array
+    type: object
   dto.CylinderLedgerEntryResponse:
     properties:
       action:
@@ -216,6 +269,8 @@ definitions:
       owner_name:
         type: string
       ownership_type:
+        type: string
+      remarks:
         type: string
       status:
         type: string
@@ -693,6 +748,26 @@ definitions:
     required:
     - name
     type: object
+  dto.UpdateCylinderRequest:
+    properties:
+      barcode_sn:
+        type: string
+      item_id:
+        type: string
+      last_hydrotest_date:
+        type: string
+      owner_id:
+        type: string
+      ownership_type:
+        type: string
+      remarks:
+        type: string
+    required:
+    - barcode_sn
+    - item_id
+    - last_hydrotest_date
+    - ownership_type
+    type: object
   dto.UpdateFleetRequest:
     properties:
       driver_name:
@@ -794,6 +869,10 @@ definitions:
         type: string
       name:
         type: string
+      permissions:
+        items:
+          type: string
+        type: array
       phone:
         type: string
       role_id:
@@ -957,6 +1036,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.CustomerResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_CylinderHistoryResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CylinderHistoryResponse'
       error_code:
         type: string
       message:
@@ -1289,6 +1381,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_UserResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.UserResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_VendorDetailResponse:
     properties:
       code:
@@ -1514,6 +1619,82 @@ paths:
       security:
       - Bearer: []
       summary: Find cylinder by id
+      tags:
+      - Cylinder
+    put:
+      consumes:
+      - application/json
+      description: Update an existing cylinder's metadata
+      parameters:
+      - description: Cylinder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update cylinder request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCylinderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update cylinder
+      tags:
+      - Cylinder
+  /cylinders/{id}/history:
+    get:
+      consumes:
+      - application/json
+      description: Get history of master data changes (product, ownership, hydrotest
+        date, remarks) and status changes for a cylinder
+      parameters:
+      - description: Cylinder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CylinderHistoryResponse'
+      security:
+      - Bearer: []
+      summary: Get cylinder change history
+      tags:
+      - Cylinder
+  /cylinders/by-barcode/{sn}:
+    get:
+      consumes:
+      - application/json
+      description: Lookup a single cylinder by its barcode serial number (for scan
+        validation)
+      parameters:
+      - description: Cylinder barcode serial number
+        in: path
+        name: sn
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CylinderResponse'
+      security:
+      - Bearer: []
+      summary: Find cylinder by barcode
       tags:
       - Cylinder
   /dashboard/summary:
@@ -1957,6 +2138,30 @@ paths:
       summary: Update master item
       tags:
       - Master Item
+  /master-items/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple master items in one request
+      parameters:
+      - description: Bulk create master item request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BulkCreateMasterItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create master items in bulk
+      tags:
+      - Master Item
   /outbound/delivery-orders:
     get:
       consumes:
@@ -2185,6 +2390,23 @@ paths:
       summary: Pre-fill QC
       tags:
       - Production
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_UserResponse'
+      security:
+      - Bearer: []
+      summary: Get profile
+      tags:
+      - Auth
   /refresh-token:
     post:
       consumes:

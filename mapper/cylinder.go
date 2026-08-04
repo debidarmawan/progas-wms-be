@@ -27,6 +27,7 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 		OwnerId:           ownerId,
 		Status:            string(cylinder.Status),
 		LastHydrotestDate: cylinder.LastHydrotestDate.Format(time.RFC3339),
+		Remarks:           cylinder.Remarks,
 	}
 }
 

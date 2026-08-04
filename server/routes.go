@@ -56,7 +56,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
 	userUsecase := usecase.NewUserUsecase(txManager, userRepo, roleRepo, auditLogRepo)
 	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, sparepartStockRepo, auditLogRepo)
-	cylinderUsecase := usecase.NewCylinderUsecase(txManager, cylinderRepo, masterItemRepo, customerRepo, vendorRepo, auditLogRepo)
+	cylinderUsecase := usecase.NewCylinderUsecase(txManager, cylinderRepo, masterItemRepo, customerRepo, vendorRepo, cylinderLedgerRepo, userRepo, auditLogRepo)
 	customerUsecase := usecase.NewCustomerUsecase(txManager, customerRepo, auditLogRepo)
 	vendorUsecase := usecase.NewVendorUsecase(txManager, vendorRepo, cylinderRepo, auditLogRepo)
 	inboundUsecase := usecase.NewInboundUsecase(txManager, cylinderRepo, cylinderLedgerRepo, auditLogRepo)
@@ -118,6 +118,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	cylinderRead.Get("/cylinders", cylinderHandler.FindAll)
 	cylinderRead.Get("/cylinders/by-barcode/:sn", cylinderHandler.FindByBarcode)
 	cylinderRead.Get("/cylinders/:id", cylinderHandler.FindById)
+	cylinderRead.Get("/cylinders/:id/history", cylinderHandler.History)
 
 	cylinderWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermCylinderWrite))
 	cylinderWrite.Post("/cylinders", cylinderHandler.Create)
