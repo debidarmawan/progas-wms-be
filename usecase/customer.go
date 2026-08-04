@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"progas-wms-be/constant"
 	"progas-wms-be/dto"
 	"progas-wms-be/global"
@@ -8,8 +9,9 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+	"strings"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type CustomerUsecase interface {
@@ -58,18 +60,18 @@ func (u *customerUsecase) FindById(id string) (*dto.CustomerResponse, global.Err
 	return mapper.ToCustomerResponse(customer), nil
 }
 
-func (u *customerUsecase) Create(actorUserId string, req *dto.CreateCustomerRequest) global.ErrorResponse {
-	existing, err := u.customerRepo.FindByCode(req.Code)
-	if err != nil && err.GetCode() != fiber.StatusNotFound {
-		return err
-	}
-	if existing != nil {
-		return global.BadRequestError("customer code already exists")
-	}
+func generateCustomerCode() string {
+	return fmt.Sprintf("CUST-%s", strings.ToUpper(uuid.New().String()[:8]))
+}
 
+func (u *customerUsecase) Create(actorUserId string, req *dto.CreateCustomerRequest) global.ErrorResponse {
 	customer := &model.Customer{
-		Code:               req.Code,
+		Code:               generateCustomerCode(),
 		Name:               req.Name,
+		Pic:                req.Pic,
+		Npwp:               req.Npwp,
+		Fax:                req.Fax,
+		Email:              req.Email,
 		Phone:              req.Phone,
 		Address:            req.Address,
 		CylinderQuotaLimit: req.CylinderQuotaLimit,
@@ -80,7 +82,7 @@ func (u *customerUsecase) Create(actorUserId string, req *dto.CreateCustomerRequ
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
 
-	if err = u.customerRepo.Create(tx, customer); err != nil {
+	if err := u.customerRepo.Create(tx, customer); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -105,6 +107,10 @@ func (u *customerUsecase) Update(actorUserId, id string, req *dto.UpdateCustomer
 	}
 
 	customer.Name = req.Name
+	customer.Pic = req.Pic
+	customer.Npwp = req.Npwp
+	customer.Fax = req.Fax
+	customer.Email = req.Email
 	customer.Phone = req.Phone
 	customer.Address = req.Address
 	customer.CylinderQuotaLimit = req.CylinderQuotaLimit
