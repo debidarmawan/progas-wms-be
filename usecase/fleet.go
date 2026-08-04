@@ -69,7 +69,6 @@ func (u *fleetUsecase) Create(actorUserId string, req *dto.CreateFleetRequest) g
 
 	fleet := &model.FleetVehicle{
 		PlateNumber: req.PlateNumber,
-		DriverName:  req.DriverName,
 		MaxWeightKg: req.MaxWeightKg,
 		IsActive:    true,
 	}
@@ -100,7 +99,6 @@ func (u *fleetUsecase) Update(actorUserId, id string, req *dto.UpdateFleetReques
 		return err
 	}
 
-	fleet.DriverName = req.DriverName
 	fleet.MaxWeightKg = req.MaxWeightKg
 	fleet.IsActive = req.IsActive
 

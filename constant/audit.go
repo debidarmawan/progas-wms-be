@@ -23,6 +23,9 @@ const (
 	AuditExchangeComplete   = "EXCHANGE_COMPLETE"
 	AuditFleetCreate        = "FLEET_CREATE"
 	AuditFleetUpdate        = "FLEET_UPDATE"
+	AuditDriverCreate       = "DRIVER_CREATE"
+	AuditDriverUpdate       = "DRIVER_UPDATE"
+	AuditDriverDelete       = "DRIVER_DELETE"
 	AuditWorkOrderCreate    = "WORK_ORDER_CREATE"
 	AuditWorkOrderComplete  = "WORK_ORDER_COMPLETE"
 	AuditStockOpname        = "STOCK_OPNAME"
@@ -39,6 +42,7 @@ const (
 	AuditObjectFillingBatch  = "filling_batch"
 	AuditObjectDeliveryOrder = "delivery_order"
 	AuditObjectFleetVehicle  = "fleet_vehicle"
+	AuditObjectDriver        = "driver"
 	AuditObjectWorkOrder     = "work_order"
 )
 

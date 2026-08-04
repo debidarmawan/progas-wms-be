@@ -39,7 +39,7 @@ func (r *fleetRepository) FindAll(page, limit int, search string) ([]model.Fleet
 	query := r.db.Model(&model.FleetVehicle{})
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
-		query = query.Where("plate_number LIKE ? OR driver_name LIKE ?", pattern, pattern)
+		query = query.Where("plate_number LIKE ?", pattern)
 	}
 
 	if err := query.Count(&total).Error; err != nil {

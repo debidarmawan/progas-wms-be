@@ -32,17 +32,22 @@ definitions:
     properties:
       address:
         type: string
-      code:
-        type: string
       cylinder_quota_limit:
         minimum: 0
         type: integer
+      email:
+        type: string
+      fax:
+        type: string
       name:
+        type: string
+      npwp:
         type: string
       phone:
         type: string
+      pic:
+        type: string
     required:
-    - code
     - name
     type: object
   dto.CreateCylinderRequest:
@@ -65,10 +70,19 @@ definitions:
     - last_hydrotest_date
     - ownership_type
     type: object
+  dto.CreateDriverRequest:
+    properties:
+      license_number:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateFleetRequest:
     properties:
-      driver_name:
-        type: string
       max_weight_kg:
         type: number
       plate_number:
@@ -179,15 +193,23 @@ definitions:
         type: string
       cylinder_quota_limit:
         type: integer
+      email:
+        type: string
+      fax:
+        type: string
       id:
         type: string
       is_active:
         type: boolean
       name:
         type: string
+      npwp:
+        type: string
       outstanding_count:
         type: integer
       phone:
+        type: string
+      pic:
         type: string
     type: object
   dto.CylinderHistoryChange:
@@ -336,6 +358,19 @@ definitions:
       total_weight_kg:
         type: number
     type: object
+  dto.DriverResponse:
+    properties:
+      id:
+        type: string
+      is_active:
+        type: boolean
+      license_number:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
   dto.ExchangeResponse:
     properties:
       cross_customer_alerts:
@@ -399,8 +434,6 @@ definitions:
     type: object
   dto.FleetResponse:
     properties:
-      driver_name:
-        type: string
       id:
         type: string
       is_active:
@@ -535,6 +568,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/dto.DeliveryOrderResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedDriverList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.DriverResponse'
         type: array
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
@@ -739,11 +781,19 @@ definitions:
       cylinder_quota_limit:
         minimum: 0
         type: integer
+      email:
+        type: string
+      fax:
+        type: string
       is_active:
         type: boolean
       name:
         type: string
+      npwp:
+        type: string
       phone:
+        type: string
+      pic:
         type: string
     required:
     - name
@@ -768,10 +818,21 @@ definitions:
     - last_hydrotest_date
     - ownership_type
     type: object
+  dto.UpdateDriverRequest:
+    properties:
+      is_active:
+        type: boolean
+      license_number:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
   dto.UpdateFleetRequest:
     properties:
-      driver_name:
-        type: string
       is_active:
         type: boolean
       max_weight_kg:
@@ -1095,6 +1156,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_DriverResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.DriverResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_ExchangeResponse:
     properties:
       code:
@@ -1218,6 +1292,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.PaginatedDeliveryOrderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedDriverList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedDriverList'
       error_code:
         type: string
       message:
@@ -1791,6 +1878,132 @@ paths:
       summary: Login
       tags:
       - Auth
+  /logistics/drivers:
+    get:
+      consumes:
+      - application/json
+      description: List drivers with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, phone, or license number
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedDriverList'
+      security:
+      - Bearer: []
+      summary: List drivers
+      tags:
+      - Logistics
+    post:
+      consumes:
+      - application/json
+      description: Register a delivery driver
+      parameters:
+      - description: Create driver request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDriverRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create driver
+      tags:
+      - Logistics
+  /logistics/drivers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft-delete a driver
+      parameters:
+      - description: Driver ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete driver
+      tags:
+      - Logistics
+    get:
+      consumes:
+      - application/json
+      description: Get driver detail
+      parameters:
+      - description: Driver ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_DriverResponse'
+      security:
+      - Bearer: []
+      summary: Get driver by id
+      tags:
+      - Logistics
+    put:
+      consumes:
+      - application/json
+      description: Update driver info or active status
+      parameters:
+      - description: Driver ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update driver request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateDriverRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update driver
+      tags:
+      - Logistics
   /logistics/fleet:
     get:
       consumes:
@@ -1805,7 +2018,7 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Search by plate number or driver name
+      - description: Search by plate number
         in: query
         name: search
         type: string
@@ -1870,7 +2083,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update fleet vehicle driver, max weight, or active status
+      description: Update fleet vehicle max weight or active status
       parameters:
       - description: Fleet vehicle ID
         in: path

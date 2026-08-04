@@ -9,7 +9,6 @@ func ToFleetResponse(f *model.FleetVehicle) *dto.FleetResponse {
 	return &dto.FleetResponse{
 		Id:          f.Id,
 		PlateNumber: f.PlateNumber,
-		DriverName:  f.DriverName,
 		MaxWeightKg: f.MaxWeightKg,
 		IsActive:    f.IsActive,
 	}

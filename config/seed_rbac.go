@@ -226,6 +226,27 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
+			Key:       constant.PermDriverRead,
+			Method:    "GET",
+			Path:      "/api/v1/logistics/drivers",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermDriverWrite,
+			Method:    "POST",
+			Path:      "/api/v1/logistics/drivers",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
+		{
 			Key:       constant.PermDORead,
 			Method:    "GET",
 			Path:      "/api/v1/outbound/delivery-orders",

@@ -574,6 +574,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/logistics/drivers": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List drivers with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "List drivers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name, phone, or license number",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedDriverList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Register a delivery driver",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Create driver",
+                "parameters": [
+                    {
+                        "description": "Create driver request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateDriverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/logistics/drivers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get driver detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Get driver by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Driver ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_DriverResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update driver info or active status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Update driver",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Driver ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update driver request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDriverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Soft-delete a driver",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logistics"
+                ],
+                "summary": "Delete driver",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Driver ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/logistics/fleet": {
             "get": {
                 "security": [
@@ -607,7 +808,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Search by plate number or driver name",
+                        "description": "Search by plate number",
                         "name": "search",
                         "in": "query"
                     }
@@ -701,7 +902,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Update fleet vehicle driver, max weight, or active status",
+                "description": "Update fleet vehicle max weight or active status",
                 "consumes": [
                     "application/json"
                 ],
@@ -2169,24 +2370,32 @@ const docTemplate = `{
         "dto.CreateCustomerRequest": {
             "type": "object",
             "required": [
-                "code",
                 "name"
             ],
             "properties": {
                 "address": {
                     "type": "string"
                 },
-                "code": {
-                    "type": "string"
-                },
                 "cylinder_quota_limit": {
                     "type": "integer",
                     "minimum": 0
                 },
+                "email": {
+                    "type": "string"
+                },
+                "fax": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
+                "npwp": {
+                    "type": "string"
+                },
                 "phone": {
+                    "type": "string"
+                },
+                "pic": {
                     "type": "string"
                 }
             }
@@ -2220,6 +2429,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateDriverRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "license_number": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateFleetRequest": {
             "type": "object",
             "required": [
@@ -2227,9 +2453,6 @@ const docTemplate = `{
                 "plate_number"
             ],
             "properties": {
-                "driver_name": {
-                    "type": "string"
-                },
                 "max_weight_kg": {
                     "type": "number"
                 },
@@ -2388,6 +2611,12 @@ const docTemplate = `{
                 "cylinder_quota_limit": {
                     "type": "integer"
                 },
+                "email": {
+                    "type": "string"
+                },
+                "fax": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -2397,10 +2626,16 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "npwp": {
+                    "type": "string"
+                },
                 "outstanding_count": {
                     "type": "integer"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "pic": {
                     "type": "string"
                 }
             }
@@ -2628,6 +2863,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DriverResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "license_number": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ExchangeResponse": {
             "type": "object",
             "properties": {
@@ -2724,9 +2979,6 @@ const docTemplate = `{
         "dto.FleetResponse": {
             "type": "object",
             "properties": {
-                "driver_name": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -2931,6 +3183,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.DeliveryOrderResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedDriverList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DriverResponse"
                     }
                 },
                 "meta": {
@@ -3246,13 +3512,25 @@ const docTemplate = `{
                     "type": "integer",
                     "minimum": 0
                 },
+                "email": {
+                    "type": "string"
+                },
+                "fax": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
                 "name": {
                     "type": "string"
                 },
+                "npwp": {
+                    "type": "string"
+                },
                 "phone": {
+                    "type": "string"
+                },
+                "pic": {
                     "type": "string"
                 }
             }
@@ -3286,15 +3564,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateDriverRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                },
+                "license_number": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateFleetRequest": {
             "type": "object",
             "required": [
                 "max_weight_kg"
             ],
             "properties": {
-                "driver_name": {
-                    "type": "string"
-                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -3783,6 +4078,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_DriverResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.DriverResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_ExchangeResponse": {
             "type": "object",
             "properties": {
@@ -3971,6 +4286,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.PaginatedDeliveryOrderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedDriverList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedDriverList"
                 },
                 "error_code": {
                     "type": "string"

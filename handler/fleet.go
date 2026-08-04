@@ -27,7 +27,7 @@ func NewFleetHandler(usecase usecase.FleetUsecase) *FleetHandler {
 //	@Security		Bearer
 //	@Param			page	query		int		false	"Page number (default 1)"
 //	@Param			limit	query		int		false	"Items per page (default 10, max 100)"
-//	@Param			search	query		string	false	"Search by plate number or driver name"
+//	@Param			search	query		string	false	"Search by plate number"
 //	@Success		200		{object}	global.Response[dto.PaginatedFleetList]
 //	@Router			/logistics/fleet [get]
 func (h *FleetHandler) FindAll(c fiber.Ctx) error {
@@ -87,7 +87,7 @@ func (h *FleetHandler) Create(c fiber.Ctx) error {
 // Update godoc
 //
 //	@Summary		Update fleet vehicle
-//	@Description	Update fleet vehicle driver, max weight, or active status
+//	@Description	Update fleet vehicle max weight or active status
 //	@Tags			Logistics
 //	@Accept			json
 //	@Produce		json
