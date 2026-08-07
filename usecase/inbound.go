@@ -77,6 +77,10 @@ func (u *inboundUsecase) EmptyReceive(actorUserId string, req *dto.BarcodeListRe
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.ClearOutstandingSince(tx, ids); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()

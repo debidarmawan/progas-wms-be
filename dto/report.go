@@ -17,11 +17,11 @@ type StockLedgerReportResponse struct {
 }
 
 type TurnaroundReportResponse struct {
-	FromDate       string             `json:"from_date"`
-	ToDate         string             `json:"to_date"`
-	SampleCount    int                `json:"sample_count"`
-	AverageDays    float64            `json:"average_days"`
-	Samples        []TurnaroundSample `json:"samples"`
+	FromDate    string             `json:"from_date"`
+	ToDate      string             `json:"to_date"`
+	SampleCount int                `json:"sample_count"`
+	AverageDays float64            `json:"average_days"`
+	Samples     []TurnaroundSample `json:"samples"`
 }
 
 type TurnaroundSample struct {
@@ -31,12 +31,20 @@ type TurnaroundSample struct {
 	CompletedAt string  `json:"completed_at"`
 }
 
+type VirtualWarehouseCylinder struct {
+	BarcodeSN      string `json:"barcode_sn"`
+	DaysAtCustomer int    `json:"days_at_customer"`
+	MaxDays        int    `json:"max_days"`
+	IsOverdue      bool   `json:"is_overdue"`
+}
+
 type VirtualWarehouseCustomer struct {
-	CustomerId       string   `json:"customer_id"`
-	CustomerCode     string   `json:"customer_code"`
-	CustomerName     string   `json:"customer_name"`
-	OutstandingCount int      `json:"outstanding_count"`
-	CylinderBarcodes []string `json:"cylinder_barcodes"`
+	CustomerId       string                     `json:"customer_id"`
+	CustomerCode     string                     `json:"customer_code"`
+	CustomerName     string                     `json:"customer_name"`
+	OutstandingCount int                        `json:"outstanding_count"`
+	OverdueCount     int                        `json:"overdue_count"`
+	Cylinders        []VirtualWarehouseCylinder `json:"cylinders"`
 }
 
 type VirtualWarehouseResponse struct {

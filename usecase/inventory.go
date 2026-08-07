@@ -3,6 +3,7 @@ package usecase
 import (
 	"progas-wms-be/dto"
 	"progas-wms-be/global"
+	"progas-wms-be/helper"
 	"progas-wms-be/repository"
 )
 
@@ -41,10 +42,22 @@ func (u *inventoryUsecase) VirtualWarehouse() (*dto.VirtualWarehouseResponse, gl
 		if customer.OutstandingCount <= 0 {
 			continue
 		}
-		barcodes := make([]string, 0)
+		cylinders := make([]dto.VirtualWarehouseCylinder, 0)
+		overdueCount := 0
 		if cyls, ok := grouped[customer.Id]; ok {
 			for _, cyl := range cyls {
-				barcodes = append(barcodes, cyl.BarcodeSN)
+				maxDays := cyl.MasterItem.MaxDaysAtCustomer
+				days := helper.DaysAtCustomer(cyl.OutstandingSince)
+				isOverdue := helper.IsOverdueAtCustomer(cyl.OutstandingSince, maxDays)
+				if isOverdue {
+					overdueCount++
+				}
+				cylinders = append(cylinders, dto.VirtualWarehouseCylinder{
+					BarcodeSN:      cyl.BarcodeSN,
+					DaysAtCustomer: days,
+					MaxDays:        maxDays,
+					IsOverdue:      isOverdue,
+				})
 			}
 		}
 		result = append(result, dto.VirtualWarehouseCustomer{
@@ -52,7 +65,8 @@ func (u *inventoryUsecase) VirtualWarehouse() (*dto.VirtualWarehouseResponse, gl
 			CustomerCode:     customer.Code,
 			CustomerName:     customer.Name,
 			OutstandingCount: customer.OutstandingCount,
-			CylinderBarcodes: barcodes,
+			OverdueCount:     overdueCount,
+			Cylinders:        cylinders,
 		})
 	}
 

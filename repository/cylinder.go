@@ -22,11 +22,14 @@ type CylinderRepository interface {
 	FindByBarcodes(tx helper.Tx, barcodes []string) ([]model.Cylinder, global.ErrorResponse)
 	FindHydrotestDue(withinDays int) ([]model.Cylinder, global.ErrorResponse)
 	FindOutstandingGroupedByCustomer() (map[string][]model.Cylinder, global.ErrorResponse)
+	FindOutstanding() ([]model.Cylinder, global.ErrorResponse)
 	FindByVendorId(vendorId string) ([]model.Cylinder, global.ErrorResponse)
 	CountByVendorIds(vendorIds []string) (map[string]int64, global.ErrorResponse)
 	CountByVendorId(vendorId string) (int64, global.ErrorResponse)
 	Update(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 	UpdateStatusByIds(tx helper.Tx, ids []string, status enum.CylinderStatus) global.ErrorResponse
+	SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse
+	ClearOutstandingSince(tx helper.Tx, ids []string) global.ErrorResponse
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 }
 
@@ -153,7 +156,7 @@ func (r *cylinderRepository) CountByVendorId(vendorId string) (int64, global.Err
 
 func (r *cylinderRepository) FindOutstandingGroupedByCustomer() (map[string][]model.Cylinder, global.ErrorResponse) {
 	var cylinders []model.Cylinder
-	if err := r.db.Where("status = ?", enum.CylinderStatusOutstanding).
+	if err := r.db.Preload("MasterItem").Where("status = ?", enum.CylinderStatusOutstanding).
 		Order("owner_id asc, barcode_sn asc").Find(&cylinders).Error; err != nil {
 		return nil, global.InternalServerError(err)
 	}
@@ -166,6 +169,15 @@ func (r *cylinderRepository) FindOutstandingGroupedByCustomer() (map[string][]mo
 		grouped[key] = append(grouped[key], cyl)
 	}
 	return grouped, nil
+}
+
+func (r *cylinderRepository) FindOutstanding() ([]model.Cylinder, global.ErrorResponse) {
+	var cylinders []model.Cylinder
+	if err := r.db.Preload("MasterItem").Where("status = ?", enum.CylinderStatusOutstanding).
+		Order("barcode_sn asc").Find(&cylinders).Error; err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return cylinders, nil
 }
 
 func (r *cylinderRepository) Update(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse {
@@ -232,6 +244,26 @@ func (r *cylinderRepository) UpdateStatusByIds(tx helper.Tx, ids []string, statu
 		return nil
 	}
 	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("status", status).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *cylinderRepository) SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("outstanding_since", since).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *cylinderRepository) ClearOutstandingSince(tx helper.Tx, ids []string) global.ErrorResponse {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("outstanding_since", nil).Error; err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil

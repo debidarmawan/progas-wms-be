@@ -1,11 +1,11 @@
 package dto
 
 type LowStockSparepartAlert struct {
-	ItemId    string `json:"item_id"`
-	ItemName  string `json:"item_name"`
-	SKU       string `json:"sku"`
-	Quantity  int    `json:"quantity"`
-	MinStock  int    `json:"min_stock"`
+	ItemId   string `json:"item_id"`
+	ItemName string `json:"item_name"`
+	SKU      string `json:"sku"`
+	Quantity int    `json:"quantity"`
+	MinStock int    `json:"min_stock"`
 }
 
 type CustomerQuotaAlert struct {
@@ -16,11 +16,22 @@ type CustomerQuotaAlert struct {
 	QuotaLimit       int    `json:"quota_limit"`
 }
 
+type OverdueCylinderAlert struct {
+	CustomerId     string `json:"customer_id"`
+	CustomerCode   string `json:"customer_code"`
+	CustomerName   string `json:"customer_name"`
+	BarcodeSN      string `json:"barcode_sn"`
+	DaysAtCustomer int    `json:"days_at_customer"`
+	MaxDays        int    `json:"max_days"`
+}
+
 type DashboardSummaryResponse struct {
-	CylindersByStatus        map[string]int          `json:"cylinders_by_status"`
-	LowStockSpareparts       []LowStockSparepartAlert `json:"low_stock_spareparts"`
-	TotalOutstandingCylinders int                    `json:"total_outstanding_cylinders"`
-	CustomersOverQuota       []CustomerQuotaAlert    `json:"customers_over_quota"`
-	HydrotestExpiredCount    int                     `json:"hydrotest_expired_count"`
-	HydrotestDueSoonCount    int                     `json:"hydrotest_due_soon_count"`
+	CylindersByStatus         map[string]int           `json:"cylinders_by_status"`
+	LowStockSpareparts        []LowStockSparepartAlert `json:"low_stock_spareparts"`
+	TotalOutstandingCylinders int                      `json:"total_outstanding_cylinders"`
+	CustomersOverQuota        []CustomerQuotaAlert     `json:"customers_over_quota"`
+	OverdueCylindersCount     int                      `json:"overdue_cylinders_count"`
+	OverdueCylinders          []OverdueCylinderAlert   `json:"overdue_cylinders"`
+	HydrotestExpiredCount     int                      `json:"hydrotest_expired_count"`
+	HydrotestDueSoonCount     int                      `json:"hydrotest_due_soon_count"`
 }

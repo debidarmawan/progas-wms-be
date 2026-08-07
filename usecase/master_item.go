@@ -21,10 +21,10 @@ type MasterItemUsecase interface {
 }
 
 type masterItemUsecase struct {
-	txManager        helper.TxManager
-	masterItemRepo   repository.MasterItemRepository
+	txManager          helper.TxManager
+	masterItemRepo     repository.MasterItemRepository
 	sparepartStockRepo repository.SparepartStockRepository
-	auditLogRepo     repository.AuditLogRepository
+	auditLogRepo       repository.AuditLogRepository
 }
 
 func NewMasterItemUsecase(
@@ -161,6 +161,7 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	item.EmptyWeightKg = req.EmptyWeightKg
 	item.GasWeightKg = req.GasWeightKg
 	item.MinStockAlert = req.MinStockAlert
+	item.MaxDaysAtCustomer = req.MaxDaysAtCustomer
 
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
@@ -197,18 +198,22 @@ func (u *masterItemUsecase) validateCreateRequest(req *dto.CreateMasterItemReque
 	if !req.IsSerialized && req.GasType != "" {
 		return global.BadRequestError("gas_type is only applicable for serialized gas items")
 	}
+	if !req.IsSerialized && req.MaxDaysAtCustomer != 0 {
+		return global.BadRequestError("max_days_at_customer is only applicable for serialized gas items")
+	}
 	return nil
 }
 
 func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMasterItemRequest) (string, global.ErrorResponse) {
 	item := &model.MasterItem{
-		Name:          req.Name,
-		SKU:           req.SKU,
-		GasType:       req.GasType,
-		IsSerialized:  req.IsSerialized,
-		EmptyWeightKg: req.EmptyWeightKg,
-		GasWeightKg:   req.GasWeightKg,
-		MinStockAlert: req.MinStockAlert,
+		Name:              req.Name,
+		SKU:               req.SKU,
+		GasType:           req.GasType,
+		IsSerialized:      req.IsSerialized,
+		EmptyWeightKg:     req.EmptyWeightKg,
+		GasWeightKg:       req.GasWeightKg,
+		MinStockAlert:     req.MinStockAlert,
+		MaxDaysAtCustomer: req.MaxDaysAtCustomer,
 	}
 
 	if err := u.masterItemRepo.Create(tx, item); err != nil {

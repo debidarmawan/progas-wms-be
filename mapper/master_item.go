@@ -7,15 +7,16 @@ import (
 
 func ToMasterItemResponse(item *model.MasterItem, stockQty *int) *dto.MasterItemResponse {
 	res := &dto.MasterItemResponse{
-		Id:            item.Id,
-		Name:          item.Name,
-		SKU:           item.SKU,
-		GasType:       item.GasType,
-		IsSerialized:  item.IsSerialized,
-		EmptyWeightKg: item.EmptyWeightKg,
-		GasWeightKg:   item.GasWeightKg,
-		MinStockAlert: item.MinStockAlert,
-		StockQuantity: stockQty,
+		Id:                item.Id,
+		Name:              item.Name,
+		SKU:               item.SKU,
+		GasType:           item.GasType,
+		IsSerialized:      item.IsSerialized,
+		EmptyWeightKg:     item.EmptyWeightKg,
+		GasWeightKg:       item.GasWeightKg,
+		MinStockAlert:     item.MinStockAlert,
+		MaxDaysAtCustomer: item.MaxDaysAtCustomer,
+		StockQuantity:     stockQty,
 	}
 	return res
 }

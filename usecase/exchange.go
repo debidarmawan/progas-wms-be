@@ -8,6 +8,7 @@ import (
 	"progas-wms-be/global"
 	"progas-wms-be/helper"
 	"progas-wms-be/repository"
+	"time"
 )
 
 type ExchangeUsecase interface {
@@ -108,8 +109,16 @@ func (u *exchangeUsecase) Process(actorUserId string, req *dto.ProcessExchangeRe
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.SetOutstandingSince(tx, outIds, time.Now()); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	repository.LogCylinderStatusChanges(u.ledgerRepo, tx, inCylinders, enum.CylinderStatusEmpty, constant.LedgerActionExchangeIn, constant.AuditObjectCustomer, customer.Id)
 	if err := u.cylinderRepo.UpdateStatusByIds(tx, inIds, enum.CylinderStatusEmpty); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if err := u.cylinderRepo.ClearOutstandingSince(tx, inIds); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -135,13 +144,13 @@ func (u *exchangeUsecase) Process(actorUserId string, req *dto.ProcessExchangeRe
 	outstandingAfter := outstandingBefore + netDelta
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditExchangeComplete, constant.AuditObjectCustomer, customer.Id, map[string]any{
-		"customer_id":        customer.Id,
-		"out_count":          len(outCylinders),
-		"in_count":           len(inCylinders),
-		"outstanding_before": outstandingBefore,
-		"outstanding_after":  outstandingAfter,
-		"outstanding_delta":  netDelta,
-		"force_approve":      req.ForceApprove,
+		"customer_id":           customer.Id,
+		"out_count":             len(outCylinders),
+		"in_count":              len(inCylinders),
+		"outstanding_before":    outstandingBefore,
+		"outstanding_after":     outstandingAfter,
+		"outstanding_delta":     netDelta,
+		"force_approve":         req.ForceApprove,
 		"cross_customer_alerts": alerts,
 	})
 

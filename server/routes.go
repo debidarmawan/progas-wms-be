@@ -69,7 +69,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	workOrderUsecase := usecase.NewWorkOrderUsecase(txManager, workOrderRepo, masterItemRepo, sparepartStockRepo, sparepartMovementRepo, auditLogRepo)
 	stockOpnameUsecase := usecase.NewStockOpnameUsecase(txManager, masterItemRepo, sparepartStockRepo, sparepartMovementRepo, auditLogRepo)
 	hydrotestUsecase := usecase.NewHydrotestUsecase(txManager, cylinderRepo, cylinderLedgerRepo, auditLogRepo)
-	dashboardUsecase := usecase.NewDashboardUsecase(dashboardRepo, sparepartStockRepo)
+	dashboardUsecase := usecase.NewDashboardUsecase(dashboardRepo, sparepartStockRepo, cylinderRepo, customerRepo)
 	reportUsecase := usecase.NewReportUsecase(cylinderLedgerRepo, cylinderRepo)
 	inventoryUsecase := usecase.NewInventoryUsecase(customerRepo, cylinderRepo)
 
