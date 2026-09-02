@@ -13,7 +13,7 @@ services:
       - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    expose:
+    ports:
       - "3131"
     networks:
       - progas
