@@ -1,0 +1,28 @@
+name: Deploy Development
+
+on:
+  push:
+    branches:
+      - development # Hanya memicu workflow jika ada push ke branch development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          # port: ${{ secrets.VPS_PORT }} # Hilangkan tanda # jika Anda memakai custom port SSH
+          script: |
+            # Ganti path ini jika folder Anda berbeda
+            cd /home/progas/progas-wms-be
+            
+            # Tarik pembaruan terbaru dari GitHub
+            git pull origin development
+            
+            # Re-build container dan jalankan di background
+            docker compose up -d --build
