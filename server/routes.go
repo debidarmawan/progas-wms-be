@@ -18,7 +18,7 @@ import (
 func Routes(f *fiber.App, db *gorm.DB) {
 	f.Use(RequestLogger())
 
-	if os.Getenv("GO_ENV") == "development" {
+	if os.Getenv("GO_ENV") == "development" || os.Getenv("GO_ENV") == "localhost" {
 		docs.SwaggerInfo.BasePath = "/api/v1"
 		f.Get("/swagger/*", swaggo.New(swaggo.Config{
 			InstanceName: "swagger",
