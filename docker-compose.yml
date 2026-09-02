@@ -13,11 +13,4 @@ services:
       - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    ports:
-      - "3131"
-    networks:
-      - progas
-
-networks:
-  progas:
-    driver: bridge
+    network_mode: "host"
