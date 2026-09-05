@@ -2480,6 +2480,10 @@ const docTemplate = `{
                     "type": "number",
                     "minimum": 0
                 },
+                "hna_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "is_serialized": {
                     "type": "boolean"
                 },
@@ -3137,6 +3141,9 @@ const docTemplate = `{
                 "gas_weight_kg": {
                     "type": "number"
                 },
+                "hna_price": {
+                    "type": "number"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3659,6 +3666,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "gas_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "hna_price": {
                     "type": "number",
                     "minimum": 0
                 },

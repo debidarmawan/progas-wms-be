@@ -101,6 +101,9 @@ definitions:
       gas_weight_kg:
         minimum: 0
         type: number
+      hna_price:
+        minimum: 0
+        type: number
       is_serialized:
         type: boolean
       item_type:
@@ -539,6 +542,8 @@ definitions:
         type: string
       gas_weight_kg:
         type: number
+      hna_price:
+        type: number
       id:
         type: string
       is_serialized:
@@ -879,6 +884,9 @@ definitions:
       gas_type:
         type: string
       gas_weight_kg:
+        minimum: 0
+        type: number
+      hna_price:
         minimum: 0
         type: number
       item_type:

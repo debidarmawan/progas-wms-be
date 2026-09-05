@@ -2472,6 +2472,10 @@
                     "type": "number",
                     "minimum": 0
                 },
+                "hna_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "is_serialized": {
                     "type": "boolean"
                 },
@@ -3129,6 +3133,9 @@
                 "gas_weight_kg": {
                     "type": "number"
                 },
+                "hna_price": {
+                    "type": "number"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3651,6 +3658,10 @@
                     "type": "string"
                 },
                 "gas_weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "hna_price": {
                     "type": "number",
                     "minimum": 0
                 },

@@ -12,6 +12,7 @@ func ToMasterItemResponse(item *model.MasterItem, stockQty *int) *dto.MasterItem
 		SKU:               item.SKU,
 		ItemType:          item.ItemType,
 		GasType:           item.GasType,
+		HnaPrice:          item.HnaPrice,
 		IsSerialized:      item.IsSerialized,
 		EmptyWeightKg:     item.EmptyWeightKg,
 		GasWeightKg:       item.GasWeightKg,

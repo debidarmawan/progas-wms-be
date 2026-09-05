@@ -6,6 +6,7 @@ type MasterItem struct {
 	SKU               string  `gorm:"not null;type:varchar(50);uniqueIndex"`
 	ItemType          string  `gorm:"not null;type:varchar(10);default:gas"`
 	GasType           string  `gorm:"type:varchar(50)"`
+	HnaPrice          float64 `gorm:"not null;type:decimal(15,2);default:0"`
 	IsSerialized      bool    `gorm:"not null;default:true"`
 	EmptyWeightKg     float64 `gorm:"type:decimal(6,2)"`
 	GasWeightKg       float64 `gorm:"type:decimal(6,2)"`

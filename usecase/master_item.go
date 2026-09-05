@@ -163,6 +163,7 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	}
 	item.ItemType = req.ItemType
 	item.GasType = req.GasType
+	item.HnaPrice = req.HnaPrice
 	item.EmptyWeightKg = req.EmptyWeightKg
 	item.GasWeightKg = req.GasWeightKg
 	item.MinStockAlert = req.MinStockAlert
@@ -219,6 +220,7 @@ func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMa
 		SKU:               req.SKU,
 		ItemType:          req.ItemType,
 		GasType:           req.GasType,
+		HnaPrice:          req.HnaPrice,
 		IsSerialized:      req.IsSerialized,
 		EmptyWeightKg:     req.EmptyWeightKg,
 		GasWeightKg:       req.GasWeightKg,
