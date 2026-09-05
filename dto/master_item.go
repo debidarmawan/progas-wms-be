@@ -3,6 +3,7 @@ package dto
 type CreateMasterItemRequest struct {
 	Name              string  `json:"name" validate:"required"`
 	SKU               string  `json:"sku" validate:"required"`
+	ItemType          string  `json:"item_type" validate:"required"`
 	GasType           string  `json:"gas_type"`
 	IsSerialized      bool    `json:"is_serialized"`
 	EmptyWeightKg     float64 `json:"empty_weight_kg" validate:"gte=0"`
@@ -17,6 +18,7 @@ type BulkCreateMasterItemRequest struct {
 
 type UpdateMasterItemRequest struct {
 	Name              string  `json:"name" validate:"required"`
+	ItemType          string  `json:"item_type" validate:"required"`
 	GasType           string  `json:"gas_type"`
 	EmptyWeightKg     float64 `json:"empty_weight_kg" validate:"gte=0"`
 	GasWeightKg       float64 `json:"gas_weight_kg" validate:"gte=0"`
@@ -28,6 +30,7 @@ type MasterItemResponse struct {
 	Id                string  `json:"id"`
 	Name              string  `json:"name"`
 	SKU               string  `json:"sku"`
+	ItemType          string  `json:"item_type"`
 	GasType           string  `json:"gas_type"`
 	IsSerialized      bool    `json:"is_serialized"`
 	EmptyWeightKg     float64 `json:"empty_weight_kg"`

@@ -3,6 +3,7 @@ package usecase
 import (
 	"progas-wms-be/constant"
 	"progas-wms-be/dto"
+	"progas-wms-be/enum"
 	"progas-wms-be/global"
 	"progas-wms-be/helper"
 	"progas-wms-be/mapper"
@@ -157,6 +158,10 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	}
 
 	item.Name = req.Name
+	if !enum.MasterItemType(req.ItemType).IsValid() {
+		return global.BadRequestError("item_type must be one of: gas, liquid, mix")
+	}
+	item.ItemType = req.ItemType
 	item.GasType = req.GasType
 	item.EmptyWeightKg = req.EmptyWeightKg
 	item.GasWeightKg = req.GasWeightKg
@@ -184,6 +189,10 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 }
 
 func (u *masterItemUsecase) validateCreateRequest(req *dto.CreateMasterItemRequest) global.ErrorResponse {
+	if !enum.MasterItemType(req.ItemType).IsValid() {
+		return global.BadRequestError("item_type must be one of: gas, liquid, mix")
+	}
+
 	existing, err := u.masterItemRepo.FindBySKU(req.SKU)
 	if err != nil && err.GetCode() != fiber.StatusNotFound {
 		return err
@@ -208,6 +217,7 @@ func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMa
 	item := &model.MasterItem{
 		Name:              req.Name,
 		SKU:               req.SKU,
+		ItemType:          req.ItemType,
 		GasType:           req.GasType,
 		IsSerialized:      req.IsSerialized,
 		EmptyWeightKg:     req.EmptyWeightKg,

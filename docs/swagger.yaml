@@ -103,6 +103,11 @@ definitions:
         type: number
       is_serialized:
         type: boolean
+      item_type:
+        type: string
+      max_days_at_customer:
+        minimum: 0
+        type: integer
       min_stock_alert:
         minimum: 0
         type: integer
@@ -111,6 +116,7 @@ definitions:
       sku:
         type: string
     required:
+    - item_type
     - name
     - sku
     type: object
@@ -315,6 +321,12 @@ definitions:
         items:
           $ref: '#/definitions/dto.LowStockSparepartAlert'
         type: array
+      overdue_cylinders:
+        items:
+          $ref: '#/definitions/dto.OverdueCylinderAlert'
+        type: array
+      overdue_cylinders_count:
+        type: integer
       total_outstanding_cylinders:
         type: integer
     type: object
@@ -531,6 +543,10 @@ definitions:
         type: string
       is_serialized:
         type: boolean
+      item_type:
+        type: string
+      max_days_at_customer:
+        type: integer
       min_stock_alert:
         type: integer
       name:
@@ -544,6 +560,21 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  dto.OverdueCylinderAlert:
+    properties:
+      barcode_sn:
+        type: string
+      customer_code:
+        type: string
+      customer_id:
+        type: string
+      customer_name:
+        type: string
+      days_at_customer:
+        type: integer
+      max_days:
+        type: integer
     type: object
   dto.PaginatedCustomerList:
     properties:
@@ -850,12 +881,18 @@ definitions:
       gas_weight_kg:
         minimum: 0
         type: number
+      item_type:
+        type: string
+      max_days_at_customer:
+        minimum: 0
+        type: integer
       min_stock_alert:
         minimum: 0
         type: integer
       name:
         type: string
     required:
+    - item_type
     - name
     type: object
   dto.UpdateUserRequest:
@@ -1024,11 +1061,24 @@ definitions:
         type: string
       customer_name:
         type: string
-      cylinder_barcodes:
+      cylinders:
         items:
-          type: string
+          $ref: '#/definitions/dto.VirtualWarehouseCylinder'
         type: array
       outstanding_count:
+        type: integer
+      overdue_count:
+        type: integer
+    type: object
+  dto.VirtualWarehouseCylinder:
+    properties:
+      barcode_sn:
+        type: string
+      days_at_customer:
+        type: integer
+      is_overdue:
+        type: boolean
+      max_days:
         type: integer
     type: object
   dto.VirtualWarehouseResponse:

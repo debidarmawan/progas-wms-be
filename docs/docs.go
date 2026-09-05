@@ -2464,6 +2464,7 @@ const docTemplate = `{
         "dto.CreateMasterItemRequest": {
             "type": "object",
             "required": [
+                "item_type",
                 "name",
                 "sku"
             ],
@@ -2481,6 +2482,13 @@ const docTemplate = `{
                 },
                 "is_serialized": {
                     "type": "boolean"
+                },
+                "item_type": {
+                    "type": "string"
+                },
+                "max_days_at_customer": {
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "min_stock_alert": {
                     "type": "integer",
@@ -2796,6 +2804,15 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.LowStockSparepartAlert"
                     }
+                },
+                "overdue_cylinders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OverdueCylinderAlert"
+                    }
+                },
+                "overdue_cylinders_count": {
+                    "type": "integer"
                 },
                 "total_outstanding_cylinders": {
                     "type": "integer"
@@ -3126,6 +3143,12 @@ const docTemplate = `{
                 "is_serialized": {
                     "type": "boolean"
                 },
+                "item_type": {
+                    "type": "string"
+                },
+                "max_days_at_customer": {
+                    "type": "integer"
+                },
                 "min_stock_alert": {
                     "type": "integer"
                 },
@@ -3145,6 +3168,29 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.OverdueCylinderAlert": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "customer_code": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "days_at_customer": {
+                    "type": "integer"
+                },
+                "max_days": {
+                    "type": "integer"
                 }
             }
         },
@@ -3601,6 +3647,7 @@ const docTemplate = `{
         "dto.UpdateMasterItemRequest": {
             "type": "object",
             "required": [
+                "item_type",
                 "name"
             ],
             "properties": {
@@ -3613,6 +3660,13 @@ const docTemplate = `{
                 },
                 "gas_weight_kg": {
                     "type": "number",
+                    "minimum": 0
+                },
+                "item_type": {
+                    "type": "string"
+                },
+                "max_days_at_customer": {
+                    "type": "integer",
                     "minimum": 0
                 },
                 "min_stock_alert": {
@@ -3875,13 +3929,33 @@ const docTemplate = `{
                 "customer_name": {
                     "type": "string"
                 },
-                "cylinder_barcodes": {
+                "cylinders": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.VirtualWarehouseCylinder"
                     }
                 },
                 "outstanding_count": {
+                    "type": "integer"
+                },
+                "overdue_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.VirtualWarehouseCylinder": {
+            "type": "object",
+            "properties": {
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "days_at_customer": {
+                    "type": "integer"
+                },
+                "is_overdue": {
+                    "type": "boolean"
+                },
+                "max_days": {
                     "type": "integer"
                 }
             }
