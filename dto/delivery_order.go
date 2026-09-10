@@ -8,10 +8,14 @@ type IssueDeliveryOrderRequest struct {
 }
 
 type DeliveryOrderDetailResponse struct {
-	Id         string  `json:"id"`
-	CylinderId string  `json:"cylinder_id"`
-	BarcodeSN  string  `json:"barcode_sn"`
-	WeightKg   float64 `json:"weight_kg"`
+	Id           string  `json:"id"`
+	CylinderId   string  `json:"cylinder_id"`
+	BarcodeSN    string  `json:"barcode_sn"`
+	WeightKg     float64 `json:"weight_kg"`
+	MasterItemId string  `json:"master_item_id"`
+	UnitPrice    float64 `json:"unit_price"`
+	PriceSource  string  `json:"price_source"`
+	LineTotal    float64 `json:"line_total"`
 }
 
 type DeliveryOrderResponse struct {

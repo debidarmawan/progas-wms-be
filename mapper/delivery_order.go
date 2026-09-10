@@ -33,10 +33,14 @@ func ToDeliveryOrderResponse(do *model.DeliveryOrder, includeDetails bool) *dto.
 	if includeDetails {
 		for _, d := range do.Details {
 			res.Details = append(res.Details, dto.DeliveryOrderDetailResponse{
-				Id:         d.Id,
-				CylinderId: d.CylinderId,
-				BarcodeSN:  d.BarcodeSN,
-				WeightKg:   d.WeightKg,
+				Id:           d.Id,
+				CylinderId:   d.CylinderId,
+				BarcodeSN:    d.BarcodeSN,
+				WeightKg:     d.WeightKg,
+				MasterItemId: d.MasterItemId,
+				UnitPrice:    d.UnitPrice,
+				PriceSource:  d.PriceSource,
+				LineTotal:    d.LineTotal,
 			})
 		}
 	}

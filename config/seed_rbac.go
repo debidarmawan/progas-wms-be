@@ -131,6 +131,29 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
+			Key:       constant.PermCustomerPricingRead,
+			Method:    "GET",
+			Path:      "/api/v1/customers/:customerId/pricing",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermCustomerPricingWrite,
+			Method:    "POST",
+			Path:      "/api/v1/customers/:customerId/pricing",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+			},
+		},
+		{
 			Key:       constant.PermVendorRead,
 			Method:    "GET",
 			Path:      "/api/v1/vendors",

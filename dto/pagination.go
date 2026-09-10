@@ -39,3 +39,8 @@ type PaginatedCustomerList struct {
 	Items []CustomerResponse `json:"items"`
 	Meta  PaginationMeta     `json:"meta"`
 }
+
+type PaginatedCustomerItemPriceList struct {
+	Items []CustomerItemPriceResponse `json:"items"`
+	Meta  PaginationMeta              `json:"meta"`
+}

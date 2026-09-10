@@ -103,6 +103,209 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/{customerId}/items/{masterItemId}/pricing": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customer Pricing"
+                ],
+                "summary": "Resolve customer item price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Master item ID",
+                        "name": "masterItemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CustomerItemPriceResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{customerId}/pricing": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customer Pricing"
+                ],
+                "summary": "Find customer item prices",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by item name or SKU",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedCustomerItemPriceList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customer Pricing"
+                ],
+                "summary": "Create customer item price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Customer item price request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCustomerItemPriceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{customerId}/pricing/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customer Pricing"
+                ],
+                "summary": "Update future customer item price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Price ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Customer item price request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCustomerItemPriceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customer Pricing"
+                ],
+                "summary": "Delete customer item price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Price ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/{id}": {
             "get": {
                 "security": [
@@ -2367,6 +2570,27 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCustomerItemPriceRequest": {
+            "type": "object",
+            "required": [
+                "effective_from",
+                "master_item_id"
+            ],
+            "properties": {
+                "effective_from": {
+                    "type": "string"
+                },
+                "effective_to": {
+                    "type": "string"
+                },
+                "master_item_id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "dto.CreateCustomerRequest": {
             "type": "object",
             "required": [
@@ -2588,6 +2812,41 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.CustomerItemPriceResponse": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "effective_from": {
+                    "type": "string"
+                },
+                "effective_to": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_fallback": {
+                    "type": "boolean"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "item_sku": {
+                    "type": "string"
+                },
+                "master_item_id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         },
@@ -2834,6 +3093,18 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "line_total": {
+                    "type": "number"
+                },
+                "master_item_id": {
+                    "type": "string"
+                },
+                "price_source": {
+                    "type": "string"
+                },
+                "unit_price": {
+                    "type": "number"
                 },
                 "weight_kg": {
                     "type": "number"
@@ -3201,6 +3472,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaginatedCustomerItemPriceList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CustomerItemPriceResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
         "dto.PaginatedCustomerList": {
             "type": "object",
             "properties": {
@@ -3549,6 +3834,23 @@ const docTemplate = `{
                 },
                 "started_at": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UpdateCustomerItemPriceRequest": {
+            "type": "object",
+            "required": [
+                "effective_from"
+            ],
+            "properties": {
+                "effective_from": {
+                    "type": "string"
+                },
+                "effective_to": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         },
@@ -4063,6 +4365,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_CustomerItemPriceResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CustomerItemPriceResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_CustomerResponse": {
             "type": "object",
             "properties": {
@@ -4311,6 +4633,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.Message"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedCustomerItemPriceList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedCustomerItemPriceList"
                 },
                 "error_code": {
                     "type": "string"

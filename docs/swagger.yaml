@@ -28,6 +28,20 @@ definitions:
     required:
     - items
     type: object
+  dto.CreateCustomerItemPriceRequest:
+    properties:
+      effective_from:
+        type: string
+      effective_to:
+        type: string
+      master_item_id:
+        type: string
+      price:
+        type: number
+    required:
+    - effective_from
+    - master_item_id
+    type: object
   dto.CreateCustomerRequest:
     properties:
       address:
@@ -180,6 +194,29 @@ definitions:
     required:
     - spareparts
     - title
+    type: object
+  dto.CustomerItemPriceResponse:
+    properties:
+      customer_id:
+        type: string
+      effective_from:
+        type: string
+      effective_to:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_fallback:
+        type: boolean
+      item_name:
+        type: string
+      item_sku:
+        type: string
+      master_item_id:
+        type: string
+      price:
+        type: number
     type: object
   dto.CustomerQuotaAlert:
     properties:
@@ -341,6 +378,14 @@ definitions:
         type: string
       id:
         type: string
+      line_total:
+        type: number
+      master_item_id:
+        type: string
+      price_source:
+        type: string
+      unit_price:
+        type: number
       weight_kg:
         type: number
     type: object
@@ -581,6 +626,15 @@ definitions:
       max_days:
         type: integer
     type: object
+  dto.PaginatedCustomerItemPriceList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CustomerItemPriceResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedCustomerList:
     properties:
       items:
@@ -809,6 +863,17 @@ definitions:
         type: number
       started_at:
         type: string
+    type: object
+  dto.UpdateCustomerItemPriceRequest:
+    properties:
+      effective_from:
+        type: string
+      effective_to:
+        type: string
+      price:
+        type: number
+    required:
+    - effective_from
     type: object
   dto.UpdateCustomerRequest:
     properties:
@@ -1149,6 +1214,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_CustomerItemPriceResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CustomerItemPriceResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_CustomerResponse:
     properties:
       code:
@@ -1311,6 +1389,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.Message'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedCustomerItemPriceList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedCustomerItemPriceList'
       error_code:
         type: string
       message:
@@ -1639,6 +1730,133 @@ paths:
       summary: Create customer
       tags:
       - Customer
+  /customers/{customerId}/items/{masterItemId}/pricing:
+    get:
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Master item ID
+        in: path
+        name: masterItemId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CustomerItemPriceResponse'
+      security:
+      - Bearer: []
+      summary: Resolve customer item price
+      tags:
+      - Customer Pricing
+  /customers/{customerId}/pricing:
+    get:
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by item name or SKU
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedCustomerItemPriceList'
+      security:
+      - Bearer: []
+      summary: Find customer item prices
+      tags:
+      - Customer Pricing
+    post:
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Customer item price request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCustomerItemPriceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create customer item price
+      tags:
+      - Customer Pricing
+  /customers/{customerId}/pricing/{id}:
+    delete:
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Price ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete customer item price
+      tags:
+      - Customer Pricing
+    put:
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Price ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Customer item price request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCustomerItemPriceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update future customer item price
+      tags:
+      - Customer Pricing
   /customers/{id}:
     get:
       consumes:

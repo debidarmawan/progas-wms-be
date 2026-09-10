@@ -10,6 +10,7 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+	"time"
 )
 
 type DeliveryOrderUsecase interface {
@@ -26,6 +27,7 @@ type deliveryOrderUsecase struct {
 	customerRepo      repository.CustomerRepository
 	fleetRepo         repository.FleetRepository
 	auditLogRepo      repository.AuditLogRepository
+	pricingUsecase    CustomerItemPriceUsecase
 }
 
 func NewDeliveryOrderUsecase(
@@ -36,6 +38,7 @@ func NewDeliveryOrderUsecase(
 	customerRepo repository.CustomerRepository,
 	fleetRepo repository.FleetRepository,
 	auditLogRepo repository.AuditLogRepository,
+	pricingUsecase CustomerItemPriceUsecase,
 ) DeliveryOrderUsecase {
 	return &deliveryOrderUsecase{
 		txManager:         txManager,
@@ -45,6 +48,7 @@ func NewDeliveryOrderUsecase(
 		customerRepo:      customerRepo,
 		fleetRepo:         fleetRepo,
 		auditLogRepo:      auditLogRepo,
+		pricingUsecase:    pricingUsecase,
 	}
 }
 
@@ -112,11 +116,20 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	cylinderIds := make([]string, 0, len(cylinders))
 	for _, cyl := range cylinders {
 		weight := helper.CylinderFilledWeightKg(cyl.MasterItem)
+		unitPrice, priceSource, priceErr := u.pricingUsecase.ResolvePrice(customer.Id, cyl.ItemId, time.Now())
+		if priceErr != nil {
+			tx.Rollback()
+			return nil, priceErr
+		}
 		details = append(details, model.DeliveryOrderDetail{
 			DeliveryOrderId: order.Id,
 			CylinderId:      cyl.Id,
 			BarcodeSN:       cyl.BarcodeSN,
 			WeightKg:        weight,
+			MasterItemId:    cyl.ItemId,
+			UnitPrice:       unitPrice,
+			PriceSource:     priceSource,
+			LineTotal:       unitPrice,
 		})
 		cylinderIds = append(cylinderIds, cyl.Id)
 	}
