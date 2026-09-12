@@ -28,6 +28,7 @@ type deliveryOrderUsecase struct {
 	fleetRepo         repository.FleetRepository
 	auditLogRepo      repository.AuditLogRepository
 	pricingUsecase    CustomerItemPriceUsecase
+	salesOrderRepo    repository.SalesOrderRepository
 }
 
 func NewDeliveryOrderUsecase(
@@ -39,6 +40,7 @@ func NewDeliveryOrderUsecase(
 	fleetRepo repository.FleetRepository,
 	auditLogRepo repository.AuditLogRepository,
 	pricingUsecase CustomerItemPriceUsecase,
+	salesOrderRepo repository.SalesOrderRepository,
 ) DeliveryOrderUsecase {
 	return &deliveryOrderUsecase{
 		txManager:         txManager,
@@ -49,6 +51,7 @@ func NewDeliveryOrderUsecase(
 		fleetRepo:         fleetRepo,
 		auditLogRepo:      auditLogRepo,
 		pricingUsecase:    pricingUsecase,
+		salesOrderRepo:    salesOrderRepo,
 	}
 }
 
@@ -73,6 +76,21 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		return nil, global.BadRequestError("fleet vehicle is not active")
 	}
 
+	var salesOrder *model.SalesOrder
+	if req.SalesOrderId != "" {
+		var salesOrderErr global.ErrorResponse
+		salesOrder, salesOrderErr = u.salesOrderRepo.FindById(req.SalesOrderId)
+		if salesOrderErr != nil {
+			return nil, salesOrderErr
+		}
+		if salesOrder.CustomerId != customer.Id {
+			return nil, global.BadRequestError("sales order customer does not match delivery order customer")
+		}
+		if salesOrder.Status != enum.SalesOrderStatusConfirmed && salesOrder.Status != enum.SalesOrderStatusPartial {
+			return nil, global.BadRequestError("sales order must be confirmed before issuing a delivery order")
+		}
+	}
+
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
 
@@ -87,6 +105,23 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		return nil, global.BadRequestError(validationErr.Error())
 	}
 
+	if salesOrder != nil {
+		remainingByItem := make(map[string]int, len(salesOrder.Lines))
+		lineByItem := make(map[string]*model.SalesOrderLine, len(salesOrder.Lines))
+		for i := range salesOrder.Lines {
+			remainingByItem[salesOrder.Lines[i].MasterItemId] = salesOrder.Lines[i].QtyOrdered - salesOrder.Lines[i].QtyDelivered
+			lineByItem[salesOrder.Lines[i].MasterItemId] = &salesOrder.Lines[i]
+		}
+		for _, cylinder := range cylinders {
+			if remainingByItem[cylinder.ItemId] <= 0 {
+				tx.Rollback()
+				return nil, global.BadRequestError("delivery quantity exceeds sales order remaining quantity")
+			}
+			remainingByItem[cylinder.ItemId]--
+			lineByItem[cylinder.ItemId].QtyDelivered++
+		}
+	}
+
 	totalWeight := helper.SumCylinderWeight(cylinders)
 	if totalWeight > fleet.MaxWeightKg {
 		tx.Rollback()
@@ -99,6 +134,7 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	order := &model.DeliveryOrder{
 		BaseModel:     model.BaseModel{CreatedBy: actorUserId},
 		DONumber:      helper.GenerateDONumber(),
+		SalesOrderId:  req.SalesOrderId,
 		CustomerId:    customer.Id,
 		FleetId:       fleet.Id,
 		Status:        enum.DeliveryOrderStatusInTransit,
@@ -143,6 +179,20 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	if err := u.cylinderRepo.UpdateStatusByIds(tx, cylinderIds, enum.CylinderStatusInTransit); err != nil {
 		tx.Rollback()
 		return nil, err
+	}
+
+	if salesOrder != nil {
+		salesOrder.Status = enum.SalesOrderStatusCompleted
+		for _, line := range salesOrder.Lines {
+			if line.QtyDelivered < line.QtyOrdered {
+				salesOrder.Status = enum.SalesOrderStatusPartial
+				break
+			}
+		}
+		if err := u.salesOrderRepo.UpdateProgress(tx, salesOrder); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {

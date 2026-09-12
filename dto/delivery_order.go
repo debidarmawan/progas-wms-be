@@ -1,10 +1,11 @@
 package dto
 
 type IssueDeliveryOrderRequest struct {
-	CustomerId string   `json:"customer_id" validate:"required"`
-	FleetId    string   `json:"fleet_id" validate:"required"`
-	Barcodes   []string `json:"barcodes" validate:"required,min=1,dive,required"`
-	Notes      string   `json:"notes"`
+	CustomerId   string   `json:"customer_id" validate:"required"`
+	FleetId      string   `json:"fleet_id" validate:"required"`
+	SalesOrderId string   `json:"sales_order_id"`
+	Barcodes     []string `json:"barcodes" validate:"required,min=1,dive,required"`
+	Notes        string   `json:"notes"`
 }
 
 type DeliveryOrderDetailResponse struct {
@@ -21,6 +22,7 @@ type DeliveryOrderDetailResponse struct {
 type DeliveryOrderResponse struct {
 	Id            string                        `json:"id"`
 	DONumber      string                        `json:"do_number"`
+	SalesOrderId  string                        `json:"sales_order_id,omitempty"`
 	CustomerId    string                        `json:"customer_id"`
 	CustomerName  string                        `json:"customer_name"`
 	FleetId       string                        `json:"fleet_id"`

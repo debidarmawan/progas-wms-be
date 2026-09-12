@@ -32,6 +32,10 @@ const (
 	PermDOCreate        = "do.create"
 	PermExchangeProcess = "exchange.process"
 	PermExchangeApprove = "exchange.approve"
+	PermCustomerPORead  = "customer_po.read"
+	PermCustomerPOWrite = "customer_po.write"
+	PermSalesOrderRead  = "sales_order.read"
+	PermSalesOrderWrite = "sales_order.write"
 
 	PermWorkOrderRead        = "workorder.read"
 	PermWorkOrderWrite       = "workorder.write"

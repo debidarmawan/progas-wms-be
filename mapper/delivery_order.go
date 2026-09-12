@@ -19,6 +19,7 @@ func ToDeliveryOrderResponse(do *model.DeliveryOrder, includeDetails bool) *dto.
 	res := &dto.DeliveryOrderResponse{
 		Id:            do.Id,
 		DONumber:      do.DONumber,
+		SalesOrderId:  do.SalesOrderId,
 		CustomerId:    do.CustomerId,
 		CustomerName:  customerName,
 		FleetId:       do.FleetId,

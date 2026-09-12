@@ -5,6 +5,8 @@ import "progas-wms-be/enum"
 type DeliveryOrder struct {
 	BaseModel
 	DONumber      string                   `gorm:"not null;type:varchar(50);uniqueIndex"`
+	SalesOrderId  string                   `gorm:"type:varchar(36);index"`
+	SalesOrder    *SalesOrder              `gorm:"foreignKey:SalesOrderId"`
 	CustomerId    string                   `gorm:"not null;type:varchar(36);index"`
 	Customer      Customer                 `gorm:"foreignKey:CustomerId"`
 	FleetId       string                   `gorm:"not null;type:varchar(36);index"`
