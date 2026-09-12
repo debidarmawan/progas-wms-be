@@ -1,10 +1,15 @@
 package dto
 
-// ListQuery is used for paginated list endpoints with optional search.
+// ListQuery is used for paginated list endpoints with optional search and filters.
 type ListQuery struct {
-	Page   int    `query:"page"`
-	Limit  int    `query:"limit"`
-	Search string `query:"search"`
+	Page         int    `query:"page"`
+	Limit        int    `query:"limit"`
+	Search       string `query:"search"`
+	SortBy       string `query:"sort_by"`
+	SortOrder    string `query:"sort_order"`
+	ItemType     string `query:"item_type"`
+	GasType      string `query:"gas_type"`
+	IsSerialized *bool  `query:"is_serialized"`
 }
 
 type PaginationMeta struct {

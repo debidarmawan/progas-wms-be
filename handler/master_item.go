@@ -28,6 +28,11 @@ func NewMasterItemHandler(usecase usecase.MasterItemUsecase) *MasterItemHandler 
 //	@Param			page	query		int		false	"Page number (default 1)"
 //	@Param			limit	query		int		false	"Items per page (default 10, max 100)"
 //	@Param			search	query		string	false	"Search by name, SKU, or gas type"
+//	@Param		sort_by	query		string	false	"Sort field: sku, name, or hna_price"
+//	@Param		sort_order	query		string	false	"Sort direction: asc or desc"
+//	@Param		item_type	query		string	false	"Filter by item type: gas, liquid, or mix"
+//	@Param		gas_type	query		string	false	"Filter by gas type"
+//	@Param		is_serialized	query		bool		false	"Filter by item type: serialized or spare part"
 //	@Success		200		{object}	global.Response[dto.PaginatedMasterItemList]
 //	@Router			/master-items [get]
 func (h *MasterItemHandler) FindAll(c fiber.Ctx) error {

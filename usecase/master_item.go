@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"strings"
+
 	"progas-wms-be/constant"
 	"progas-wms-be/dto"
 	"progas-wms-be/enum"
@@ -45,7 +47,28 @@ func NewMasterItemUsecase(
 func (u *masterItemUsecase) FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.MasterItemResponse], global.ErrorResponse) {
 	page, limit, _ := helper.NormalizePagination(query)
 	search := helper.NormalizeSearch(query.Search)
-	items, total, err := u.masterItemRepo.FindAll(page, limit, search)
+	sortBy := strings.ToLower(query.SortBy)
+	if sortBy == "" {
+		sortBy = "name"
+	}
+	if sortBy != "sku" && sortBy != "name" && sortBy != "hna_price" {
+		return nil, global.BadRequestError("sort_by must be one of: sku, name, hna_price")
+	}
+
+	sortOrder := strings.ToLower(query.SortOrder)
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+	if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, global.BadRequestError("sort_order must be one of: asc, desc")
+	}
+
+	itemType := strings.ToLower(strings.TrimSpace(query.ItemType))
+	if itemType != "" && itemType != "gas" && itemType != "liquid" && itemType != "mix" {
+		return nil, global.BadRequestError("item_type must be one of: gas, liquid, mix")
+	}
+
+	items, total, err := u.masterItemRepo.FindAll(page, limit, search, sortBy, sortOrder, itemType, query.GasType, query.IsSerialized)
 	if err != nil {
 		return nil, err
 	}

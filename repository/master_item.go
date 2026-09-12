@@ -10,7 +10,7 @@ import (
 )
 
 type MasterItemRepository interface {
-	FindAll(page, limit int, search string) ([]model.MasterItem, int64, global.ErrorResponse)
+	FindAll(page, limit int, search, sortBy, sortOrder, itemType, gasType string, isSerialized *bool) ([]model.MasterItem, int64, global.ErrorResponse)
 	FindById(id string) (*model.MasterItem, global.ErrorResponse)
 	FindBySKU(sku string) (*model.MasterItem, global.ErrorResponse)
 	Create(tx helper.Tx, item *model.MasterItem) global.ErrorResponse
@@ -32,7 +32,7 @@ func (r *masterItemRepository) dbFromTx(tx helper.Tx) *gorm.DB {
 	return r.db
 }
 
-func (r *masterItemRepository) FindAll(page, limit int, search string) ([]model.MasterItem, int64, global.ErrorResponse) {
+func (r *masterItemRepository) FindAll(page, limit int, search, sortBy, sortOrder, itemType, gasType string, isSerialized *bool) ([]model.MasterItem, int64, global.ErrorResponse) {
 	var items []model.MasterItem
 	var total int64
 
@@ -41,13 +41,34 @@ func (r *masterItemRepository) FindAll(page, limit int, search string) ([]model.
 		pattern := helper.SearchPattern(search)
 		query = query.Where("name LIKE ? OR sku LIKE ? OR gas_type LIKE ?", pattern, pattern, pattern)
 	}
+	if itemType != "" {
+		query = query.Where("item_type = ?", itemType)
+	}
+	if helper.HasSearch(gasType) {
+		query = query.Where("gas_type LIKE ?", helper.SearchPattern(gasType))
+	}
+	if isSerialized != nil {
+		query = query.Where("is_serialized = ?", *isSerialized)
+	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 
 	offset := (page - 1) * limit
-	if err := query.Order("name asc").Offset(offset).Limit(limit).Find(&items).Error; err != nil {
+	sortColumns := map[string]string{
+		"sku":       "sku",
+		"name":      "name",
+		"hna_price": "hna_price",
+	}
+	sortColumn, ok := sortColumns[sortBy]
+	if !ok {
+		sortColumn = "name"
+	}
+	if sortOrder != "desc" {
+		sortOrder = "asc"
+	}
+	if err := query.Order(sortColumn + " " + sortOrder).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 	return items, total, nil
