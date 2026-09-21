@@ -50,6 +50,8 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	deliveryOrderRepo := repository.NewDeliveryOrderRepository(db)
 	customerPORepo := repository.NewCustomerPORepository(db)
 	salesOrderRepo := repository.NewSalesOrderRepository(db)
+	invoiceRepo := repository.NewInvoiceRepository(db)
+	paymentRepo := repository.NewPaymentRepository(db)
 	cylinderLedgerRepo := repository.NewCylinderLedgerRepository(db)
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	sparepartMovementRepo := repository.NewSparepartMovementRepository(db)
@@ -68,7 +70,9 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	fillingBatchUsecase := usecase.NewFillingBatchUsecase(txManager, fillingBatchRepo, cylinderRepo, cylinderLedgerRepo, masterItemRepo, auditLogRepo)
 	fleetUsecase := usecase.NewFleetUsecase(txManager, fleetRepo, auditLogRepo)
 	driverUsecase := usecase.NewDriverUsecase(txManager, driverRepo, auditLogRepo)
-	deliveryOrderUsecase := usecase.NewDeliveryOrderUsecase(txManager, deliveryOrderRepo, cylinderRepo, cylinderLedgerRepo, customerRepo, fleetRepo, auditLogRepo, customerItemPriceUsecase, salesOrderRepo)
+	invoiceUsecase := usecase.NewInvoiceUsecase(invoiceRepo, customerRepo)
+	paymentUsecase := usecase.NewPaymentUsecase(txManager, paymentRepo, invoiceRepo, customerRepo, auditLogRepo)
+	deliveryOrderUsecase := usecase.NewDeliveryOrderUsecase(txManager, deliveryOrderRepo, cylinderRepo, cylinderLedgerRepo, customerRepo, fleetRepo, auditLogRepo, customerItemPriceUsecase, salesOrderRepo, invoiceUsecase)
 	customerPOUsecase := usecase.NewCustomerPOUsecase(txManager, customerPORepo, customerRepo, masterItemRepo, auditLogRepo)
 	salesOrderUsecase := usecase.NewSalesOrderUsecase(txManager, salesOrderRepo, customerPORepo, customerRepo, masterItemRepo, auditLogRepo)
 	exchangeUsecase := usecase.NewExchangeUsecase(txManager, cylinderRepo, cylinderLedgerRepo, customerRepo, auditLogRepo)
@@ -92,6 +96,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	fleetHandler := handler.NewFleetHandler(fleetUsecase)
 	driverHandler := handler.NewDriverHandler(driverUsecase)
 	deliveryOrderHandler := handler.NewDeliveryOrderHandler(deliveryOrderUsecase)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceUsecase, paymentUsecase)
 	customerPOHandler := handler.NewCustomerPOHandler(customerPOUsecase)
 	salesOrderHandler := handler.NewSalesOrderHandler(salesOrderUsecase)
 	exchangeHandler := handler.NewExchangeHandler(exchangeUsecase, rbacRepo)
@@ -221,6 +226,13 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	exchangeWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermExchangeProcess))
 	exchangeWrite.Post("/outbound/exchange", exchangeHandler.Process)
+
+	invoiceRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermInvoiceRead))
+	invoiceRead.Get("/finance/invoices", invoiceHandler.FindAll)
+	invoiceRead.Get("/finance/invoices/:id", invoiceHandler.FindById)
+
+	paymentWrite := protected.Group("", middleware.Authorize(rbacRepo, constant.PermPaymentWrite))
+	paymentWrite.Post("/finance/invoices/:id/payments", invoiceHandler.RecordPayment)
 
 	workOrderRead := protected.Group("", middleware.Authorize(rbacRepo, constant.PermWorkOrderRead))
 	workOrderRead.Get("/maintenance/work-orders", workOrderHandler.FindAll)

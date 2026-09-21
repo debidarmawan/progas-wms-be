@@ -17,6 +17,7 @@ type CustomerRepository interface {
 	Create(tx helper.Tx, customer *model.Customer) global.ErrorResponse
 	Update(tx helper.Tx, customer *model.Customer) global.ErrorResponse
 	AdjustOutstanding(tx helper.Tx, customerId string, delta int) global.ErrorResponse
+	AdjustOutstandingBalance(tx helper.Tx, customerId string, delta float64) global.ErrorResponse
 }
 
 type customerRepository struct {
@@ -106,6 +107,19 @@ func (r *customerRepository) AdjustOutstanding(tx helper.Tx, customerId string, 
 	result := r.dbFromTx(tx).Model(&model.Customer{}).
 		Where("id = ?", customerId).
 		Update("outstanding_count", gorm.Expr("outstanding_count + ?", delta))
+	if result.Error != nil {
+		return global.InternalServerError(result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return global.NotFoundError("Customer not found")
+	}
+	return nil
+}
+
+func (r *customerRepository) AdjustOutstandingBalance(tx helper.Tx, customerId string, delta float64) global.ErrorResponse {
+	result := r.dbFromTx(tx).Model(&model.Customer{}).
+		Where("id = ?", customerId).
+		Update("outstanding_balance", gorm.Expr("outstanding_balance + ?", delta))
 	if result.Error != nil {
 		return global.InternalServerError(result.Error)
 	}

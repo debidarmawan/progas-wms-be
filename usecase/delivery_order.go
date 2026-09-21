@@ -29,6 +29,7 @@ type deliveryOrderUsecase struct {
 	auditLogRepo      repository.AuditLogRepository
 	pricingUsecase    CustomerItemPriceUsecase
 	salesOrderRepo    repository.SalesOrderRepository
+	invoiceUsecase    InvoiceUsecase
 }
 
 func NewDeliveryOrderUsecase(
@@ -41,6 +42,7 @@ func NewDeliveryOrderUsecase(
 	auditLogRepo repository.AuditLogRepository,
 	pricingUsecase CustomerItemPriceUsecase,
 	salesOrderRepo repository.SalesOrderRepository,
+	invoiceUsecase InvoiceUsecase,
 ) DeliveryOrderUsecase {
 	return &deliveryOrderUsecase{
 		txManager:         txManager,
@@ -52,6 +54,7 @@ func NewDeliveryOrderUsecase(
 		auditLogRepo:      auditLogRepo,
 		pricingUsecase:    pricingUsecase,
 		salesOrderRepo:    salesOrderRepo,
+		invoiceUsecase:    invoiceUsecase,
 	}
 }
 
@@ -175,6 +178,12 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		return nil, err
 	}
 
+	invoice, err := u.invoiceUsecase.CreateForDeliveryOrder(tx, order, customer, details)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	repository.LogCylinderStatusChanges(u.ledgerRepo, tx, cylinders, enum.CylinderStatusInTransit, constant.LedgerActionDOIssue, constant.AuditObjectDeliveryOrder, order.Id)
 	if err := u.cylinderRepo.UpdateStatusByIds(tx, cylinderIds, enum.CylinderStatusInTransit); err != nil {
 		tx.Rollback()
@@ -206,6 +215,12 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		"fleet_id":        order.FleetId,
 		"total_weight_kg": order.TotalWeightKg,
 		"cylinder_qty":    order.CylinderQty,
+	})
+
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditInvoiceCreate, constant.AuditObjectInvoice, invoice.Id, map[string]any{
+		"invoice_number":    invoice.InvoiceNumber,
+		"delivery_order_id": order.Id,
+		"total_amount":      invoice.TotalAmount,
 	})
 
 	order.Customer = *customer

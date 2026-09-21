@@ -10,7 +10,9 @@ type Customer struct {
 	Email              string `gorm:"type:varchar(128)"`
 	Phone              string `gorm:"type:varchar(32)"`
 	Address            string `gorm:"type:varchar(255)"`
-	CylinderQuotaLimit int    `gorm:"not null;default:0"`
-	OutstandingCount   int    `gorm:"not null;default:0"`
-	IsActive           bool   `gorm:"not null;default:true"`
+	CylinderQuotaLimit int     `gorm:"not null;default:0"`
+	OutstandingCount   int     `gorm:"not null;default:0"`
+	IsActive           bool    `gorm:"not null;default:true"`
+	PaymentTermDays    int     `gorm:"not null;default:30"`
+	OutstandingBalance float64 `gorm:"type:decimal(15,2);not null;default:0"`
 }

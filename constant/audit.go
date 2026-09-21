@@ -38,6 +38,8 @@ const (
 	AuditWorkOrderComplete   = "WORK_ORDER_COMPLETE"
 	AuditStockOpname         = "STOCK_OPNAME"
 	AuditHydrotestRecord     = "HYDROTEST_RECORD"
+	AuditInvoiceCreate       = "INVOICE_CREATE"
+	AuditPaymentRecord       = "PAYMENT_RECORD"
 )
 
 // Audit object types.
@@ -55,6 +57,8 @@ const (
 	AuditObjectFleetVehicle  = "fleet_vehicle"
 	AuditObjectDriver        = "driver"
 	AuditObjectWorkOrder     = "work_order"
+	AuditObjectInvoice       = "invoice"
+	AuditObjectPayment       = "payment"
 )
 
 // Cylinder ledger actions.

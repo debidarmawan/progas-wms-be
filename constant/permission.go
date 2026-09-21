@@ -36,6 +36,8 @@ const (
 	PermCustomerPOWrite = "customer_po.write"
 	PermSalesOrderRead  = "sales_order.read"
 	PermSalesOrderWrite = "sales_order.write"
+	PermInvoiceRead     = "invoice.read"
+	PermPaymentWrite    = "payment.write"
 
 	PermWorkOrderRead        = "workorder.read"
 	PermWorkOrderWrite       = "workorder.write"

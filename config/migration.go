@@ -30,6 +30,8 @@ func Migrate(db *gorm.DB) {
 		&model.Driver{},
 		&model.DeliveryOrder{},
 		&model.DeliveryOrderDetail{},
+		&model.Invoice{},
+		&model.Payment{},
 		&model.WorkOrder{},
 		&model.WorkOrderSparepart{},
 		&model.CylinderLedger{},
