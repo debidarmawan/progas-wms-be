@@ -2,6 +2,17 @@
 
 Backend API for Progas WMS (cylinder gas warehouse management). Go 1.26, Fiber v3, GORM/MySQL.
 
+## Project rules (read before coding)
+
+The authoritative coding standards live in `.clinerules/` (Cline reads this directory natively).
+They are mirrored under `.agent/` for other AI agents/tools:
+
+- `.clinerules/coding.md` — Coding standards (layering, naming, errors, DTOs, models, enums, constants, transactions).
+- `.clinerules/testing.md` — Test requirements (what to test, patterns, definition of done).
+- `.clinerules/architecture.md` — Structural decisions (layering, wiring, auth/RBAC, DB, domain invariants, extension checklist).
+
+When adding or modifying code, follow these rules. When you change a rule, edit the file in `.clinerules/` (the `.agent/` copies are symlinks to it).
+
 **Read `../progas-docs/` before making non-trivial changes.** It contains the full architecture, module inventory, and business flow so you don't need to explore this entire codebase to get oriented:
 
 - `../progas-docs/01-architecture.md` — layering (handler → usecase → repository → model), transaction pattern, RBAC, auth
