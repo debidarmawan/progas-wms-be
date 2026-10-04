@@ -39,7 +39,7 @@ func (r *invoiceRepository) FindAll(page, limit int, search string) ([]model.Inv
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		query = query.Joins("Customer").Where(
-			"invoice.invoice_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?",
+			"invoice.invoice_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?",
 			pattern, pattern, pattern,
 		)
 	}
@@ -53,7 +53,7 @@ func (r *invoiceRepository) FindAll(page, limit int, search string) ([]model.Inv
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		findQuery = findQuery.Joins("Customer").Where(
-			"invoice.invoice_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?",
+			"invoice.invoice_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?",
 			pattern, pattern, pattern,
 		)
 	}

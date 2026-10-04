@@ -39,7 +39,7 @@ func (r *deliveryOrderRepository) FindAll(page, limit int, search string) ([]mod
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		query = query.Joins("Customer").Where(
-			"delivery_order.do_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?",
+			"delivery_order.do_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?",
 			pattern, pattern, pattern,
 		)
 	}
@@ -53,7 +53,7 @@ func (r *deliveryOrderRepository) FindAll(page, limit int, search string) ([]mod
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		findQuery = findQuery.Joins("Customer").Where(
-			"delivery_order.do_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?",
+			"delivery_order.do_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?",
 			pattern, pattern, pattern,
 		)
 	}

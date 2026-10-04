@@ -46,7 +46,7 @@ func (r *salesOrderRepository) FindAll(page, limit int, search string) ([]model.
 	query := r.db.Model(&model.SalesOrder{}).Joins("Customer")
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
-		query = query.Where("sales_order.so_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?", pattern, pattern, pattern)
+		query = query.Where("sales_order.so_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?", pattern, pattern, pattern)
 	}
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
@@ -55,7 +55,7 @@ func (r *salesOrderRepository) FindAll(page, limit int, search string) ([]model.
 	findQuery := r.query(false).Model(&model.SalesOrder{}).Order("sales_order.created_at desc").Offset(offset).Limit(limit)
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
-		findQuery = findQuery.Joins("Customer").Where("sales_order.so_number LIKE ? OR customer.name LIKE ? OR customer.code LIKE ?", pattern, pattern, pattern)
+		findQuery = findQuery.Joins("Customer").Where("sales_order.so_number LIKE ? OR `Customer`.name LIKE ? OR `Customer`.code LIKE ?", pattern, pattern, pattern)
 	}
 	if err := findQuery.Find(&orders).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
