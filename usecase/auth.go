@@ -6,6 +6,7 @@ import (
 	"progas-wms-be/dto"
 	"progas-wms-be/global"
 	"progas-wms-be/helper"
+	"progas-wms-be/model"
 	"progas-wms-be/repository"
 	"strconv"
 	"time"
@@ -66,6 +67,9 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 	if !helper.CheckPasswordHash(req.Password, user.Password) {
 		return nil, global.BadRequestError("invalid email or password")
 	}
+	if user.Role.Name == constant.RoleDriver && !isDriverAccountActive(user) {
+		return nil, global.BadRequestError("driver account is not active")
+	}
 
 	// 4. Generate token
 	accessToken, refreshToken, err := helper.GenerateAuthToken(user.Id, user.RoleId)
@@ -96,6 +100,7 @@ func (u *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, global.E
 			Phone:       user.Phone,
 			RoleId:      user.RoleId,
 			RoleName:    roleName,
+			DriverId:    user.DriverId,
 			Permissions: u.permissionsForRole(user.RoleId, roleName),
 		},
 	}
@@ -133,6 +138,9 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 	if !user.IsActive {
 		return nil, global.BadRequestError("user is not active")
 	}
+	if user.Role.Name == constant.RoleDriver && !isDriverAccountActive(user) {
+		return nil, global.BadRequestError("driver account is not active")
+	}
 
 	// 3. Generate new tokens
 	newAccessToken, newRefreshToken, err := helper.GenerateAuthToken(user.Id, user.RoleId)
@@ -163,6 +171,7 @@ func (u *authUseCase) RefreshToken(req *dto.RefreshTokenRequest) (*dto.LoginResp
 			Phone:       user.Phone,
 			RoleId:      user.RoleId,
 			RoleName:    roleName,
+			DriverId:    user.DriverId,
 			Permissions: u.permissionsForRole(user.RoleId, roleName),
 		},
 	}
@@ -193,6 +202,11 @@ func (u *authUseCase) Profile(userId string) (*dto.UserResponse, global.ErrorRes
 		Phone:       user.Phone,
 		RoleId:      user.RoleId,
 		RoleName:    roleName,
+		DriverId:    user.DriverId,
 		Permissions: u.permissionsForRole(user.RoleId, roleName),
 	}, nil
+}
+
+func isDriverAccountActive(user *model.User) bool {
+	return user.DriverId != nil && user.Driver != nil && user.Driver.IsActive
 }

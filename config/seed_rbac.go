@@ -29,6 +29,7 @@ func SeedRBAC(db *gorm.DB) {
 				constant.RoleWarehouseAdmin,
 				constant.RoleLogisticAdmin,
 				constant.RoleManager,
+				constant.RoleDriver,
 			},
 		},
 		{

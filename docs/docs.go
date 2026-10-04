@@ -2739,6 +2739,9 @@ const docTemplate = `{
                 "role_id"
             ],
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -3999,6 +4002,9 @@ const docTemplate = `{
                 "role_id"
             ],
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -4061,6 +4067,12 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "driver_id": {
+                    "type": "string"
+                },
+                "driver_name": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -4090,6 +4102,9 @@ const docTemplate = `{
         "dto.UserResponse": {
             "type": "object",
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },

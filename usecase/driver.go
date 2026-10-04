@@ -8,6 +8,8 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 type DriverUsecase interface {
@@ -21,17 +23,20 @@ type DriverUsecase interface {
 type driverUsecase struct {
 	txManager    helper.TxManager
 	driverRepo   repository.DriverRepository
+	userRepo     repository.UserRepository
 	auditLogRepo repository.AuditLogRepository
 }
 
 func NewDriverUsecase(
 	txManager helper.TxManager,
 	driverRepo repository.DriverRepository,
+	userRepo repository.UserRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) DriverUsecase {
 	return &driverUsecase{
 		txManager:    txManager,
 		driverRepo:   driverRepo,
+		userRepo:     userRepo,
 		auditLogRepo: auditLogRepo,
 	}
 }
@@ -120,6 +125,13 @@ func (u *driverUsecase) Update(actorUserId, id string, req *dto.UpdateDriverRequ
 func (u *driverUsecase) Delete(actorUserId, id string) global.ErrorResponse {
 	if _, err := u.driverRepo.FindById(id); err != nil {
 		return err
+	}
+	user, userErr := u.userRepo.FindByDriverIdExceptId(id, "")
+	if userErr != nil && userErr.GetCode() != fiber.StatusNotFound {
+		return userErr
+	}
+	if user != nil {
+		return global.BadRequestError("cannot delete a driver assigned to a user")
 	}
 
 	tx := u.txManager.New()

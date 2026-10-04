@@ -15,6 +15,7 @@ type UserRepository interface {
 	FindByEmail(email string) (*model.User, global.ErrorResponse)
 	FindByEmailExceptId(email, excludeId string) (*model.User, global.ErrorResponse)
 	FindById(id string) (*model.User, global.ErrorResponse)
+	FindByDriverIdExceptId(driverId, excludeUserId string) (*model.User, global.ErrorResponse)
 	UpdateLastLogin(tx helper.Tx, id string) global.ErrorResponse
 	Create(tx helper.Tx, user *model.User) global.ErrorResponse
 	Update(tx helper.Tx, user *model.User) global.ErrorResponse
@@ -51,7 +52,7 @@ func (r *userRepository) FindAll(page, limit int, search string) ([]model.User, 
 	}
 
 	offset := (page - 1) * limit
-	if err := query.Preload("Role").Order("name asc").Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+	if err := query.Preload("Role").Preload("Driver").Order("name asc").Offset(offset).Limit(limit).Find(&users).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 	return users, total, nil
@@ -59,7 +60,7 @@ func (r *userRepository) FindAll(page, limit int, search string) ([]model.User, 
 
 func (r *userRepository) FindByEmail(email string) (*model.User, global.ErrorResponse) {
 	var user model.User
-	err := r.db.Preload("Role").Where("email = ?", email).First(&user).Error
+	err := r.db.Preload("Role").Preload("Driver").Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, global.NotFoundError("User not found")
@@ -84,13 +85,25 @@ func (r *userRepository) FindByEmailExceptId(email, excludeId string) (*model.Us
 
 func (r *userRepository) FindById(id string) (*model.User, global.ErrorResponse) {
 	var user model.User
-	err := r.db.Preload("Role").Where("id = ?", id).First(&user).Error
+	err := r.db.Preload("Role").Preload("Driver").Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, global.NotFoundError("User not found")
 		} else {
 			return nil, global.InternalServerError(err)
 		}
+	}
+	return &user, nil
+}
+
+func (r *userRepository) FindByDriverIdExceptId(driverId, excludeUserId string) (*model.User, global.ErrorResponse) {
+	var user model.User
+	err := r.db.Unscoped().Where("driver_id = ? AND id != ?", driverId, excludeUserId).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, global.NotFoundError("User not found")
+		}
+		return nil, global.InternalServerError(err)
 	}
 	return &user, nil
 }

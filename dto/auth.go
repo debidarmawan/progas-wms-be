@@ -19,6 +19,7 @@ type UserResponse struct {
 	Phone       string   `json:"phone"`
 	RoleId      string   `json:"role_id"`
 	RoleName    string   `json:"role_name"`
+	DriverId    *string  `json:"driver_id,omitempty"`
 	Permissions []string `json:"permissions,omitempty"`
 }
 

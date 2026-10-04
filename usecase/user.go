@@ -21,23 +21,26 @@ type UserUsecase interface {
 }
 
 type userUsecase struct {
-	txManager      helper.TxManager
-	userRepository repository.UserRepository
-	roleRepository repository.RoleRepository
-	auditLogRepo   repository.AuditLogRepository
+	txManager        helper.TxManager
+	userRepository   repository.UserRepository
+	roleRepository   repository.RoleRepository
+	driverRepository repository.DriverRepository
+	auditLogRepo     repository.AuditLogRepository
 }
 
 func NewUserUsecase(
 	txManager helper.TxManager,
 	userRepository repository.UserRepository,
 	roleRepository repository.RoleRepository,
+	driverRepository repository.DriverRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) UserUsecase {
 	return &userUsecase{
-		txManager:      txManager,
-		userRepository: userRepository,
-		roleRepository: roleRepository,
-		auditLogRepo:   auditLogRepo,
+		txManager:        txManager,
+		userRepository:   userRepository,
+		roleRepository:   roleRepository,
+		driverRepository: driverRepository,
+		auditLogRepo:     auditLogRepo,
 	}
 }
 
@@ -71,7 +74,8 @@ func (u *userUsecase) CreateUser(actorUserId string, request *dto.CreateUserRequ
 		return global.BadRequestError("email already in use")
 	}
 
-	if err := u.validateRoleId(request.RoleId); err != nil {
+	driverId, err := u.resolveDriverAssignment(request.RoleId, request.DriverId, "")
+	if err != nil {
 		return err
 	}
 
@@ -86,6 +90,7 @@ func (u *userUsecase) CreateUser(actorUserId string, request *dto.CreateUserRequ
 		Phone:    request.Phone,
 		Password: hashedPassword,
 		RoleId:   request.RoleId,
+		DriverId: driverId,
 		IsActive: true,
 	}
 
@@ -102,10 +107,11 @@ func (u *userUsecase) CreateUser(actorUserId string, request *dto.CreateUserRequ
 		return global.InternalServerError(err)
 	}
 
-	_ = u.auditLogRepo.Log(actorUserId, constant.AuditUserCreate, constant.AuditObjectUser, user.Id, map[string]string{
-		"email":   user.Email,
-		"name":    user.Name,
-		"role_id": user.RoleId,
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditUserCreate, constant.AuditObjectUser, user.Id, map[string]any{
+		"email":     user.Email,
+		"name":      user.Name,
+		"role_id":   user.RoleId,
+		"driver_id": user.DriverId,
 	})
 
 	return nil
@@ -125,7 +131,8 @@ func (u *userUsecase) UpdateUser(actorUserId, id string, request *dto.UpdateUser
 		return global.BadRequestError("email already in use")
 	}
 
-	if err := u.validateRoleId(request.RoleId); err != nil {
+	driverId, err := u.resolveDriverAssignment(request.RoleId, request.DriverId, id)
+	if err != nil {
 		return err
 	}
 
@@ -137,6 +144,8 @@ func (u *userUsecase) UpdateUser(actorUserId, id string, request *dto.UpdateUser
 	user.Email = request.Email
 	user.Phone = request.Phone
 	user.RoleId = request.RoleId
+	user.DriverId = driverId
+	user.Driver = nil
 	user.IsActive = request.IsActive
 
 	if request.Password != "" {
@@ -162,6 +171,8 @@ func (u *userUsecase) UpdateUser(actorUserId, id string, request *dto.UpdateUser
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditUserUpdate, constant.AuditObjectUser, user.Id, map[string]any{
 		"email":     user.Email,
+		"role_id":   user.RoleId,
+		"driver_id": user.DriverId,
 		"is_active": user.IsActive,
 	})
 
@@ -173,12 +184,21 @@ func (u *userUsecase) DeleteUser(actorUserId, id string) global.ErrorResponse {
 		return global.BadRequestError("cannot delete your own account")
 	}
 
-	if _, err := u.userRepository.FindById(id); err != nil {
+	user, err := u.userRepository.FindById(id)
+	if err != nil {
 		return err
 	}
+	driverId := user.DriverId
 
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
+
+	user.DriverId = nil
+	user.Driver = nil
+	if err := u.userRepository.Update(tx, user); err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	if err := u.userRepository.Delete(tx, id); err != nil {
 		tx.Rollback()
@@ -190,18 +210,60 @@ func (u *userUsecase) DeleteUser(actorUserId, id string) global.ErrorResponse {
 		return global.InternalServerError(err)
 	}
 
-	_ = u.auditLogRepo.Log(actorUserId, constant.AuditUserDelete, constant.AuditObjectUser, id, nil)
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditUserDelete, constant.AuditObjectUser, id, map[string]any{
+		"driver_id": driverId,
+	})
 
 	return nil
 }
 
-func (u *userUsecase) validateRoleId(roleId string) global.ErrorResponse {
-	_, err := u.roleRepository.FindById(roleId)
+func (u *userUsecase) resolveDriverAssignment(roleId, driverId, excludeUserId string) (*string, global.ErrorResponse) {
+	role, err := u.roleRepository.FindById(roleId)
 	if err != nil {
 		if err.GetCode() == fiber.StatusNotFound {
-			return global.BadRequestError("invalid role")
+			return nil, global.BadRequestError("invalid role")
 		}
-		return err
+		return nil, err
 	}
-	return nil
+
+	if role.Name != constant.RoleDriver {
+		if driverId != "" {
+			return nil, global.BadRequestError("driver_id is only allowed for the Driver role")
+		}
+		return nil, nil
+	}
+
+	if driverId == "" {
+		return nil, global.BadRequestError("driver_id is required for the Driver role")
+	}
+
+	driver, err := u.driverRepository.FindById(driverId)
+	if err != nil {
+		if err.GetCode() == fiber.StatusNotFound {
+			return nil, global.BadRequestError("invalid driver")
+		}
+		return nil, err
+	}
+	if !driver.IsActive && excludeUserId == "" {
+		return nil, global.BadRequestError("driver is not active")
+	}
+	if !driver.IsActive {
+		currentUser, err := u.userRepository.FindById(excludeUserId)
+		if err != nil {
+			return nil, err
+		}
+		if currentUser.DriverId == nil || *currentUser.DriverId != driverId {
+			return nil, global.BadRequestError("driver is not active")
+		}
+	}
+
+	assignedUser, err := u.userRepository.FindByDriverIdExceptId(driverId, excludeUserId)
+	if err != nil && err.GetCode() != fiber.StatusNotFound {
+		return nil, err
+	}
+	if assignedUser != nil {
+		return nil, global.BadRequestError("driver is already assigned to a user")
+	}
+
+	return &driverId, nil
 }

@@ -59,7 +59,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 
 	authUsecase := usecase.NewAuthUseCase(userRepo, auditLogRepo, rbacRepo)
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
-	userUsecase := usecase.NewUserUsecase(txManager, userRepo, roleRepo, auditLogRepo)
+	userUsecase := usecase.NewUserUsecase(txManager, userRepo, roleRepo, driverRepo, auditLogRepo)
 	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, sparepartStockRepo, auditLogRepo)
 	cylinderUsecase := usecase.NewCylinderUsecase(txManager, cylinderRepo, masterItemRepo, customerRepo, vendorRepo, cylinderLedgerRepo, userRepo, auditLogRepo)
 	customerUsecase := usecase.NewCustomerUsecase(txManager, customerRepo, auditLogRepo)
@@ -69,7 +69,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	inboundUsecase := usecase.NewInboundUsecase(txManager, cylinderRepo, cylinderLedgerRepo, auditLogRepo)
 	fillingBatchUsecase := usecase.NewFillingBatchUsecase(txManager, fillingBatchRepo, cylinderRepo, cylinderLedgerRepo, masterItemRepo, auditLogRepo)
 	fleetUsecase := usecase.NewFleetUsecase(txManager, fleetRepo, auditLogRepo)
-	driverUsecase := usecase.NewDriverUsecase(txManager, driverRepo, auditLogRepo)
+	driverUsecase := usecase.NewDriverUsecase(txManager, driverRepo, userRepo, auditLogRepo)
 	invoiceUsecase := usecase.NewInvoiceUsecase(invoiceRepo, customerRepo)
 	paymentUsecase := usecase.NewPaymentUsecase(txManager, paymentRepo, invoiceRepo, customerRepo, auditLogRepo)
 	deliveryOrderUsecase := usecase.NewDeliveryOrderUsecase(txManager, deliveryOrderRepo, cylinderRepo, cylinderLedgerRepo, customerRepo, fleetRepo, auditLogRepo, customerItemPriceUsecase, salesOrderRepo, invoiceUsecase)

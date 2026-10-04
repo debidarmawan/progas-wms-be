@@ -10,6 +10,8 @@ type User struct {
 	Password       string `gorm:"not null; type:varchar(128);"`
 	RoleId         string `gorm:"not null"`
 	Role           Role
+	DriverId       *string    `gorm:"type:varchar(36);uniqueIndex"`
+	Driver         *Driver    `gorm:"foreignKey:DriverId;references:Id"`
 	IsActive       bool       `gorm:""`
 	ActivationDate *time.Time `gorm:""`
 	LastLoggedInAt *time.Time `gorm:""`

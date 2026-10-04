@@ -18,8 +18,12 @@ func ToUserListResponse(user *model.User) *dto.UserListResponse {
 		Phone:     user.Phone,
 		RoleId:    user.RoleId,
 		RoleName:  roleName,
+		DriverId:  user.DriverId,
 		IsActive:  user.IsActive,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+	}
+	if user.Driver != nil {
+		res.DriverName = user.Driver.Name
 	}
 	if user.LastLoggedInAt != nil {
 		res.LastLoggedInAt = user.LastLoggedInAt.Format(time.RFC3339)

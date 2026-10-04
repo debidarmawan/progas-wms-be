@@ -15,6 +15,7 @@ func SeedRoles(db *gorm.DB) {
 		constant.RoleWarehouseAdmin,
 		constant.RoleLogisticAdmin,
 		constant.RoleManager,
+		constant.RoleDriver,
 	}
 
 	for _, name := range names {

@@ -2731,6 +2731,9 @@
                 "role_id"
             ],
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -3991,6 +3994,9 @@
                 "role_id"
             ],
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -4053,6 +4059,12 @@
                 "created_at": {
                     "type": "string"
                 },
+                "driver_id": {
+                    "type": "string"
+                },
+                "driver_name": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -4082,6 +4094,9 @@
         "dto.UserResponse": {
             "type": "object",
             "properties": {
+                "driver_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
