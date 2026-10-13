@@ -17,11 +17,6 @@ func NewRoleHandler(roleUsecase usecase.RoleUsecase) *RoleHandler {
 	return &RoleHandler{roleUsecase}
 }
 
-func (h *RoleHandler) Routes(group fiber.Router) {
-	group.Get("/roles/", h.FindAll)
-	group.Get("/roles/:id", h.FindById)
-}
-
 // FindAll godoc
 //
 //	@Summary		Find all roles
