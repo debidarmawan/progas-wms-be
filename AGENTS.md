@@ -25,7 +25,7 @@ When adding or modifying code, follow these rules. When you change a rule, edit 
 - Sales flow today: Delivery Order (DO) is created directly from a list of cylinder barcodes — there is NO Purchase Order or Sales Order yet. Don't assume PO/SO models exist.
 - Multi-table mutations use `helper.TxManager` (explicit transaction, manual `tx.Rollback()` on every early return, `tx.Commit()` at the end).
 - Every write usecase logs to `AuditLogRepository` after commit succeeds (best-effort, outside the transaction).
-- Permissions are enforced per route group in `server/routes.go` via `constant.Perm*` keys — a new endpoint needs a new permission key plus an RBAC seed entry.
+- Permissions are enforced **per route** in `server/routes.go` via `constant.Perm*` keys (`middleware.Authorize(rbacRepo, constant.PermX)` passed to the route, never as `Group("", …)` middleware — an empty-prefix group leaks the guard onto every later route) — a new endpoint needs a new permission key plus an RBAC seed entry.
 - Cylinder status is the core domain invariant: `EMPTY → READY_TO_FILL → FILLED → READY → IN_TRANSIT → OUTSTANDING → EMPTY` (loop), with `MAINTENANCE`/`LOST`/`WRITE_OFF` as side states.
 
 ## Business flow changes

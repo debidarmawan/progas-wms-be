@@ -39,8 +39,9 @@ There is no DI container, service locator, or global singleton (except the `vali
 ## 5. Auth & RBAC
 - JWT: short-lived access token (claims `user_id`, `role_id`) + long-lived refresh token. Secrets/expiry come from env (`constant.*`).
 - `VerifyAuthToken` (`server/middleware.go`) parses the bearer token and stores `user_id` / `role_id` in `c.Locals`.
-- `middleware.Authorize(rbacRepo, permKey)` guards each route group; `Superadmin` bypasses all checks.
-- Permission flow: add `constant.PermX` → add a `permissionSeed` entry in `config/seed_rbac.go` → attach the route to a guarded group in `server/routes.go`.
+- `middleware.Authorize(rbacRepo, permKey)` is registered **per route**, as the first handler after `VerifyAuthToken`; `Superadmin` bypasses all checks.
+- NEVER build a guard with `protected.Group("", middleware.Authorize(...))`: a Fiber group with an empty prefix registers the middleware as a `USE` route on the parent prefix (`/api/v1`), so it also applies to **every route registered after it** (symptom: a Driver with `cylinder.read` was denied `403` on `/cylinders` by `role.read`). Pass the middleware to the specific route instead: `protected.Get("/cylinders", middleware.Authorize(rbacRepo, constant.PermCylinderRead), cylinderHandler.FindAll)`.
+- Permission flow: add `constant.PermX` → add a `permissionSeed` entry in `config/seed_rbac.go` → pass `middleware.Authorize(rbacRepo, constant.PermX)` to the route in `server/routes.go`.
 - Roles are seeded in `config/seed_roles.go`; the canonical list is `constant/role.go`.
 
 ## 6. Database
