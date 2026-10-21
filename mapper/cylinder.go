@@ -17,6 +17,10 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 	if cylinder.OwnerId != nil {
 		ownerId = *cylinder.OwnerId
 	}
+	labelPrintedAt := ""
+	if cylinder.LabelPrintedAt != nil {
+		labelPrintedAt = cylinder.LabelPrintedAt.Format(time.RFC3339)
+	}
 	return &dto.CylinderResponse{
 		Id:                cylinder.Id,
 		BarcodeSN:         cylinder.BarcodeSN,
@@ -28,6 +32,7 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 		Status:            string(cylinder.Status),
 		LastHydrotestDate: cylinder.LastHydrotestDate.Format(time.RFC3339),
 		Remarks:           cylinder.Remarks,
+		LabelPrintedAt:    labelPrintedAt,
 	}
 }
 

@@ -10,6 +10,7 @@ const (
 	AuditMasterItemUpdate    = "MASTER_ITEM_UPDATE"
 	AuditCylinderCreate      = "CYLINDER_CREATE"
 	AuditCylinderUpdate      = "CYLINDER_UPDATE"
+	AuditCylinderLabelPrint  = "CYLINDER_LABEL_PRINT"
 	AuditCustomerCreate      = "CUSTOMER_CREATE"
 	AuditCustomerUpdate      = "CUSTOMER_UPDATE"
 	AuditCustomerPriceCreate = "CUSTOMER_PRICE_CREATE"

@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/csv"
 	"progas-wms-be/dto"
 	"progas-wms-be/global"
 	"progas-wms-be/helper"
 	"progas-wms-be/usecase"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -81,6 +84,97 @@ func (h *CylinderHandler) FindByBarcode(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// ResolveScan godoc
+//
+//	@Summary		Resolve a scanned barcode for a menu
+//	@Description	Return the cylinder plus whether its status allows the scanned menu (single source of truth for mobile)
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			sn		path		string	true	"Cylinder barcode serial number"
+//	@Param			menu	query		string	true	"pre-fill | filling | post-fill | do | exchange-out | exchange-in | hydrotest"
+//	@Success		200		{object}	global.Response[dto.ScanResolveResponse]
+//	@Router			/cylinders/scan/{sn} [get]
+func (h *CylinderHandler) ResolveScan(c fiber.Ctx) error {
+	var query dto.ScanCylinderQuery
+	if err := helper.ValidateQuery(c, &query); err != nil {
+		return err.ToResponse(c)
+	}
+	res, err := h.usecase.ResolveScan(c.Params("sn"), query.Menu)
+	if err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}
+
+// Labels godoc
+//
+//	@Summary		Export cylinder labels
+//	@Description	CSV of barcode serials to print. Pass ids=... or labeled=false for every never-printed label.
+//	@Tags			Cylinder
+//	@Produce		text/csv
+//	@Security		Bearer
+//	@Param			ids		query		string	false	"Comma-separated cylinder IDs"
+//	@Param			labeled	query		string	false	"Set false to list cylinders whose label was never printed"
+//	@Param			limit	query		int		false	"Max rows when listing unlabeled (default 500)"
+//	@Param			format	query		string	false	"json to return rows as JSON (default csv)"
+//	@Success		200		{string}	string	"CSV: barcode_sn,item_name,gas_type (or JSON envelope when format=json)"
+//	@Router			/cylinders/labels [get]
+func (h *CylinderHandler) Labels(c fiber.Ctx) error {
+	var query dto.CylinderLabelQuery
+	if err := helper.ValidateQuery(c, &query); err != nil {
+		return err.ToResponse(c)
+	}
+
+	rows, err := h.usecase.FindLabels(strings.Split(query.Ids, ","), query.Labeled == "false", query.Limit)
+	if err != nil {
+		return err.ToResponse(c)
+	}
+
+	if query.Format == "json" {
+		return global.CreateResponse(&rows, fiber.StatusOK, c)
+	}
+
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+	_ = writer.Write([]string{"barcode_sn", "item_name", "gas_type"})
+	for _, row := range rows {
+		_ = writer.Write([]string{row.BarcodeSN, row.ItemName, row.GasType})
+	}
+	writer.Flush()
+	if writeErr := writer.Error(); writeErr != nil {
+		return global.InternalServerError(writeErr).ToResponse(c)
+	}
+
+	c.Set(fiber.HeaderContentType, "text/csv; charset=utf-8")
+	c.Set(fiber.HeaderContentDisposition, `attachment; filename="cylinder-labels.csv"`)
+	return c.SendString(buf.String())
+}
+
+// MarkLabelsPrinted godoc
+//
+//	@Summary		Mark labels as printed
+//	@Description	Record the print time so barcode_sn can no longer be edited
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			request	body		dto.MarkLabelsPrintedRequest	true	"Printed cylinder IDs"
+//	@Success		200		{object}	global.Response[dto.Message]
+//	@Router			/cylinders/labels/printed [post]
+func (h *CylinderHandler) MarkLabelsPrinted(c fiber.Ctx) error {
+	var req dto.MarkLabelsPrintedRequest
+	if err := helper.ValidateBody(c, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	actorUserId, _ := c.Locals("user_id").(string)
+	if err := h.usecase.MarkLabelsPrinted(actorUserId, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateMessageResponse("Label tercatat tercetak", fiber.StatusOK, c)
+}
+
 // History godoc
 //
 //	@Summary		Get cylinder change history
@@ -109,7 +203,7 @@ func (h *CylinderHandler) History(c fiber.Ctx) error {
 //	@Produce		json
 //	@Security		Bearer
 //	@Param			request	body		dto.CreateCylinderRequest	true	"Register cylinder request"
-//	@Success		200		{object}	global.Response[dto.Message]
+//	@Success		200		{object}	global.Response[dto.CylinderResponse]
 //	@Router			/cylinders [post]
 func (h *CylinderHandler) Create(c fiber.Ctx) error {
 	var req dto.CreateCylinderRequest
@@ -117,10 +211,11 @@ func (h *CylinderHandler) Create(c fiber.Ctx) error {
 		return err.ToResponse(c)
 	}
 	actorUserId, _ := c.Locals("user_id").(string)
-	if err := h.usecase.Create(actorUserId, &req); err != nil {
+	res, err := h.usecase.Create(actorUserId, &req)
+	if err != nil {
 		return err.ToResponse(c)
 	}
-	return global.CreateMessageResponse("Cylinder registered successfully", fiber.StatusOK, c)
+	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
 // Update godoc

@@ -44,6 +44,49 @@ func CanReceiveOnExchange(status enum.CylinderStatus) bool {
 	return status == enum.CylinderStatusOutstanding
 }
 
+// Scan menu keys shared by the mobile scanner and GET /cylinders/scan/:sn.
+var scanMenus = []string{"pre-fill", "filling", "post-fill", "do", "exchange-out", "exchange-in", "hydrotest"}
+
+func IsScanMenu(menu string) bool {
+	for _, m := range scanMenus {
+		if m == menu {
+			return true
+		}
+	}
+	return false
+}
+
+func CanScanMenu(menu string, status enum.CylinderStatus) bool {
+	switch menu {
+	case "pre-fill":
+		return CanPreFillQC(status)
+	case "filling":
+		return CanEnterFillingBatch(status)
+	case "post-fill":
+		return CanPostFillQC(status)
+	case "do":
+		return CanIssueOnDO(status)
+	case "exchange-out":
+		return CanDeliverOnExchange(status)
+	case "exchange-in":
+		return CanReceiveOnExchange(status)
+	case "hydrotest":
+		return status != enum.CylinderStatusLost && status != enum.CylinderStatusWriteOff
+	default:
+		return false
+	}
+}
+
+func AllowedScanMenus(status enum.CylinderStatus) []string {
+	menus := make([]string, 0, len(scanMenus))
+	for _, m := range scanMenus {
+		if CanScanMenu(m, status) {
+			menus = append(menus, m)
+		}
+	}
+	return menus
+}
+
 func CountsTowardOutstanding(cyl model.Cylinder) bool {
 	return cyl.OwnershipType != enum.OwnershipCustomer
 }

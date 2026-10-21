@@ -67,6 +67,7 @@ definitions:
   dto.CreateCylinderRequest:
     properties:
       barcode_sn:
+        description: 'optional: auto-generated when empty'
         type: string
       item_id:
         type: string
@@ -79,7 +80,6 @@ definitions:
       remarks:
         type: string
     required:
-    - barcode_sn
     - item_id
     - last_hydrotest_date
     - ownership_type
@@ -332,6 +332,8 @@ definitions:
         type: string
       item_name:
         type: string
+      label_printed_at:
+        type: string
       last_hydrotest_date:
         type: string
       owner_id:
@@ -414,6 +416,8 @@ definitions:
       notes:
         type: string
       plate_number:
+        type: string
+      sales_order_id:
         type: string
       status:
         type: string
@@ -542,6 +546,8 @@ definitions:
         type: string
       notes:
         type: string
+      sales_order_id:
+        type: string
     required:
     - barcodes
     - customer_id
@@ -580,6 +586,16 @@ definitions:
         type: integer
       sku:
         type: string
+    type: object
+  dto.MarkLabelsPrintedRequest:
+    properties:
+      ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - ids
     type: object
   dto.MasterItemResponse:
     properties:
@@ -789,6 +805,33 @@ definitions:
       id:
         type: string
       name:
+        type: string
+    type: object
+  dto.ScanResolveResponse:
+    properties:
+      allowed:
+        type: boolean
+      allowed_menus:
+        items:
+          type: string
+        type: array
+      barcode_sn:
+        type: string
+      gas_type:
+        type: string
+      id:
+        type: string
+      item_id:
+        type: string
+      item_name:
+        type: string
+      menu:
+        type: string
+      ownership_type:
+        type: string
+      reason:
+        type: string
+      status:
         type: string
     type: object
   dto.StockLedgerReportResponse:
@@ -1575,6 +1618,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_ScanResolveResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.ScanResolveResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_StockLedgerReportResponse:
     properties:
       code:
@@ -1965,7 +2021,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/global.Response-dto_Message'
+            $ref: '#/definitions/global.Response-dto_CylinderResponse'
       security:
       - Bearer: []
       summary: Register cylinder
@@ -2068,6 +2124,94 @@ paths:
       security:
       - Bearer: []
       summary: Find cylinder by barcode
+      tags:
+      - Cylinder
+  /cylinders/labels:
+    get:
+      description: CSV of barcode serials to print. Pass ids=... or labeled=false
+        for every never-printed label.
+      parameters:
+      - description: Comma-separated cylinder IDs
+        in: query
+        name: ids
+        type: string
+      - description: Set false to list cylinders whose label was never printed
+        in: query
+        name: labeled
+        type: string
+      - description: Max rows when listing unlabeled (default 500)
+        in: query
+        name: limit
+        type: integer
+      - description: json to return rows as JSON (default csv)
+        in: query
+        name: format
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: 'CSV: barcode_sn,item_name,gas_type (or JSON envelope when
+            format=json)'
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Export cylinder labels
+      tags:
+      - Cylinder
+  /cylinders/labels/printed:
+    post:
+      consumes:
+      - application/json
+      description: Record the print time so barcode_sn can no longer be edited
+      parameters:
+      - description: Printed cylinder IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarkLabelsPrintedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Mark labels as printed
+      tags:
+      - Cylinder
+  /cylinders/scan/{sn}:
+    get:
+      consumes:
+      - application/json
+      description: Return the cylinder plus whether its status allows the scanned
+        menu (single source of truth for mobile)
+      parameters:
+      - description: Cylinder barcode serial number
+        in: path
+        name: sn
+        required: true
+        type: string
+      - description: pre-fill | filling | post-fill | do | exchange-out | exchange-in
+          | hydrotest
+        in: query
+        name: menu
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_ScanResolveResponse'
+      security:
+      - Bearer: []
+      summary: Resolve a scanned barcode for a menu
       tags:
       - Cylinder
   /dashboard/summary:
@@ -2551,6 +2695,26 @@ paths:
         in: query
         name: search
         type: string
+      - description: 'Sort field: sku, name, or hna_price'
+        in: query
+        name: sort_by
+        type: string
+      - description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_order
+        type: string
+      - description: 'Filter by item type: gas, liquid, or mix'
+        in: query
+        name: item_type
+        type: string
+      - description: Filter by gas type
+        in: query
+        name: gas_type
+        type: string
+      - description: 'Filter by item type: serialized or spare part'
+        in: query
+        name: is_serialized
+        type: boolean
       produces:
       - application/json
       responses:

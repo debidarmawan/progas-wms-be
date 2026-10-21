@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"progas-wms-be/constant"
 	"progas-wms-be/dto"
 	"progas-wms-be/enum"
@@ -20,8 +21,11 @@ type CylinderUsecase interface {
 	FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.CylinderResponse], global.ErrorResponse)
 	FindById(id string) (*dto.CylinderResponse, global.ErrorResponse)
 	FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse)
-	Create(actorUserId string, req *dto.CreateCylinderRequest) global.ErrorResponse
+	ResolveScan(barcode, menu string) (*dto.ScanResolveResponse, global.ErrorResponse)
+	Create(actorUserId string, req *dto.CreateCylinderRequest) (*dto.CylinderResponse, global.ErrorResponse)
 	Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse
+	FindLabels(ids []string, onlyUnlabeled bool, limit int) ([]dto.CylinderLabelResponse, global.ErrorResponse)
+	MarkLabelsPrinted(actorUserId string, req *dto.MarkLabelsPrintedRequest) global.ErrorResponse
 	History(id string) (*dto.CylinderHistoryResponse, global.ErrorResponse)
 }
 
@@ -80,7 +84,7 @@ func (u *cylinderUsecase) FindById(id string) (*dto.CylinderResponse, global.Err
 }
 
 func (u *cylinderUsecase) FindByBarcode(barcode string) (*dto.CylinderResponse, global.ErrorResponse) {
-	barcode = strings.TrimSpace(barcode)
+	barcode = helper.NormalizeBarcode(barcode)
 	if barcode == "" {
 		return nil, global.BadRequestError("barcode is required")
 	}
@@ -91,24 +95,138 @@ func (u *cylinderUsecase) FindByBarcode(barcode string) (*dto.CylinderResponse, 
 	return mapper.ToCylinderResponse(cylinder), nil
 }
 
-func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequest) global.ErrorResponse {
-	existing, err := u.cylinderRepo.FindByBarcode(req.BarcodeSN)
-	if err != nil && err.GetCode() != fiber.StatusNotFound {
-		return err
-	}
-	if existing != nil {
-		return global.BadRequestError("barcode already registered")
+// ResolveScan answers "can this cylinder be scanned into this menu?" so the
+// mobile scanner never re-implements the status guards.
+func (u *cylinderUsecase) ResolveScan(barcode, menu string) (*dto.ScanResolveResponse, global.ErrorResponse) {
+	if !helper.IsScanMenu(menu) {
+		return nil, global.BadRequestError("invalid menu; allowed: pre-fill, filling, post-fill, do, exchange-out, exchange-in, hydrotest")
 	}
 
+	cylinder, err := u.FindByBarcode(barcode)
+	if err != nil {
+		return nil, err
+	}
+
+	status := enum.CylinderStatus(cylinder.Status)
+	allowed := helper.CanScanMenu(menu, status)
+	reason := ""
+	if !allowed {
+		reason = fmt.Sprintf("tabung %s berstatus %s, tidak bisa discan untuk menu %s", cylinder.BarcodeSN, cylinder.Status, menu)
+	}
+
+	return &dto.ScanResolveResponse{
+		Id:            cylinder.Id,
+		BarcodeSN:     cylinder.BarcodeSN,
+		ItemId:        cylinder.ItemId,
+		ItemName:      cylinder.ItemName,
+		GasType:       cylinder.GasType,
+		OwnershipType: cylinder.OwnershipType,
+		Status:        cylinder.Status,
+		Menu:          menu,
+		Allowed:       allowed,
+		Reason:        reason,
+		AllowedMenus:  helper.AllowedScanMenus(status),
+	}, nil
+}
+
+func (u *cylinderUsecase) FindLabels(ids []string, onlyUnlabeled bool, limit int) ([]dto.CylinderLabelResponse, global.ErrorResponse) {
+	clean := uniqueTrimmed(ids)
+	if len(clean) == 0 && !onlyUnlabeled {
+		return nil, global.BadRequestError("ids or labeled=false is required")
+	}
+	if onlyUnlabeled && limit == 0 {
+		limit = 500
+	}
+
+	cylinders, err := u.cylinderRepo.FindForLabels(clean, onlyUnlabeled, limit)
+	if err != nil {
+		return nil, err
+	}
+	if len(clean) > 0 && len(cylinders) != len(clean) {
+		return nil, global.BadRequestError("some cylinders were not found")
+	}
+
+	rows := make([]dto.CylinderLabelResponse, 0, len(cylinders))
+	for _, cylinder := range cylinders {
+		rows = append(rows, dto.CylinderLabelResponse{
+			Id:        cylinder.Id,
+			BarcodeSN: cylinder.BarcodeSN,
+			ItemName:  cylinder.MasterItem.Name,
+			GasType:   cylinder.MasterItem.GasType,
+		})
+	}
+	return rows, nil
+}
+
+func (u *cylinderUsecase) MarkLabelsPrinted(actorUserId string, req *dto.MarkLabelsPrintedRequest) global.ErrorResponse {
+	ids := uniqueTrimmed(req.Ids)
+	if len(ids) == 0 {
+		return global.BadRequestError("ids are required")
+	}
+
+	tx := u.txManager.New()
+	defer tx.CheckPanic()
+
+	if err := u.cylinderRepo.MarkLabelPrinted(tx, ids, time.Now()); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return global.InternalServerError(err)
+	}
+
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderLabelPrint, constant.AuditObjectCylinder, "", map[string]any{
+		"cylinder_ids": ids,
+		"count":        len(ids),
+	})
+
+	return nil
+}
+
+func uniqueTrimmed(values []string) []string {
+	seen := make(map[string]bool, len(values))
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		result = append(result, value)
+	}
+	return result
+}
+
+func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequest) (*dto.CylinderResponse, global.ErrorResponse) {
 	item, err := u.masterItemRepo.FindById(req.ItemId)
 	if err != nil {
 		if err.GetCode() == fiber.StatusNotFound {
-			return global.BadRequestError("invalid item")
+			return nil, global.BadRequestError("invalid item")
 		}
-		return err
+		return nil, err
 	}
 	if !item.IsSerialized {
-		return global.BadRequestError("item is not serialized; cannot register cylinder")
+		return nil, global.BadRequestError("item is not serialized; cannot register cylinder")
+	}
+
+	barcode := helper.NormalizeBarcode(req.BarcodeSN)
+	if barcode == "" {
+		barcode, err = u.newBarcode(item.SKU)
+		if err != nil {
+			return nil, err
+		}
+	} else if !helper.IsValidBarcode(barcode) {
+		return nil, global.BadRequestError("barcode must be 6-32 characters of A-Z, 0-9 or -")
+	}
+
+	existing, err := u.cylinderRepo.FindByBarcode(barcode)
+	if err != nil && err.GetCode() != fiber.StatusNotFound {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, global.BadRequestError("barcode already registered")
 	}
 
 	ownership := enum.Ownership(req.OwnershipType)
@@ -118,15 +236,15 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		ownerId = &req.OwnerId
 	}
 	if !helper.ValidateOwnership(ownership, ownerId) {
-		return global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
+		return nil, global.BadRequestError("invalid ownership: CUSTOMER and VENDOR require owner_id; COMPANY must not have owner_id")
 	}
 	if ownership == enum.OwnershipCustomer {
 		customer, err := u.customerRepo.FindById(*ownerId)
 		if err != nil {
 			if err.GetCode() == fiber.StatusNotFound {
-				return global.BadRequestError("invalid customer owner_id")
+				return nil, global.BadRequestError("invalid customer owner_id")
 			}
-			return err
+			return nil, err
 		}
 		ownerName = customer.Name
 	}
@@ -134,12 +252,12 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		vendor, err := u.vendorRepo.FindById(*ownerId)
 		if err != nil {
 			if err.GetCode() == fiber.StatusNotFound {
-				return global.BadRequestError("invalid vendor owner_id")
+				return nil, global.BadRequestError("invalid vendor owner_id")
 			}
-			return err
+			return nil, err
 		}
 		if !vendor.IsActive {
-			return global.BadRequestError("vendor is not active")
+			return nil, global.BadRequestError("vendor is not active")
 		}
 		ownerName = vendor.Name
 	}
@@ -149,14 +267,14 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		hydrotestDate, parseErr = time.Parse("2006-01-02", req.LastHydrotestDate)
 	}
 	if parseErr != nil {
-		return global.BadRequestError("invalid last_hydrotest_date format (use YYYY-MM-DD or RFC3339)")
+		return nil, global.BadRequestError("invalid last_hydrotest_date format (use YYYY-MM-DD or RFC3339)")
 	}
 	if !helper.ValidateHydrotestDate(hydrotestDate) {
-		return global.BadRequestError("last hydrotest date is invalid or expired")
+		return nil, global.BadRequestError("last hydrotest date is invalid or expired")
 	}
 
 	cylinder := &model.Cylinder{
-		BarcodeSN:         req.BarcodeSN,
+		BarcodeSN:         barcode,
 		ItemId:            req.ItemId,
 		OwnershipType:     ownership,
 		OwnerId:           ownerId,
@@ -170,12 +288,12 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 
 	if err = u.cylinderRepo.Create(tx, cylinder); err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
-		return global.InternalServerError(err)
+		return nil, global.InternalServerError(err)
 	}
 
 	changes := []dto.CylinderHistoryChange{
@@ -191,7 +309,26 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		"changes": changes,
 	})
 
-	return nil
+	cylinder.MasterItem = *item
+	return mapper.ToCylinderResponse(cylinder), nil
+}
+
+func (u *cylinderUsecase) newBarcode(sku string) (string, global.ErrorResponse) {
+	for attempt := 0; attempt < 3; attempt++ {
+		candidate := helper.GenerateCylinderBarcode(sku)
+		if candidate == "" {
+			return "", global.InternalServerError(fmt.Errorf("failed to generate barcode"))
+		}
+		existing, err := u.cylinderRepo.FindByBarcode(candidate)
+		if err != nil && err.GetCode() != fiber.StatusNotFound {
+			return "", err
+		}
+		if existing == nil {
+			return candidate, nil
+		}
+	}
+	// shortcut: check-then-insert race is caught by the unique index on barcode_sn.
+	return "", global.InternalServerError(fmt.Errorf("failed to generate unique barcode after 3 attempts"))
 }
 
 func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse {
@@ -272,20 +409,48 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 		return global.BadRequestError("last hydrotest date is invalid or expired")
 	}
 
+	barcode := helper.NormalizeBarcode(req.BarcodeSN)
+	if barcode == "" {
+		return global.BadRequestError("barcode is required")
+	}
+	barcodeChanged := barcode != helper.NormalizeBarcode(cylinder.BarcodeSN)
+	if barcodeChanged {
+		if cylinder.LabelPrintedAt != nil {
+			return global.BadRequestError("barcode sudah tercetak dan tidak bisa diubah")
+		}
+		if !helper.IsValidBarcode(barcode) {
+			return global.BadRequestError("barcode must be 6-32 characters of A-Z, 0-9 or -")
+		}
+		existing, err := u.cylinderRepo.FindByBarcode(barcode)
+		if err != nil && err.GetCode() != fiber.StatusNotFound {
+			return err
+		}
+		if existing != nil && existing.Id != cylinder.Id {
+			return global.BadRequestError("barcode already registered")
+		}
+	}
+
 	oldItemName := ""
 	if cylinder.MasterItem.Id != "" {
 		oldItemName = cylinder.MasterItem.Name
 	}
 
+	barcodeForHistory := cylinder.BarcodeSN
+	if barcodeChanged {
+		barcodeForHistory = barcode
+	}
+
 	changes := []dto.CylinderHistoryChange{}
-	appendCylinderChange(&changes, "barcode_sn", "Barcode", cylinder.BarcodeSN, req.BarcodeSN)
+	appendCylinderChange(&changes, "barcode_sn", "Barcode", cylinder.BarcodeSN, barcodeForHistory)
 	appendCylinderChange(&changes, "item_id", "Produk Gas", oldItemName, item.Name)
 	appendCylinderChange(&changes, "ownership_type", "Kepemilikan", string(cylinder.OwnershipType), string(ownership))
 	appendCylinderChange(&changes, "owner_id", "Pemilik", oldOwnerName, ownerName)
 	appendCylinderChange(&changes, "last_hydrotest_date", "Tanggal Hydrotest", cylinder.LastHydrotestDate.Format("2006-01-02"), hydrotestDate.Format("2006-01-02"))
 	appendCylinderChange(&changes, "remarks", "Remarks", cylinder.Remarks, req.Remarks)
 
-	cylinder.BarcodeSN = req.BarcodeSN
+	if barcodeChanged {
+		cylinder.BarcodeSN = barcode
+	}
 	cylinder.ItemId = req.ItemId
 	cylinder.OwnershipType = ownership
 	cylinder.OwnerId = ownerId

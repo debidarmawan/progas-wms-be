@@ -31,6 +31,8 @@ type CylinderRepository interface {
 	SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse
 	ClearOutstandingSince(tx helper.Tx, ids []string) global.ErrorResponse
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
+	FindForLabels(ids []string, onlyUnlabeled bool, limit int) ([]model.Cylinder, global.ErrorResponse)
+	MarkLabelPrinted(tx helper.Tx, ids []string, printedAt time.Time) global.ErrorResponse
 }
 
 type cylinderRepository struct {
@@ -271,6 +273,34 @@ func (r *cylinderRepository) ClearOutstandingSince(tx helper.Tx, ids []string) g
 
 func (r *cylinderRepository) Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse {
 	if err := r.dbFromTx(tx).Create(cylinder).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *cylinderRepository) FindForLabels(ids []string, onlyUnlabeled bool, limit int) ([]model.Cylinder, global.ErrorResponse) {
+	var cylinders []model.Cylinder
+	query := r.db.Preload("MasterItem").Order("barcode_sn asc")
+	if len(ids) > 0 {
+		query = query.Where("id IN ?", ids)
+	}
+	if onlyUnlabeled {
+		query = query.Where("label_printed_at IS NULL")
+	}
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	if err := query.Find(&cylinders).Error; err != nil {
+		return nil, global.InternalServerError(err)
+	}
+	return cylinders, nil
+}
+
+func (r *cylinderRepository) MarkLabelPrinted(tx helper.Tx, ids []string, printedAt time.Time) global.ErrorResponse {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("label_printed_at", printedAt).Error; err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil

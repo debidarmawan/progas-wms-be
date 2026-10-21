@@ -16,4 +16,5 @@ type Cylinder struct {
 	OutstandingSince  *time.Time          `gorm:"index"`
 	LastHydrotestDate time.Time           `gorm:"not null"`
 	Remarks           string              `gorm:"type:varchar(255)"`
+	LabelPrintedAt    *time.Time          `gorm:"index"`
 }

@@ -135,6 +135,11 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	cylinderRead := middleware.Authorize(rbacRepo, constant.PermCylinderRead)
 	protected.Get("/cylinders", cylinderRead, cylinderHandler.FindAll)
 	protected.Get("/cylinders/by-barcode/:sn", cylinderRead, cylinderHandler.FindByBarcode)
+	cylinderScan := middleware.Authorize(rbacRepo, constant.PermCylinderScan)
+	protected.Get("/cylinders/scan/:sn", cylinderScan, cylinderHandler.ResolveScan)
+	cylinderLabel := middleware.Authorize(rbacRepo, constant.PermCylinderLabel)
+	protected.Get("/cylinders/labels", cylinderLabel, cylinderHandler.Labels)
+	protected.Post("/cylinders/labels/printed", cylinderLabel, cylinderHandler.MarkLabelsPrinted)
 	protected.Get("/cylinders/:id", cylinderRead, cylinderHandler.FindById)
 	protected.Get("/cylinders/:id/history", cylinderRead, cylinderHandler.History)
 

@@ -466,7 +466,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/global.Response-dto_Message"
+                            "$ref": "#/definitions/global.Response-dto_CylinderResponse"
                         }
                     }
                 }
@@ -504,6 +504,140 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/global.Response-dto_CylinderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders/labels": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "CSV of barcode serials to print. Pass ids=... or labeled=false for every never-printed label.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Export cylinder labels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comma-separated cylinder IDs",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Set false to list cylinders whose label was never printed",
+                        "name": "labeled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max rows when listing unlabeled (default 500)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "json to return rows as JSON (default csv)",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV: barcode_sn,item_name,gas_type (or JSON envelope when format=json)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders/labels/printed": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Record the print time so barcode_sn can no longer be edited",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Mark labels as printed",
+                "parameters": [
+                    {
+                        "description": "Printed cylinder IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarkLabelsPrintedRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinders/scan/{sn}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Return the cylinder plus whether its status allows the scanned menu (single source of truth for mobile)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Resolve a scanned barcode for a menu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder barcode serial number",
+                        "name": "sn",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pre-fill | filling | post-fill | do | exchange-out | exchange-in | hydrotest",
+                        "name": "menu",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_ScanResolveResponse"
                         }
                     }
                 }
@@ -1408,6 +1542,36 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search by name, SKU, or gas type",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field: sku, name, or hna_price",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction: asc or desc",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by item type: gas, liquid, or mix",
+                        "name": "item_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by gas type",
+                        "name": "gas_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by item type: serialized or spare part",
+                        "name": "is_serialized",
                         "in": "query"
                     }
                 ],
@@ -2627,13 +2791,13 @@ const docTemplate = `{
         "dto.CreateCylinderRequest": {
             "type": "object",
             "required": [
-                "barcode_sn",
                 "item_id",
                 "last_hydrotest_date",
                 "ownership_type"
             ],
             "properties": {
                 "barcode_sn": {
+                    "description": "optional: auto-generated when empty",
                     "type": "string"
                 },
                 "item_id": {
@@ -3024,6 +3188,9 @@ const docTemplate = `{
                 "item_name": {
                     "type": "string"
                 },
+                "label_printed_at": {
+                    "type": "string"
+                },
                 "last_hydrotest_date": {
                     "type": "string"
                 },
@@ -3148,6 +3315,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "plate_number": {
+                    "type": "string"
+                },
+                "sales_order_id": {
                     "type": "string"
                 },
                 "status": {
@@ -3348,6 +3518,9 @@ const docTemplate = `{
                 },
                 "notes": {
                     "type": "string"
+                },
+                "sales_order_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3400,6 +3573,21 @@ const docTemplate = `{
                 },
                 "sku": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.MarkLabelsPrintedRequest": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3722,6 +3910,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScanResolveResponse": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "type": "boolean"
+                },
+                "allowed_menus": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "barcode_sn": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_name": {
+                    "type": "string"
+                },
+                "menu": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
@@ -4908,6 +5137,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.RoleResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_ScanResolveResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.ScanResolveResponse"
                 },
                 "error_code": {
                     "type": "string"

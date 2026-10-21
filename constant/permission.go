@@ -11,6 +11,8 @@ const (
 	PermMasterItemWrite      = "master_item.write"
 	PermCylinderRead         = "cylinder.read"
 	PermCylinderWrite        = "cylinder.write"
+	PermCylinderScan         = "cylinder.scan"
+	PermCylinderLabel        = "cylinder.label"
 	PermCustomerRead         = "customer.read"
 	PermCustomerWrite        = "customer.write"
 	PermCustomerPricingRead  = "customer_pricing.read"

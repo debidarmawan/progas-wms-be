@@ -110,6 +110,29 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
+			Key:       constant.PermCylinderScan,
+			Method:    "GET",
+			Path:      "/api/v1/cylinders/scan",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+				constant.RoleLogisticAdmin,
+				constant.RoleManager,
+				constant.RoleDriver,
+			},
+		},
+		{
+			Key:       constant.PermCylinderLabel,
+			Method:    "GET",
+			Path:      "/api/v1/cylinders/labels",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleWarehouseAdmin,
+			},
+		},
+		{
 			Key:       constant.PermCustomerRead,
 			Method:    "GET",
 			Path:      "/api/v1/customers",
