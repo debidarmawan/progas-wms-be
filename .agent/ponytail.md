@@ -1,0 +1,1 @@
+../.clinerules/ponytail.md

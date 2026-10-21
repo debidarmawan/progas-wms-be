@@ -10,6 +10,8 @@ They are mirrored under `.agent/` for other AI agents/tools:
 - `.clinerules/coding.md` — Coding standards (layering, naming, errors, DTOs, models, enums, constants, transactions).
 - `.clinerules/testing.md` — Test requirements (what to test, patterns, definition of done).
 - `.clinerules/architecture.md` — Structural decisions (layering, wiring, auth/RBAC, DB, domain invariants, extension checklist).
+- `.clinerules/ponytail.md` — Scope discipline: smallest complete change, no unrequested code, one small test for new non-trivial logic.
+- `.clinerules/caveman.md` — Reply style: ultra-compressed caveman phrasing in prose; code blocks stay unchanged.
 
 When adding or modifying code, follow these rules. When you change a rule, edit the file in `.clinerules/` (the `.agent/` copies are symlinks to it).
 
