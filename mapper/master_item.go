@@ -18,7 +18,12 @@ func ToMasterItemResponse(item *model.MasterItem, stockQty *int) *dto.MasterItem
 		GasWeightKg:       item.GasWeightKg,
 		MinStockAlert:     item.MinStockAlert,
 		MaxDaysAtCustomer: item.MaxDaysAtCustomer,
+		UomId:             item.UomId,
 		StockQuantity:     stockQty,
+	}
+	if item.Uom != nil {
+		res.UomCode = item.Uom.Code
+		res.UomName = item.Uom.Name
 	}
 	return res
 }

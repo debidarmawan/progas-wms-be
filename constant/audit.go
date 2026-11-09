@@ -8,6 +8,9 @@ const (
 	AuditUserLogin           = "USER_LOGIN"
 	AuditMasterItemCreate    = "MASTER_ITEM_CREATE"
 	AuditMasterItemUpdate    = "MASTER_ITEM_UPDATE"
+	AuditUomCreate           = "UOM_CREATE"
+	AuditUomUpdate           = "UOM_UPDATE"
+	AuditUomDelete           = "UOM_DELETE"
 	AuditCylinderCreate      = "CYLINDER_CREATE"
 	AuditCylinderUpdate      = "CYLINDER_UPDATE"
 	AuditCylinderLabelPrint  = "CYLINDER_LABEL_PRINT"
@@ -47,6 +50,7 @@ const (
 const (
 	AuditObjectUser          = "user"
 	AuditObjectMasterItem    = "master_item"
+	AuditObjectUom           = "uom"
 	AuditObjectCylinder      = "cylinder"
 	AuditObjectCustomer      = "customer"
 	AuditObjectCustomerPrice = "customer_item_price"

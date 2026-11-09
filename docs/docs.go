@@ -2317,6 +2317,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/uoms": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all units of measure with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UOM"
+                ],
+                "summary": "Find all UOM",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name or code",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedUomList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a unit of measure",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UOM"
+                ],
+                "summary": "Create UOM",
+                "parameters": [
+                    {
+                        "description": "Create UOM request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/uoms/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find unit of measure by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UOM"
+                ],
+                "summary": "Find UOM by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UOM ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_UomResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update a unit of measure by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UOM"
+                ],
+                "summary": "Update UOM",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UOM ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update UOM request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a unit of measure by id (blocked when still used by master items)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UOM"
+                ],
+                "summary": "Delete UOM",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UOM ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -2891,6 +3092,26 @@ const docTemplate = `{
                 },
                 "sku": {
                     "type": "string"
+                },
+                "uom_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateUomRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
                 }
             }
         },
@@ -3629,6 +3850,15 @@ const docTemplate = `{
                 },
                 "stock_quantity": {
                     "type": "integer"
+                },
+                "uom_code": {
+                    "type": "string"
+                },
+                "uom_id": {
+                    "type": "string"
+                },
+                "uom_name": {
+                    "type": "string"
                 }
             }
         },
@@ -3782,6 +4012,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.RoleResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedUomList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UomResponse"
                     }
                 },
                 "meta": {
@@ -4069,6 +4313,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UomResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateCustomerItemPriceRequest": {
             "type": "object",
             "required": [
@@ -4220,6 +4478,26 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "uom_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateUomRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
                 }
             }
         },
@@ -5069,6 +5347,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_PaginatedUomList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedUomList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_PaginatedUserList": {
             "type": "object",
             "properties": {
@@ -5217,6 +5515,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.TurnaroundReportResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_UomResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.UomResponse"
                 },
                 "error_code": {
                     "type": "string"

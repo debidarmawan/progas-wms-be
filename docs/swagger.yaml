@@ -132,10 +132,24 @@ definitions:
         type: string
       sku:
         type: string
+      uom_id:
+        type: string
     required:
     - item_type
     - name
     - sku
+    type: object
+  dto.CreateUomRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      name:
+        maxLength: 50
+        type: string
+    required:
+    - code
+    - name
     type: object
   dto.CreateUserRequest:
     properties:
@@ -623,6 +637,12 @@ definitions:
         type: string
       stock_quantity:
         type: integer
+      uom_code:
+        type: string
+      uom_id:
+        type: string
+      uom_name:
+        type: string
     type: object
   dto.Message:
     properties:
@@ -721,6 +741,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/dto.RoleResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedUomList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.UomResponse'
         type: array
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
@@ -909,6 +938,15 @@ definitions:
       started_at:
         type: string
     type: object
+  dto.UomResponse:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   dto.UpdateCustomerItemPriceRequest:
     properties:
       effective_from:
@@ -1009,8 +1047,22 @@ definitions:
         type: integer
       name:
         type: string
+      uom_id:
+        type: string
     required:
     - item_type
+    - name
+    type: object
+  dto.UpdateUomRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      name:
+        maxLength: 50
+        type: string
+    required:
+    - code
     - name
     type: object
   dto.UpdateUserRequest:
@@ -1566,6 +1618,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_PaginatedUomList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedUomList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_PaginatedUserList:
     properties:
       code:
@@ -1663,6 +1728,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.TurnaroundReportResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_UomResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.UomResponse'
       error_code:
         type: string
       message:
@@ -3186,6 +3264,133 @@ paths:
       summary: Find role by id
       tags:
       - Role
+  /uoms:
+    get:
+      consumes:
+      - application/json
+      description: Find all units of measure with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedUomList'
+      security:
+      - Bearer: []
+      summary: Find all UOM
+      tags:
+      - UOM
+    post:
+      consumes:
+      - application/json
+      description: Create a unit of measure
+      parameters:
+      - description: Create UOM request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create UOM
+      tags:
+      - UOM
+  /uoms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a unit of measure by id (blocked when still used by master
+        items)
+      parameters:
+      - description: UOM ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete UOM
+      tags:
+      - UOM
+    get:
+      consumes:
+      - application/json
+      description: Find unit of measure by id
+      parameters:
+      - description: UOM ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_UomResponse'
+      security:
+      - Bearer: []
+      summary: Find UOM by id
+      tags:
+      - UOM
+    put:
+      consumes:
+      - application/json
+      description: Update a unit of measure by id
+      parameters:
+      - description: UOM ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update UOM request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update UOM
+      tags:
+      - UOM
   /users:
     get:
       consumes:

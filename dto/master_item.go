@@ -11,6 +11,7 @@ type CreateMasterItemRequest struct {
 	GasWeightKg       float64 `json:"gas_weight_kg" validate:"gte=0"`
 	MinStockAlert     int     `json:"min_stock_alert" validate:"gte=0"`
 	MaxDaysAtCustomer int     `json:"max_days_at_customer" validate:"gte=0"`
+	UomId             string  `json:"uom_id"`
 }
 
 type BulkCreateMasterItemRequest struct {
@@ -26,6 +27,7 @@ type UpdateMasterItemRequest struct {
 	GasWeightKg       float64 `json:"gas_weight_kg" validate:"gte=0"`
 	MinStockAlert     int     `json:"min_stock_alert" validate:"gte=0"`
 	MaxDaysAtCustomer int     `json:"max_days_at_customer" validate:"gte=0"`
+	UomId             string  `json:"uom_id"`
 }
 
 type MasterItemResponse struct {
@@ -40,5 +42,8 @@ type MasterItemResponse struct {
 	GasWeightKg       float64 `json:"gas_weight_kg"`
 	MinStockAlert     int     `json:"min_stock_alert"`
 	MaxDaysAtCustomer int     `json:"max_days_at_customer"`
+	UomId             string  `json:"uom_id,omitempty"`
+	UomCode           string  `json:"uom_code,omitempty"`
+	UomName           string  `json:"uom_name,omitempty"`
 	StockQuantity     *int    `json:"stock_quantity,omitempty"`
 }

@@ -27,6 +27,7 @@ type masterItemUsecase struct {
 	txManager          helper.TxManager
 	masterItemRepo     repository.MasterItemRepository
 	sparepartStockRepo repository.SparepartStockRepository
+	uomRepo            repository.UomRepository
 	auditLogRepo       repository.AuditLogRepository
 }
 
@@ -34,12 +35,14 @@ func NewMasterItemUsecase(
 	txManager helper.TxManager,
 	masterItemRepo repository.MasterItemRepository,
 	sparepartStockRepo repository.SparepartStockRepository,
+	uomRepo repository.UomRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) MasterItemUsecase {
 	return &masterItemUsecase{
 		txManager:          txManager,
 		masterItemRepo:     masterItemRepo,
 		sparepartStockRepo: sparepartStockRepo,
+		uomRepo:            uomRepo,
 		auditLogRepo:       auditLogRepo,
 	}
 }
@@ -184,6 +187,10 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	if !enum.MasterItemType(req.ItemType).IsValid() {
 		return global.BadRequestError("item_type must be one of: gas, liquid, mix")
 	}
+	if _, err = u.resolveUomId(req.UomId); err != nil {
+		return err
+	}
+	item.UomId = req.UomId
 	item.ItemType = req.ItemType
 	item.GasType = req.GasType
 	item.HnaPrice = req.HnaPrice
@@ -234,7 +241,24 @@ func (u *masterItemUsecase) validateCreateRequest(req *dto.CreateMasterItemReque
 	if !req.IsSerialized && req.MaxDaysAtCustomer != 0 {
 		return global.BadRequestError("max_days_at_customer is only applicable for serialized gas items")
 	}
+	if _, err := u.resolveUomId(req.UomId); err != nil {
+		return err
+	}
 	return nil
+}
+
+// resolveUomId validates an optional uom_id reference against the UOM table.
+func (u *masterItemUsecase) resolveUomId(uomId string) (string, global.ErrorResponse) {
+	if uomId == "" {
+		return "", nil
+	}
+	if _, err := u.uomRepo.FindById(uomId); err != nil {
+		if err.GetCode() == fiber.StatusNotFound {
+			return "", global.BadRequestError("uom not found")
+		}
+		return "", err
+	}
+	return uomId, nil
 }
 
 func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMasterItemRequest) (string, global.ErrorResponse) {
@@ -249,6 +273,7 @@ func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMa
 		GasWeightKg:       req.GasWeightKg,
 		MinStockAlert:     req.MinStockAlert,
 		MaxDaysAtCustomer: req.MaxDaysAtCustomer,
+		UomId:             req.UomId,
 	}
 
 	if err := u.masterItemRepo.Create(tx, item); err != nil {

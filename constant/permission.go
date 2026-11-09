@@ -9,6 +9,8 @@ const (
 
 	PermMasterItemRead       = "master_item.read"
 	PermMasterItemWrite      = "master_item.write"
+	PermUomRead              = "uom.read"
+	PermUomWrite             = "uom.write"
 	PermCylinderRead         = "cylinder.read"
 	PermCylinderWrite        = "cylinder.write"
 	PermCylinderScan         = "cylinder.scan"

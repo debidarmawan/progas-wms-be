@@ -13,6 +13,7 @@ type MasterItemRepository interface {
 	FindAll(page, limit int, search, sortBy, sortOrder, itemType, gasType string, isSerialized *bool) ([]model.MasterItem, int64, global.ErrorResponse)
 	FindById(id string) (*model.MasterItem, global.ErrorResponse)
 	FindBySKU(sku string) (*model.MasterItem, global.ErrorResponse)
+	CountByUomId(uomId string) (int64, global.ErrorResponse)
 	Create(tx helper.Tx, item *model.MasterItem) global.ErrorResponse
 	Update(tx helper.Tx, item *model.MasterItem) global.ErrorResponse
 }
@@ -68,7 +69,7 @@ func (r *masterItemRepository) FindAll(page, limit int, search, sortBy, sortOrde
 	if sortOrder != "desc" {
 		sortOrder = "asc"
 	}
-	if err := query.Order(sortColumn + " " + sortOrder).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
+	if err := query.Preload("Uom").Order(sortColumn + " " + sortOrder).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 	return items, total, nil
@@ -76,13 +77,21 @@ func (r *masterItemRepository) FindAll(page, limit int, search, sortBy, sortOrde
 
 func (r *masterItemRepository) FindById(id string) (*model.MasterItem, global.ErrorResponse) {
 	var item model.MasterItem
-	if err := r.db.Where("id = ?", id).First(&item).Error; err != nil {
+	if err := r.db.Preload("Uom").Where("id = ?", id).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, global.NotFoundError("Master item not found")
 		}
 		return nil, global.InternalServerError(err)
 	}
 	return &item, nil
+}
+
+func (r *masterItemRepository) CountByUomId(uomId string) (int64, global.ErrorResponse) {
+	var total int64
+	if err := r.db.Model(&model.MasterItem{}).Where("uom_id = ?", uomId).Count(&total).Error; err != nil {
+		return 0, global.InternalServerError(err)
+	}
+	return total, nil
 }
 
 func (r *masterItemRepository) FindBySKU(sku string) (*model.MasterItem, global.ErrorResponse) {

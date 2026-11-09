@@ -12,4 +12,6 @@ type MasterItem struct {
 	GasWeightKg       float64 `gorm:"type:decimal(6,2)"`
 	MinStockAlert     int     `gorm:"default:10"`
 	MaxDaysAtCustomer int     `gorm:"type:int;default:0"`
+	UomId             string  `gorm:"type:varchar(36);index"`
+	Uom               *Uom    `gorm:"foreignKey:UomId"`
 }
