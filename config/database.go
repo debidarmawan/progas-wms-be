@@ -78,6 +78,7 @@ func ConnectDatabase(maxOpenConn int) (*gorm.DB, *ssh.Client, error) {
 		SeedRoles(db)
 		SeedRBAC(db)
 		SeedBootstrapAdmin(db)
+		SeedAccounts(db)
 		log.Println("Migration and seed completed.")
 	} else {
 		log.Println("Skipping migration and seed.")

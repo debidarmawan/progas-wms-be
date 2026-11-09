@@ -18,6 +18,216 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/accounts": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List Chart of Accounts with pagination, search and filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Find all accounts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by code or name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ASSET | LIABILITY | EQUITY | REVENUE | EXPENSE",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active flag",
+                        "name": "is_active",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedAccountList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Create account",
+                "parameters": [
+                    {
+                        "description": "Create account request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Find account by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_AccountResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Update account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update account request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete an account (blocked when it has children or is used in journal entries)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Delete account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/customers": {
             "get": {
                 "security": [
@@ -872,6 +1082,126 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/global.Response-dto_VirtualWarehouseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/journals": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Find all journal entries",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by entry number or description",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedJournalEntryList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Post a balanced double-entry journal (total debit must equal total credit)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Create journal entry",
+                "parameters": [
+                    {
+                        "description": "Create journal entry request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateJournalEntryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/journals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accounting"
+                ],
+                "summary": "Find journal entry by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Journal entry ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_JournalEntryResponse"
                         }
                     }
                 }
@@ -2891,6 +3221,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AccountResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "normal_balance": {
+                    "type": "string"
+                },
+                "parent_code": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.BarcodeListRequest": {
             "type": "object",
             "required": [
@@ -2932,6 +3291,41 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.CreateMasterItemRequest"
                     }
+                }
+            }
+        },
+        "dto.CreateAccountRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "parent_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ASSET",
+                        "LIABILITY",
+                        "EQUITY",
+                        "REVENUE",
+                        "EXPENSE"
+                    ]
                 }
             }
         },
@@ -3047,6 +3441,53 @@ const docTemplate = `{
                 },
                 "plate_number": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.CreateJournalEntryRequest": {
+            "type": "object",
+            "required": [
+                "entry_date",
+                "lines"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "entry_date": {
+                    "type": "string"
+                },
+                "lines": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateJournalLineRequest"
+                    }
+                }
+            }
+        },
+        "dto.CreateJournalLineRequest": {
+            "type": "object",
+            "required": [
+                "account_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
+                "credit": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "debit": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "memo": {
+                    "type": "string",
+                    "maxLength": 255
                 }
             }
         },
@@ -3745,6 +4186,64 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.JournalEntryResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "entry_date": {
+                    "type": "string"
+                },
+                "entry_number": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lines": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.JournalLineResponse"
+                    }
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "source_type": {
+                    "type": "string"
+                },
+                "total_credit": {
+                    "type": "number"
+                },
+                "total_debit": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.JournalLineResponse": {
+            "type": "object",
+            "properties": {
+                "account_code": {
+                    "type": "string"
+                },
+                "account_id": {
+                    "type": "string"
+                },
+                "account_name": {
+                    "type": "string"
+                },
+                "credit": {
+                    "type": "number"
+                },
+                "debit": {
+                    "type": "number"
+                },
+                "memo": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -3893,6 +4392,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaginatedAccountList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AccountResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
         "dto.PaginatedCustomerItemPriceList": {
             "type": "object",
             "properties": {
@@ -3984,6 +4497,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.FleetResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedJournalEntryList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.JournalEntryResponse"
                     }
                 },
                 "meta": {
@@ -4324,6 +4851,41 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UpdateAccountRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "parent_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ASSET",
+                        "LIABILITY",
+                        "EQUITY",
+                        "REVENUE",
+                        "EXPENSE"
+                    ]
                 }
             }
         },
@@ -4867,6 +5429,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_AccountResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.AccountResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_BarcodeOperationResponse": {
             "type": "object",
             "properties": {
@@ -5107,6 +5689,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_JournalEntryResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.JournalEntryResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_LoginResponse": {
             "type": "object",
             "properties": {
@@ -5155,6 +5757,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.Message"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedAccountList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedAccountList"
                 },
                 "error_code": {
                     "type": "string"
@@ -5295,6 +5917,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.PaginatedFleetList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedJournalEntryList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedJournalEntryList"
                 },
                 "error_code": {
                     "type": "string"

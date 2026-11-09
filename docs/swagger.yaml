@@ -1,4 +1,23 @@
 definitions:
+  dto.AccountResponse:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      normal_balance:
+        type: string
+      parent_code:
+        type: string
+      parent_id:
+        type: string
+      type:
+        type: string
+    type: object
   dto.BarcodeListRequest:
     properties:
       barcodes:
@@ -27,6 +46,32 @@ definitions:
         type: array
     required:
     - items
+    type: object
+  dto.CreateAccountRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      is_active:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+      parent_id:
+        maxLength: 36
+        type: string
+      type:
+        enum:
+        - ASSET
+        - LIABILITY
+        - EQUITY
+        - REVENUE
+        - EXPENSE
+        type: string
+    required:
+    - code
+    - name
+    - type
     type: object
   dto.CreateCustomerItemPriceRequest:
     properties:
@@ -104,6 +149,39 @@ definitions:
     required:
     - max_weight_kg
     - plate_number
+    type: object
+  dto.CreateJournalEntryRequest:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      entry_date:
+        type: string
+      lines:
+        items:
+          $ref: '#/definitions/dto.CreateJournalLineRequest'
+        minItems: 2
+        type: array
+    required:
+    - entry_date
+    - lines
+    type: object
+  dto.CreateJournalLineRequest:
+    properties:
+      account_id:
+        maxLength: 36
+        type: string
+      credit:
+        minimum: 0
+        type: number
+      debit:
+        minimum: 0
+        type: number
+      memo:
+        maxLength: 255
+        type: string
+    required:
+    - account_id
     type: object
   dto.CreateMasterItemRequest:
     properties:
@@ -567,6 +645,44 @@ definitions:
     - customer_id
     - fleet_id
     type: object
+  dto.JournalEntryResponse:
+    properties:
+      description:
+        type: string
+      entry_date:
+        type: string
+      entry_number:
+        type: string
+      id:
+        type: string
+      lines:
+        items:
+          $ref: '#/definitions/dto.JournalLineResponse'
+        type: array
+      source_id:
+        type: string
+      source_type:
+        type: string
+      total_credit:
+        type: number
+      total_debit:
+        type: number
+    type: object
+  dto.JournalLineResponse:
+    properties:
+      account_code:
+        type: string
+      account_id:
+        type: string
+      account_name:
+        type: string
+      credit:
+        type: number
+      debit:
+        type: number
+      memo:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -664,6 +780,15 @@ definitions:
       max_days:
         type: integer
     type: object
+  dto.PaginatedAccountList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.AccountResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedCustomerItemPriceList:
     properties:
       items:
@@ -723,6 +848,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/dto.FleetResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedJournalEntryList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.JournalEntryResponse'
         type: array
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
@@ -946,6 +1080,32 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  dto.UpdateAccountRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      is_active:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+      parent_id:
+        maxLength: 36
+        type: string
+      type:
+        enum:
+        - ASSET
+        - LIABILITY
+        - EQUITY
+        - REVENUE
+        - EXPENSE
+        type: string
+    required:
+    - code
+    - name
+    - type
     type: object
   dto.UpdateCustomerItemPriceRequest:
     properties:
@@ -1306,6 +1466,19 @@ definitions:
       sku:
         type: string
     type: object
+  global.Response-dto_AccountResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.AccountResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_BarcodeOperationResponse:
     properties:
       code:
@@ -1462,6 +1635,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_JournalEntryResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.JournalEntryResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_LoginResponse:
     properties:
       code:
@@ -1494,6 +1680,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.Message'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedAccountList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedAccountList'
       error_code:
         type: string
       message:
@@ -1585,6 +1784,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.PaginatedFleetList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedJournalEntryList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedJournalEntryList'
       error_code:
         type: string
       message:
@@ -1821,6 +2033,138 @@ info:
   title: PROGAS WMS Backend API
   version: "1.0"
 paths:
+  /accounts:
+    get:
+      consumes:
+      - application/json
+      description: List Chart of Accounts with pagination, search and filters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by code or name
+        in: query
+        name: search
+        type: string
+      - description: ASSET | LIABILITY | EQUITY | REVENUE | EXPENSE
+        in: query
+        name: type
+        type: string
+      - description: Filter by active flag
+        in: query
+        name: is_active
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedAccountList'
+      security:
+      - Bearer: []
+      summary: Find all accounts
+      tags:
+      - Accounting
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create account request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create account
+      tags:
+      - Accounting
+  /accounts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an account (blocked when it has children or is used in journal
+        entries)
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete account
+      tags:
+      - Accounting
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_AccountResponse'
+      security:
+      - Bearer: []
+      summary: Find account by id
+      tags:
+      - Accounting
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update account request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update account
+      tags:
+      - Accounting
   /customers:
     get:
       consumes:
@@ -2364,6 +2708,81 @@ paths:
       summary: Virtual warehouse
       tags:
       - Inventory
+  /journals:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by entry number or description
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedJournalEntryList'
+      security:
+      - Bearer: []
+      summary: Find all journal entries
+      tags:
+      - Accounting
+    post:
+      consumes:
+      - application/json
+      description: Post a balanced double-entry journal (total debit must equal total
+        credit)
+      parameters:
+      - description: Create journal entry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateJournalEntryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create journal entry
+      tags:
+      - Accounting
+  /journals/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Journal entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_JournalEntryResponse'
+      security:
+      - Bearer: []
+      summary: Find journal entry by id
+      tags:
+      - Accounting
   /login:
     post:
       consumes:

@@ -109,6 +109,44 @@ func SeedRBAC(db *gorm.DB) {
 			},
 		},
 		{
+			Key:       constant.PermAccountRead,
+			Method:    "GET",
+			Path:      "/api/v1/accounts",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermAccountWrite,
+			Method:    "POST",
+			Path:      "/api/v1/accounts",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+			},
+		},
+		{
+			Key:       constant.PermJournalRead,
+			Method:    "GET",
+			Path:      "/api/v1/journals",
+			KeyAccess: "read",
+			Roles: []string{
+				constant.RoleSuperadmin,
+				constant.RoleManager,
+			},
+		},
+		{
+			Key:       constant.PermJournalWrite,
+			Method:    "POST",
+			Path:      "/api/v1/journals",
+			KeyAccess: "write",
+			Roles: []string{
+				constant.RoleSuperadmin,
+			},
+		},
+		{
 			Key:       constant.PermCylinderRead,
 			Method:    "GET",
 			Path:      "/api/v1/cylinders",

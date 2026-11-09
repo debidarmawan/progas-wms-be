@@ -44,6 +44,10 @@ const (
 	AuditHydrotestRecord     = "HYDROTEST_RECORD"
 	AuditInvoiceCreate       = "INVOICE_CREATE"
 	AuditPaymentRecord       = "PAYMENT_RECORD"
+	AuditAccountCreate       = "ACCOUNT_CREATE"
+	AuditAccountUpdate       = "ACCOUNT_UPDATE"
+	AuditAccountDelete       = "ACCOUNT_DELETE"
+	AuditJournalCreate       = "JOURNAL_CREATE"
 )
 
 // Audit object types.
@@ -64,6 +68,8 @@ const (
 	AuditObjectWorkOrder     = "work_order"
 	AuditObjectInvoice       = "invoice"
 	AuditObjectPayment       = "payment"
+	AuditObjectAccount       = "account"
+	AuditObjectJournalEntry  = "journal_entry"
 )
 
 // Cylinder ledger actions.
