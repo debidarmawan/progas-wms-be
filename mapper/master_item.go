@@ -7,19 +7,22 @@ import (
 
 func ToMasterItemResponse(item *model.MasterItem, stockQty *int) *dto.MasterItemResponse {
 	res := &dto.MasterItemResponse{
-		Id:                item.Id,
-		Name:              item.Name,
-		SKU:               item.SKU,
-		ItemType:          item.ItemType,
-		GasType:           item.GasType,
-		HnaPrice:          item.HnaPrice,
-		IsSerialized:      item.IsSerialized,
-		EmptyWeightKg:     item.EmptyWeightKg,
-		GasWeightKg:       item.GasWeightKg,
-		MinStockAlert:     item.MinStockAlert,
-		MaxDaysAtCustomer: item.MaxDaysAtCustomer,
-		UomId:             item.UomId,
-		StockQuantity:     stockQty,
+		Id:                 item.Id,
+		Name:               item.Name,
+		SKU:                item.SKU,
+		ItemType:           item.ItemType,
+		GasType:            item.GasType,
+		HnaPrice:           item.HnaPrice,
+		IsSerialized:       item.IsSerialized,
+		EmptyWeightKg:      item.EmptyWeightKg,
+		GasWeightKg:        item.GasWeightKg,
+		MinStockAlert:      item.MinStockAlert,
+		MaxDaysAtCustomer:  item.MaxDaysAtCustomer,
+		UomId:              item.UomId,
+		StockQuantity:      stockQty,
+		InventoryAccountId: item.InventoryAccountId,
+		RevenueAccountId:   item.RevenueAccountId,
+		CogsAccountId:      item.CogsAccountId,
 	}
 	if item.Uom != nil {
 		res.UomCode = item.Uom.Code

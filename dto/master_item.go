@@ -12,6 +12,10 @@ type CreateMasterItemRequest struct {
 	MinStockAlert     int     `json:"min_stock_alert" validate:"gte=0"`
 	MaxDaysAtCustomer int     `json:"max_days_at_customer" validate:"gte=0"`
 	UomId             string  `json:"uom_id"`
+	// Optional CoA mappings (see helper.ValidateItemAccountType for the allowed types).
+	InventoryAccountId string `json:"inventory_account_id" validate:"omitempty,max=36"`
+	RevenueAccountId   string `json:"revenue_account_id" validate:"omitempty,max=36"`
+	CogsAccountId      string `json:"cogs_account_id" validate:"omitempty,max=36"`
 }
 
 type BulkCreateMasterItemRequest struct {
@@ -19,31 +23,37 @@ type BulkCreateMasterItemRequest struct {
 }
 
 type UpdateMasterItemRequest struct {
-	Name              string  `json:"name" validate:"required"`
-	ItemType          string  `json:"item_type" validate:"required"`
-	GasType           string  `json:"gas_type"`
-	HnaPrice          float64 `json:"hna_price" validate:"gte=0"`
-	EmptyWeightKg     float64 `json:"empty_weight_kg" validate:"gte=0"`
-	GasWeightKg       float64 `json:"gas_weight_kg" validate:"gte=0"`
-	MinStockAlert     int     `json:"min_stock_alert" validate:"gte=0"`
-	MaxDaysAtCustomer int     `json:"max_days_at_customer" validate:"gte=0"`
-	UomId             string  `json:"uom_id"`
+	Name               string  `json:"name" validate:"required"`
+	ItemType           string  `json:"item_type" validate:"required"`
+	GasType            string  `json:"gas_type"`
+	HnaPrice           float64 `json:"hna_price" validate:"gte=0"`
+	EmptyWeightKg      float64 `json:"empty_weight_kg" validate:"gte=0"`
+	GasWeightKg        float64 `json:"gas_weight_kg" validate:"gte=0"`
+	MinStockAlert      int     `json:"min_stock_alert" validate:"gte=0"`
+	MaxDaysAtCustomer  int     `json:"max_days_at_customer" validate:"gte=0"`
+	UomId              string  `json:"uom_id"`
+	InventoryAccountId string  `json:"inventory_account_id" validate:"omitempty,max=36"`
+	RevenueAccountId   string  `json:"revenue_account_id" validate:"omitempty,max=36"`
+	CogsAccountId      string  `json:"cogs_account_id" validate:"omitempty,max=36"`
 }
 
 type MasterItemResponse struct {
-	Id                string  `json:"id"`
-	Name              string  `json:"name"`
-	SKU               string  `json:"sku"`
-	ItemType          string  `json:"item_type"`
-	GasType           string  `json:"gas_type"`
-	HnaPrice          float64 `json:"hna_price"`
-	IsSerialized      bool    `json:"is_serialized"`
-	EmptyWeightKg     float64 `json:"empty_weight_kg"`
-	GasWeightKg       float64 `json:"gas_weight_kg"`
-	MinStockAlert     int     `json:"min_stock_alert"`
-	MaxDaysAtCustomer int     `json:"max_days_at_customer"`
-	UomId             string  `json:"uom_id,omitempty"`
-	UomCode           string  `json:"uom_code,omitempty"`
-	UomName           string  `json:"uom_name,omitempty"`
-	StockQuantity     *int    `json:"stock_quantity,omitempty"`
+	Id                 string  `json:"id"`
+	Name               string  `json:"name"`
+	SKU                string  `json:"sku"`
+	ItemType           string  `json:"item_type"`
+	GasType            string  `json:"gas_type"`
+	HnaPrice           float64 `json:"hna_price"`
+	IsSerialized       bool    `json:"is_serialized"`
+	EmptyWeightKg      float64 `json:"empty_weight_kg"`
+	GasWeightKg        float64 `json:"gas_weight_kg"`
+	MinStockAlert      int     `json:"min_stock_alert"`
+	MaxDaysAtCustomer  int     `json:"max_days_at_customer"`
+	UomId              string  `json:"uom_id,omitempty"`
+	UomCode            string  `json:"uom_code,omitempty"`
+	UomName            string  `json:"uom_name,omitempty"`
+	StockQuantity      *int    `json:"stock_quantity,omitempty"`
+	InventoryAccountId string  `json:"inventory_account_id,omitempty"`
+	RevenueAccountId   string  `json:"revenue_account_id,omitempty"`
+	CogsAccountId      string  `json:"cogs_account_id,omitempty"`
 }

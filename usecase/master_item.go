@@ -28,6 +28,7 @@ type masterItemUsecase struct {
 	masterItemRepo     repository.MasterItemRepository
 	sparepartStockRepo repository.SparepartStockRepository
 	uomRepo            repository.UomRepository
+	accountRepo        repository.AccountRepository
 	auditLogRepo       repository.AuditLogRepository
 }
 
@@ -36,6 +37,7 @@ func NewMasterItemUsecase(
 	masterItemRepo repository.MasterItemRepository,
 	sparepartStockRepo repository.SparepartStockRepository,
 	uomRepo repository.UomRepository,
+	accountRepo repository.AccountRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) MasterItemUsecase {
 	return &masterItemUsecase{
@@ -43,6 +45,7 @@ func NewMasterItemUsecase(
 		masterItemRepo:     masterItemRepo,
 		sparepartStockRepo: sparepartStockRepo,
 		uomRepo:            uomRepo,
+		accountRepo:        accountRepo,
 		auditLogRepo:       auditLogRepo,
 	}
 }
@@ -190,6 +193,11 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	if _, err = u.resolveUomId(req.UomId); err != nil {
 		return err
 	}
+	for _, mapping := range itemAccountMappings(req.InventoryAccountId, req.RevenueAccountId, req.CogsAccountId) {
+		if err := u.validateAccountMapping(mapping.field, mapping.id); err != nil {
+			return err
+		}
+	}
 	item.UomId = req.UomId
 	item.ItemType = req.ItemType
 	item.GasType = req.GasType
@@ -198,6 +206,9 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	item.GasWeightKg = req.GasWeightKg
 	item.MinStockAlert = req.MinStockAlert
 	item.MaxDaysAtCustomer = req.MaxDaysAtCustomer
+	item.InventoryAccountId = req.InventoryAccountId
+	item.RevenueAccountId = req.RevenueAccountId
+	item.CogsAccountId = req.CogsAccountId
 
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
@@ -244,6 +255,47 @@ func (u *masterItemUsecase) validateCreateRequest(req *dto.CreateMasterItemReque
 	if _, err := u.resolveUomId(req.UomId); err != nil {
 		return err
 	}
+	for _, mapping := range itemAccountMappings(req.InventoryAccountId, req.RevenueAccountId, req.CogsAccountId) {
+		if err := u.validateAccountMapping(mapping.field, mapping.id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// itemAccountMappings pairs each CoA mapping slot with the requested account id.
+func itemAccountMappings(inventoryAccountId, revenueAccountId, cogsAccountId string) []accountMapping {
+	return []accountMapping{
+		{constant.ItemAccountInventory, inventoryAccountId},
+		{constant.ItemAccountRevenue, revenueAccountId},
+		{constant.ItemAccountCogs, cogsAccountId},
+	}
+}
+
+// accountMapping is one CoA mapping slot on a master item.
+type accountMapping struct {
+	field string
+	id    string
+}
+
+// validateAccountMapping guards one optional CoA mapping slot.
+func (u *masterItemUsecase) validateAccountMapping(field, accountId string) global.ErrorResponse {
+	if accountId == "" {
+		return nil
+	}
+	account, err := u.accountRepo.FindById(accountId)
+	if err != nil {
+		if err.GetCode() == fiber.StatusNotFound {
+			return global.BadRequestError(field + " not found")
+		}
+		return err
+	}
+	if !account.IsActive {
+		return global.BadRequestError(field + " must reference an active account")
+	}
+	if mapErr := helper.ValidateItemAccountType(field, account.Type); mapErr != nil {
+		return global.BadRequestError(mapErr.Error())
+	}
 	return nil
 }
 
@@ -263,17 +315,20 @@ func (u *masterItemUsecase) resolveUomId(uomId string) (string, global.ErrorResp
 
 func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMasterItemRequest) (string, global.ErrorResponse) {
 	item := &model.MasterItem{
-		Name:              req.Name,
-		SKU:               req.SKU,
-		ItemType:          req.ItemType,
-		GasType:           req.GasType,
-		HnaPrice:          req.HnaPrice,
-		IsSerialized:      req.IsSerialized,
-		EmptyWeightKg:     req.EmptyWeightKg,
-		GasWeightKg:       req.GasWeightKg,
-		MinStockAlert:     req.MinStockAlert,
-		MaxDaysAtCustomer: req.MaxDaysAtCustomer,
-		UomId:             req.UomId,
+		Name:               req.Name,
+		SKU:                req.SKU,
+		ItemType:           req.ItemType,
+		GasType:            req.GasType,
+		HnaPrice:           req.HnaPrice,
+		IsSerialized:       req.IsSerialized,
+		EmptyWeightKg:      req.EmptyWeightKg,
+		GasWeightKg:        req.GasWeightKg,
+		MinStockAlert:      req.MinStockAlert,
+		MaxDaysAtCustomer:  req.MaxDaysAtCustomer,
+		UomId:              req.UomId,
+		InventoryAccountId: req.InventoryAccountId,
+		RevenueAccountId:   req.RevenueAccountId,
+		CogsAccountId:      req.CogsAccountId,
 	}
 
 	if err := u.masterItemRepo.Create(tx, item); err != nil {

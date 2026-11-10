@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"progas-wms-be/constant"
+	"progas-wms-be/enum"
 	"strings"
 	"testing"
 )
@@ -121,4 +123,42 @@ func TestRoundMoney(t *testing.T) {
 			t.Errorf("RoundMoney(%v) = %v, want %v", c.in, got, c.want)
 		}
 	}
+}
+
+func TestValidateItemAccountType(t *testing.T) {
+	slots := []struct {
+		field string
+		want  enum.AccountType
+	}{
+		{constant.ItemAccountInventory, enum.AccountTypeAsset},
+		{constant.ItemAccountRevenue, enum.AccountTypeRevenue},
+		{constant.ItemAccountCogs, enum.AccountTypeExpense},
+	}
+	allTypes := []enum.AccountType{
+		enum.AccountTypeAsset,
+		enum.AccountTypeLiability,
+		enum.AccountTypeEquity,
+		enum.AccountTypeRevenue,
+		enum.AccountTypeExpense,
+	}
+
+	for _, slot := range slots {
+		for _, accountType := range allTypes {
+			t.Run(slot.field+"/"+string(accountType), func(t *testing.T) {
+				err := ValidateItemAccountType(slot.field, accountType)
+				if accountType == slot.want && err != nil {
+					t.Errorf("expected %s accepted for %s, got %v", accountType, slot.field, err)
+				}
+				if accountType != slot.want && err == nil {
+					t.Errorf("expected %s rejected for %s", accountType, slot.field)
+				}
+			})
+		}
+	}
+
+	t.Run("unknown field rejected", func(t *testing.T) {
+		if err := ValidateItemAccountType("mystery_account_id", enum.AccountTypeAsset); err == nil {
+			t.Error("expected error for unknown mapping field")
+		}
+	})
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"progas-wms-be/constant"
 	"progas-wms-be/enum"
 	"time"
 
@@ -21,6 +22,25 @@ func AccountNormalBalance(accountType enum.AccountType) string {
 	default:
 		return "CREDIT"
 	}
+}
+
+// itemAccountTypes is the only CoA type each MasterItem mapping slot may use.
+var itemAccountTypes = map[string]enum.AccountType{
+	constant.ItemAccountInventory: enum.AccountTypeAsset,
+	constant.ItemAccountRevenue:   enum.AccountTypeRevenue,
+	constant.ItemAccountCogs:      enum.AccountTypeExpense,
+}
+
+// ValidateItemAccountType guards one MasterItem CoA mapping slot.
+func ValidateItemAccountType(field string, actual enum.AccountType) error {
+	expected, ok := itemAccountTypes[field]
+	if !ok {
+		return fmt.Errorf("unknown account mapping field: %s", field)
+	}
+	if actual != expected {
+		return fmt.Errorf("%s must reference a %s account", field, expected)
+	}
+	return nil
 }
 
 // JournalLineInput is the minimum data needed to post one journal line.
