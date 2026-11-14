@@ -206,9 +206,9 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	item.GasWeightKg = req.GasWeightKg
 	item.MinStockAlert = req.MinStockAlert
 	item.MaxDaysAtCustomer = req.MaxDaysAtCustomer
-	item.InventoryAccountId = req.InventoryAccountId
-	item.RevenueAccountId = req.RevenueAccountId
-	item.CogsAccountId = req.CogsAccountId
+	item.InventoryAccountId = optionalId(req.InventoryAccountId)
+	item.RevenueAccountId = optionalId(req.RevenueAccountId)
+	item.CogsAccountId = optionalId(req.CogsAccountId)
 
 	tx := u.txManager.New()
 	defer tx.CheckPanic()
@@ -272,6 +272,15 @@ func itemAccountMappings(inventoryAccountId, revenueAccountId, cogsAccountId str
 	}
 }
 
+// optionalId maps a blank id to nil so optional FK columns are stored as NULL (an
+// empty string fails the foreign key constraint).
+func optionalId(id string) *string {
+	if id == "" {
+		return nil
+	}
+	return &id
+}
+
 // accountMapping is one CoA mapping slot on a master item.
 type accountMapping struct {
 	field string
@@ -326,9 +335,9 @@ func (u *masterItemUsecase) createMasterItemInTx(tx helper.Tx, req *dto.CreateMa
 		MinStockAlert:      req.MinStockAlert,
 		MaxDaysAtCustomer:  req.MaxDaysAtCustomer,
 		UomId:              req.UomId,
-		InventoryAccountId: req.InventoryAccountId,
-		RevenueAccountId:   req.RevenueAccountId,
-		CogsAccountId:      req.CogsAccountId,
+		InventoryAccountId: optionalId(req.InventoryAccountId),
+		RevenueAccountId:   optionalId(req.RevenueAccountId),
+		CogsAccountId:      optionalId(req.CogsAccountId),
 	}
 
 	if err := u.masterItemRepo.Create(tx, item); err != nil {

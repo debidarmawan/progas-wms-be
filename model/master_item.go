@@ -15,10 +15,11 @@ type MasterItem struct {
 	UomId             string  `gorm:"type:varchar(36);index"`
 	Uom               *Uom    `gorm:"foreignKey:UomId"`
 	// CoA mappings — optional today (no auto-posting yet); used when journal posting is wired.
-	InventoryAccountId string   `gorm:"type:varchar(36);index"`
+	// Pointers so "no mapping" is stored as NULL; an empty string would violate the FK.
+	InventoryAccountId *string  `gorm:"type:varchar(36);index"`
 	InventoryAccount   *Account `gorm:"foreignKey:InventoryAccountId"`
-	RevenueAccountId   string   `gorm:"type:varchar(36);index"`
+	RevenueAccountId   *string  `gorm:"type:varchar(36);index"`
 	RevenueAccount     *Account `gorm:"foreignKey:RevenueAccountId"`
-	CogsAccountId      string   `gorm:"type:varchar(36);index"`
+	CogsAccountId      *string  `gorm:"type:varchar(36);index"`
 	CogsAccount        *Account `gorm:"foreignKey:CogsAccountId"`
 }

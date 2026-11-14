@@ -64,6 +64,8 @@ func (f *fakeUomRepo) Delete(tx helper.Tx, id string) global.ErrorResponse {
 
 type fakeMasterItemRepo struct {
 	usedByUomId int64
+	byId        map[string]*model.MasterItem
+	updated     *model.MasterItem
 }
 
 func (f *fakeMasterItemRepo) FindAll(page, limit int, search, sortBy, sortOrder, itemType, gasType string, isSerialized *bool) ([]model.MasterItem, int64, global.ErrorResponse) {
@@ -71,6 +73,9 @@ func (f *fakeMasterItemRepo) FindAll(page, limit int, search, sortBy, sortOrder,
 }
 
 func (f *fakeMasterItemRepo) FindById(id string) (*model.MasterItem, global.ErrorResponse) {
+	if item, ok := f.byId[id]; ok {
+		return item, nil
+	}
 	return nil, global.NotFoundError("Master item not found")
 }
 
@@ -87,6 +92,7 @@ func (f *fakeMasterItemRepo) Create(tx helper.Tx, item *model.MasterItem) global
 }
 
 func (f *fakeMasterItemRepo) Update(tx helper.Tx, item *model.MasterItem) global.ErrorResponse {
+	f.updated = item
 	return nil
 }
 

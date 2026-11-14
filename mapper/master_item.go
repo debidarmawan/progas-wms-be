@@ -20,9 +20,9 @@ func ToMasterItemResponse(item *model.MasterItem, stockQty *int) *dto.MasterItem
 		MaxDaysAtCustomer:  item.MaxDaysAtCustomer,
 		UomId:              item.UomId,
 		StockQuantity:      stockQty,
-		InventoryAccountId: item.InventoryAccountId,
-		RevenueAccountId:   item.RevenueAccountId,
-		CogsAccountId:      item.CogsAccountId,
+		InventoryAccountId: derefString(item.InventoryAccountId),
+		RevenueAccountId:   derefString(item.RevenueAccountId),
+		CogsAccountId:      derefString(item.CogsAccountId),
 	}
 	if item.Uom != nil {
 		res.UomCode = item.Uom.Code
@@ -37,4 +37,11 @@ func ToMasterItemResponses(items []model.MasterItem) []dto.MasterItemResponse {
 		responses = append(responses, *ToMasterItemResponse(&items[i], nil))
 	}
 	return responses
+}
+
+func derefString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
