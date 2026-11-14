@@ -16,6 +16,9 @@ func ToSalesOrderResponse(order *model.SalesOrder, includeLines bool) *dto.Sales
 		Status:       string(order.Status),
 		CreatedAt:    order.CreatedAt.Format(time.RFC3339),
 	}
+	if order.CustomerPO != nil {
+		res.PONumber = order.CustomerPO.PONumber
+	}
 	if includeLines {
 		res.Lines = make([]dto.SalesOrderLineResponse, 0, len(order.Lines))
 		for _, line := range order.Lines {

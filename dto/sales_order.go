@@ -23,6 +23,7 @@ type SalesOrderLineResponse struct {
 type SalesOrderResponse struct {
 	Id           string                   `json:"id"`
 	SONumber     string                   `json:"so_number"`
+	PONumber     string                   `json:"po_number,omitempty"`
 	CustomerPOId string                   `json:"customer_po_id,omitempty"`
 	CustomerId   string                   `json:"customer_id"`
 	CustomerName string                   `json:"customer_name"`

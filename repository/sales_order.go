@@ -26,7 +26,7 @@ func NewSalesOrderRepository(db *gorm.DB) SalesOrderRepository {
 }
 
 func (r *salesOrderRepository) query(withLines bool) *gorm.DB {
-	query := r.db.Preload("Customer")
+	query := r.db.Preload("Customer").Preload("CustomerPO")
 	if withLines {
 		query = query.Preload("Lines.MasterItem")
 	}

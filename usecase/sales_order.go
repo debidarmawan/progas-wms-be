@@ -75,6 +75,7 @@ func generateSONumber() string {
 func (u *salesOrderUsecase) Create(actorUserId string, req *dto.CreateSalesOrderRequest) (*dto.SalesOrderResponse, global.ErrorResponse) {
 	var customer *model.Customer
 	var customerPOId string
+	var customerPO *model.CustomerPO
 	if req.CustomerPOId != "" {
 		po, err := u.poRepo.FindById(req.CustomerPOId)
 		if err != nil {
@@ -88,6 +89,7 @@ func (u *salesOrderUsecase) Create(actorUserId string, req *dto.CreateSalesOrder
 			return nil, err
 		}
 		customerPOId = po.Id
+		customerPO = po
 	} else {
 		var err global.ErrorResponse
 		customer, err = u.customerRepo.FindById(req.CustomerId)
@@ -129,6 +131,7 @@ func (u *salesOrderUsecase) Create(actorUserId string, req *dto.CreateSalesOrder
 	}
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditSalesOrderCreate, constant.AuditObjectSalesOrder, order.Id, map[string]any{"so_number": order.SONumber, "customer_id": order.CustomerId})
 	order.Customer = *customer
+	order.CustomerPO = customerPO
 	return mapper.ToSalesOrderResponse(order, true), nil
 }
 
