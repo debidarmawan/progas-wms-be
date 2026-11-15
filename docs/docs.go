@@ -3560,6 +3560,10 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "credit_limit": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "cylinder_quota_limit": {
                     "type": "integer",
                     "minimum": 0
@@ -3580,6 +3584,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pic": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string",
+                    "maxLength": 16
+                },
+                "sales_pic_email": {
+                    "type": "string"
+                },
+                "sales_pic_name": {
+                    "type": "string"
+                },
+                "sales_pic_phone": {
+                    "type": "string"
+                },
+                "term_of_payment_id": {
                     "type": "string"
                 }
             }
@@ -3947,6 +3967,9 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
+                "credit_limit": {
+                    "type": "number"
+                },
                 "cylinder_quota_limit": {
                     "type": "integer"
                 },
@@ -3971,10 +3994,34 @@ const docTemplate = `{
                 "outstanding_count": {
                     "type": "integer"
                 },
+                "payment_term_days": {
+                    "type": "integer"
+                },
                 "phone": {
                     "type": "string"
                 },
                 "pic": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "sales_pic_email": {
+                    "type": "string"
+                },
+                "sales_pic_name": {
+                    "type": "string"
+                },
+                "sales_pic_phone": {
+                    "type": "string"
+                },
+                "term_of_payment_code": {
+                    "type": "string"
+                },
+                "term_of_payment_id": {
+                    "type": "string"
+                },
+                "term_of_payment_name": {
                     "type": "string"
                 }
             }
@@ -5197,6 +5244,10 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "credit_limit": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "cylinder_quota_limit": {
                     "type": "integer",
                     "minimum": 0
@@ -5220,6 +5271,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pic": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string",
+                    "maxLength": 16
+                },
+                "sales_pic_email": {
+                    "type": "string"
+                },
+                "sales_pic_name": {
+                    "type": "string"
+                },
+                "sales_pic_phone": {
+                    "type": "string"
+                },
+                "term_of_payment_id": {
                     "type": "string"
                 }
             }

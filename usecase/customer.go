@@ -22,21 +22,41 @@ type CustomerUsecase interface {
 }
 
 type customerUsecase struct {
-	txManager    helper.TxManager
-	customerRepo repository.CustomerRepository
-	auditLogRepo repository.AuditLogRepository
+	txManager         helper.TxManager
+	customerRepo      repository.CustomerRepository
+	termOfPaymentRepo repository.TermOfPaymentRepository
+	auditLogRepo      repository.AuditLogRepository
 }
 
 func NewCustomerUsecase(
 	txManager helper.TxManager,
 	customerRepo repository.CustomerRepository,
+	termOfPaymentRepo repository.TermOfPaymentRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) CustomerUsecase {
 	return &customerUsecase{
-		txManager:    txManager,
-		customerRepo: customerRepo,
-		auditLogRepo: auditLogRepo,
+		txManager:         txManager,
+		customerRepo:      customerRepo,
+		termOfPaymentRepo: termOfPaymentRepo,
+		auditLogRepo:      auditLogRepo,
 	}
+}
+
+// resolveTermOfPayment maps the optional TOP id to its FK; an empty id means "no TOP".
+// Invoice due date still uses Customer.PaymentTermDays, so nothing is derived here.
+func (u *customerUsecase) resolveTermOfPayment(id string) (*string, global.ErrorResponse) {
+	trimmed := strings.TrimSpace(id)
+	if trimmed == "" {
+		return nil, nil
+	}
+	top, err := u.termOfPaymentRepo.FindById(trimmed)
+	if err != nil {
+		return nil, err
+	}
+	if !top.IsActive {
+		return nil, global.BadRequestError("Term of payment is inactive")
+	}
+	return &top.Id, nil
 }
 
 func (u *customerUsecase) FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.CustomerResponse], global.ErrorResponse) {
@@ -65,6 +85,11 @@ func generateCustomerCode() string {
 }
 
 func (u *customerUsecase) Create(actorUserId string, req *dto.CreateCustomerRequest) global.ErrorResponse {
+	termOfPaymentId, errResp := u.resolveTermOfPayment(req.TermOfPaymentId)
+	if errResp != nil {
+		return errResp
+	}
+
 	customer := &model.Customer{
 		Code:               generateCustomerCode(),
 		Name:               req.Name,
@@ -74,9 +99,16 @@ func (u *customerUsecase) Create(actorUserId string, req *dto.CreateCustomerRequ
 		Email:              req.Email,
 		Phone:              req.Phone,
 		Address:            req.Address,
+		PostalCode:         req.PostalCode,
 		CylinderQuotaLimit: req.CylinderQuotaLimit,
+		CreditLimit:        req.CreditLimit,
+		TermOfPaymentId:    termOfPaymentId,
+		SalesPicName:       req.SalesPicName,
+		SalesPicPhone:      req.SalesPicPhone,
+		SalesPicEmail:      req.SalesPicEmail,
 		OutstandingCount:   0,
 		IsActive:           true,
+		PaymentTermDays:    30,
 	}
 
 	tx := u.txManager.New()
@@ -106,6 +138,11 @@ func (u *customerUsecase) Update(actorUserId, id string, req *dto.UpdateCustomer
 		return err
 	}
 
+	termOfPaymentId, errResp := u.resolveTermOfPayment(req.TermOfPaymentId)
+	if errResp != nil {
+		return errResp
+	}
+
 	customer.Name = req.Name
 	customer.Pic = req.Pic
 	customer.Npwp = req.Npwp
@@ -113,7 +150,13 @@ func (u *customerUsecase) Update(actorUserId, id string, req *dto.UpdateCustomer
 	customer.Email = req.Email
 	customer.Phone = req.Phone
 	customer.Address = req.Address
+	customer.PostalCode = req.PostalCode
 	customer.CylinderQuotaLimit = req.CylinderQuotaLimit
+	customer.CreditLimit = req.CreditLimit
+	customer.TermOfPaymentId = termOfPaymentId
+	customer.SalesPicName = req.SalesPicName
+	customer.SalesPicPhone = req.SalesPicPhone
+	customer.SalesPicEmail = req.SalesPicEmail
 	customer.IsActive = req.IsActive
 
 	tx := u.txManager.New()

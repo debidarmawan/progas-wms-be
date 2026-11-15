@@ -6,7 +6,7 @@ import (
 )
 
 func ToCustomerResponse(customer *model.Customer) *dto.CustomerResponse {
-	return &dto.CustomerResponse{
+	res := &dto.CustomerResponse{
 		Id:                 customer.Id,
 		Code:               customer.Code,
 		Name:               customer.Name,
@@ -16,10 +16,22 @@ func ToCustomerResponse(customer *model.Customer) *dto.CustomerResponse {
 		Email:              customer.Email,
 		Phone:              customer.Phone,
 		Address:            customer.Address,
+		PostalCode:         customer.PostalCode,
 		CylinderQuotaLimit: customer.CylinderQuotaLimit,
+		CreditLimit:        customer.CreditLimit,
+		TermOfPaymentId:    customer.TermOfPaymentId,
+		PaymentTermDays:    customer.PaymentTermDays,
+		SalesPicName:       customer.SalesPicName,
+		SalesPicPhone:      customer.SalesPicPhone,
+		SalesPicEmail:      customer.SalesPicEmail,
 		OutstandingCount:   customer.OutstandingCount,
 		IsActive:           customer.IsActive,
 	}
+	if customer.TermOfPayment != nil {
+		res.TermOfPaymentCode = customer.TermOfPayment.Code
+		res.TermOfPaymentName = customer.TermOfPayment.Name
+	}
+	return res
 }
 
 func ToCustomerResponses(customers []model.Customer) []dto.CustomerResponse {

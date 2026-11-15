@@ -50,7 +50,7 @@ func (r *customerRepository) FindAll(page, limit int, search string) ([]model.Cu
 	}
 
 	offset := (page - 1) * limit
-	if err := query.Order("name asc").Offset(offset).Limit(limit).Find(&customers).Error; err != nil {
+	if err := query.Preload("TermOfPayment").Order("name asc").Offset(offset).Limit(limit).Find(&customers).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 	return customers, total, nil
@@ -58,7 +58,7 @@ func (r *customerRepository) FindAll(page, limit int, search string) ([]model.Cu
 
 func (r *customerRepository) FindById(id string) (*model.Customer, global.ErrorResponse) {
 	var customer model.Customer
-	if err := r.db.Where("id = ?", id).First(&customer).Error; err != nil {
+	if err := r.db.Preload("TermOfPayment").Where("id = ?", id).First(&customer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, global.NotFoundError("Customer not found")
 		}
