@@ -48,6 +48,9 @@ const (
 	AuditAccountUpdate       = "ACCOUNT_UPDATE"
 	AuditAccountDelete       = "ACCOUNT_DELETE"
 	AuditJournalCreate       = "JOURNAL_CREATE"
+	AuditTermOfPaymentCreate = "TERM_OF_PAYMENT_CREATE"
+	AuditTermOfPaymentUpdate = "TERM_OF_PAYMENT_UPDATE"
+	AuditTermOfPaymentDelete = "TERM_OF_PAYMENT_DELETE"
 )
 
 // Audit object types.
@@ -70,6 +73,7 @@ const (
 	AuditObjectPayment       = "payment"
 	AuditObjectAccount       = "account"
 	AuditObjectJournalEntry  = "journal_entry"
+	AuditObjectTermOfPayment = "term_of_payment"
 )
 
 // Cylinder ledger actions.

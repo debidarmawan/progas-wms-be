@@ -48,6 +48,9 @@ const (
 	PermJournalRead  = "journal.read"
 	PermJournalWrite = "journal.write"
 
+	PermTermOfPaymentRead  = "term_of_payment.read"
+	PermTermOfPaymentWrite = "term_of_payment.write"
+
 	PermWorkOrderRead        = "workorder.read"
 	PermWorkOrderWrite       = "workorder.write"
 	PermInventoryStockOpname = "inventory.stockopname"

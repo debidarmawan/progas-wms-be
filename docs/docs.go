@@ -2647,6 +2647,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/terms-of-payment": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all payment terms with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Term Of Payment"
+                ],
+                "summary": "Find all terms of payment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name or code",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedTermOfPaymentList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a payment term (days = 0 means cash/COD)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Term Of Payment"
+                ],
+                "summary": "Create term of payment",
+                "parameters": [
+                    {
+                        "description": "Create term of payment request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTermOfPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/terms-of-payment/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find a payment term by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Term Of Payment"
+                ],
+                "summary": "Find term of payment by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Term of payment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_TermOfPaymentResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update a payment term by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Term Of Payment"
+                ],
+                "summary": "Update term of payment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Term of payment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update term of payment request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateTermOfPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a payment term by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Term Of Payment"
+                ],
+                "summary": "Delete term of payment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Term of payment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/uoms": {
             "get": {
                 "security": [
@@ -3499,6 +3700,10 @@ const docTemplate = `{
                 "sku"
             ],
             "properties": {
+                "cogs_account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
                 "empty_weight_kg": {
                     "type": "number",
                     "minimum": 0
@@ -3513,6 +3718,11 @@ const docTemplate = `{
                 "hna_price": {
                     "type": "number",
                     "minimum": 0
+                },
+                "inventory_account_id": {
+                    "description": "Optional CoA mappings (see helper.ValidateItemAccountType for the allowed types).",
+                    "type": "string",
+                    "maxLength": 36
                 },
                 "is_serialized": {
                     "type": "boolean"
@@ -3531,11 +3741,40 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "revenue_account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
                 "sku": {
                     "type": "string"
                 },
                 "uom_id": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.CreateTermOfPaymentRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 0
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
@@ -4314,6 +4553,9 @@ const docTemplate = `{
         "dto.MasterItemResponse": {
             "type": "object",
             "properties": {
+                "cogs_account_id": {
+                    "type": "string"
+                },
                 "empty_weight_kg": {
                     "type": "number"
                 },
@@ -4329,6 +4571,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "inventory_account_id": {
+                    "type": "string"
+                },
                 "is_serialized": {
                     "type": "boolean"
                 },
@@ -4342,6 +4587,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "revenue_account_id": {
                     "type": "string"
                 },
                 "sku": {
@@ -4539,6 +4787,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.RoleResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
+        "dto.PaginatedTermOfPaymentList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TermOfPaymentResponse"
                     }
                 },
                 "meta": {
@@ -4800,6 +5062,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TermOfPaymentResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "days": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.TurnaroundReportResponse": {
             "type": "object",
             "properties": {
@@ -5012,6 +5294,10 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "cogs_account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
                 "empty_weight_kg": {
                     "type": "number",
                     "minimum": 0
@@ -5027,6 +5313,10 @@ const docTemplate = `{
                     "type": "number",
                     "minimum": 0
                 },
+                "inventory_account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
                 "item_type": {
                     "type": "string"
                 },
@@ -5041,8 +5331,37 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "revenue_account_id": {
+                    "type": "string",
+                    "maxLength": 36
+                },
                 "uom_id": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UpdateTermOfPaymentRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 0
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
@@ -5989,6 +6308,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_PaginatedTermOfPaymentList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedTermOfPaymentList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_PaginatedUomList": {
             "type": "object",
             "properties": {
@@ -6137,6 +6476,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.StockOpnameResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_TermOfPaymentResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.TermOfPaymentResponse"
                 },
                 "error_code": {
                     "type": "string"

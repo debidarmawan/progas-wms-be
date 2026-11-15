@@ -185,6 +185,9 @@ definitions:
     type: object
   dto.CreateMasterItemRequest:
     properties:
+      cogs_account_id:
+        maxLength: 36
+        type: string
       empty_weight_kg:
         minimum: 0
         type: number
@@ -196,6 +199,11 @@ definitions:
       hna_price:
         minimum: 0
         type: number
+      inventory_account_id:
+        description: Optional CoA mappings (see helper.ValidateItemAccountType for
+          the allowed types).
+        maxLength: 36
+        type: string
       is_serialized:
         type: boolean
       item_type:
@@ -208,6 +216,9 @@ definitions:
         type: integer
       name:
         type: string
+      revenue_account_id:
+        maxLength: 36
+        type: string
       sku:
         type: string
       uom_id:
@@ -216,6 +227,24 @@ definitions:
     - item_type
     - name
     - sku
+    type: object
+  dto.CreateTermOfPaymentRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      days:
+        maximum: 365
+        minimum: 0
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - code
+    - name
     type: object
   dto.CreateUomRequest:
     properties:
@@ -729,6 +758,8 @@ definitions:
     type: object
   dto.MasterItemResponse:
     properties:
+      cogs_account_id:
+        type: string
       empty_weight_kg:
         type: number
       gas_type:
@@ -739,6 +770,8 @@ definitions:
         type: number
       id:
         type: string
+      inventory_account_id:
+        type: string
       is_serialized:
         type: boolean
       item_type:
@@ -748,6 +781,8 @@ definitions:
       min_stock_alert:
         type: integer
       name:
+        type: string
+      revenue_account_id:
         type: string
       sku:
         type: string
@@ -875,6 +910,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/dto.RoleResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.PaginatedTermOfPaymentList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.TermOfPaymentResponse'
         type: array
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
@@ -1046,6 +1090,19 @@ definitions:
     - barcodes
     - item_id
     type: object
+  dto.TermOfPaymentResponse:
+    properties:
+      code:
+        type: string
+      days:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    type: object
   dto.TurnaroundReportResponse:
     properties:
       average_days:
@@ -1186,6 +1243,9 @@ definitions:
     type: object
   dto.UpdateMasterItemRequest:
     properties:
+      cogs_account_id:
+        maxLength: 36
+        type: string
       empty_weight_kg:
         minimum: 0
         type: number
@@ -1197,6 +1257,9 @@ definitions:
       hna_price:
         minimum: 0
         type: number
+      inventory_account_id:
+        maxLength: 36
+        type: string
       item_type:
         type: string
       max_days_at_customer:
@@ -1207,10 +1270,31 @@ definitions:
         type: integer
       name:
         type: string
+      revenue_account_id:
+        maxLength: 36
+        type: string
       uom_id:
         type: string
     required:
     - item_type
+    - name
+    type: object
+  dto.UpdateTermOfPaymentRequest:
+    properties:
+      code:
+        maxLength: 20
+        type: string
+      days:
+        maximum: 365
+        minimum: 0
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - code
     - name
     type: object
   dto.UpdateUomRequest:
@@ -1830,6 +1914,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_PaginatedTermOfPaymentList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedTermOfPaymentList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_PaginatedUomList:
     properties:
       code:
@@ -1927,6 +2024,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.StockOpnameResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_TermOfPaymentResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.TermOfPaymentResponse'
       error_code:
         type: string
       message:
@@ -3683,6 +3793,132 @@ paths:
       summary: Find role by id
       tags:
       - Role
+  /terms-of-payment:
+    get:
+      consumes:
+      - application/json
+      description: Find all payment terms with pagination and search
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedTermOfPaymentList'
+      security:
+      - Bearer: []
+      summary: Find all terms of payment
+      tags:
+      - Term Of Payment
+    post:
+      consumes:
+      - application/json
+      description: Create a payment term (days = 0 means cash/COD)
+      parameters:
+      - description: Create term of payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTermOfPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create term of payment
+      tags:
+      - Term Of Payment
+  /terms-of-payment/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a payment term by id
+      parameters:
+      - description: Term of payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete term of payment
+      tags:
+      - Term Of Payment
+    get:
+      consumes:
+      - application/json
+      description: Find a payment term by id
+      parameters:
+      - description: Term of payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_TermOfPaymentResponse'
+      security:
+      - Bearer: []
+      summary: Find term of payment by id
+      tags:
+      - Term Of Payment
+    put:
+      consumes:
+      - application/json
+      description: Update a payment term by id
+      parameters:
+      - description: Term of payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update term of payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTermOfPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update term of payment
+      tags:
+      - Term Of Payment
   /uoms:
     get:
       consumes:
