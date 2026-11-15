@@ -3,6 +3,10 @@
 
 services:
   backend:
+    # Image is built by GitHub Actions (.github/workflows/deploy-dev.yml) and only
+    # pulled on the VPS — `go build` never runs on the small dev server again.
+    # `build:` stays so `docker compose up --build` / `make up` still works locally.
+    image: ghcr.io/debidarmawan/progas-wms-be:development
     build:
       context: .
       dockerfile: Dockerfile

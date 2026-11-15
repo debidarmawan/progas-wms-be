@@ -107,10 +107,22 @@ DB_URL=progas_app:<password-app-kuat>@tcp(host.docker.internal:3306)/progas_wms?
 
 ## 4. Jalankan stack
 
+Deploy di VPS **tidak build** — image dibangun GitHub Actions dan di-push ke
+`ghcr.io/debidarmawan/progas-wms-be:development` (lihat `.github/workflows/deploy-dev.yml`).
+
 ```bash
-docker compose up -d --build
+docker compose pull backend
+docker compose up -d --no-build
 docker compose ps
 ```
+
+Sekali saja, login GHCR di VPS kalau package masih private (butuh PAT scope `read:packages`):
+
+```bash
+echo <PAT> | docker login ghcr.io -u <github-user> --password-stdin
+```
+
+Untuk build lokal dari source (butuh RAM lebih): `docker compose up -d --build`.
 
 Migrate + seed otomatis saat backend start.
 
