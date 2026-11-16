@@ -81,6 +81,10 @@ func (u *inboundUsecase) EmptyReceive(actorUserId string, req *dto.BarcodeListRe
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, ids, enum.CylinderLocationWarehouse, nil, ""); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
@@ -136,6 +140,10 @@ func (u *inboundUsecase) PreFillQC(actorUserId string, req *dto.BarcodeListReque
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, ids, enum.CylinderLocationWarehouse, nil, ""); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
@@ -188,6 +196,10 @@ func (u *inboundUsecase) PostFillQC(actorUserId string, req *dto.BarcodeListRequ
 
 	repository.LogCylinderStatusChanges(u.ledgerRepo, tx, toUpdate, enum.CylinderStatusReady, constant.LedgerActionPostFillQC, constant.AuditObjectCylinder, "")
 	if err := u.cylinderRepo.UpdateStatusByIds(tx, ids, enum.CylinderStatusReady); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, ids, enum.CylinderLocationWarehouse, nil, ""); err != nil {
 		tx.Rollback()
 		return nil, err
 	}

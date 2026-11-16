@@ -18,6 +18,7 @@ func Migrate(db *gorm.DB) {
 		&model.MasterItem{},
 		&model.CustomerItemPrice{},
 		&model.Cylinder{},
+		&model.CylinderLocation{},
 		&model.Customer{},
 		&model.CustomerSite{},
 		&model.CustomerPO{},

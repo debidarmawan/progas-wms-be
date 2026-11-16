@@ -51,6 +51,9 @@ const (
 	PermTermOfPaymentRead  = "term_of_payment.read"
 	PermTermOfPaymentWrite = "term_of_payment.write"
 
+	PermCylinderLocationRead  = "cylinder_location.read"
+	PermCylinderLocationWrite = "cylinder_location.write"
+
 	PermWorkOrderRead        = "workorder.read"
 	PermWorkOrderWrite       = "workorder.write"
 	PermInventoryStockOpname = "inventory.stockopname"

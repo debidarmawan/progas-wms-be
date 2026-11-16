@@ -94,6 +94,9 @@ func (u *hydrotestUsecase) Record(actorUserId, cylinderId string, req *dto.Recor
 	repository.LogCylinderStatusChanges(u.ledgerRepo, tx, []model.Cylinder{ledgerCyl}, enum.CylinderStatusMaintenance, constant.LedgerActionHydrotest, constant.AuditObjectCylinder, cylinder.Id)
 
 	cylinder.Status = enum.CylinderStatusMaintenance
+	cylinder.LocationType = enum.CylinderLocationMaintenance
+	cylinder.LocationId = nil
+	cylinder.LocationName = ""
 	if err := u.cylinderRepo.Update(tx, cylinder); err != nil {
 		tx.Rollback()
 		return err

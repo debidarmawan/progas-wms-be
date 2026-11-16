@@ -150,6 +150,31 @@ definitions:
     required:
     - name
     type: object
+  dto.CreateCylinderLocationRequest:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      code:
+        maxLength: 32
+        type: string
+      name:
+        maxLength: 128
+        type: string
+      notes:
+        maxLength: 255
+        type: string
+      type:
+        enum:
+        - WAREHOUSE
+        - FILLING_STATION
+        - WORKSHOP
+        type: string
+    required:
+    - code
+    - name
+    - type
+    type: object
   dto.CreateCylinderRequest:
     properties:
       barcode_sn:
@@ -158,6 +183,16 @@ definitions:
       item_id:
         type: string
       last_hydrotest_date:
+        type: string
+      location_id:
+        type: string
+      location_type:
+        enum:
+        - WAREHOUSE
+        - FILLING_STATION
+        - WORKSHOP
+        - CUSTOMER
+        - VENDOR
         type: string
       owner_id:
         type: string
@@ -530,6 +565,23 @@ definitions:
       to_status:
         type: string
     type: object
+  dto.CylinderLocationResponse:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      notes:
+        type: string
+      type:
+        type: string
+    type: object
   dto.CylinderResponse:
     properties:
       barcode_sn:
@@ -545,6 +597,12 @@ definitions:
       label_printed_at:
         type: string
       last_hydrotest_date:
+        type: string
+      location_id:
+        type: string
+      location_name:
+        type: string
+      location_type:
         type: string
       owner_id:
         type: string
@@ -952,6 +1010,15 @@ definitions:
       meta:
         $ref: '#/definitions/dto.PaginationMeta'
     type: object
+  dto.PaginatedCylinderLocationList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CylinderLocationResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.PaginatedDeliveryOrderList:
     properties:
       items:
@@ -1341,6 +1408,33 @@ definitions:
     required:
     - name
     type: object
+  dto.UpdateCylinderLocationRequest:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      code:
+        maxLength: 32
+        type: string
+      is_active:
+        type: boolean
+      name:
+        maxLength: 128
+        type: string
+      notes:
+        maxLength: 255
+        type: string
+      type:
+        enum:
+        - WAREHOUSE
+        - FILLING_STATION
+        - WORKSHOP
+        type: string
+    required:
+    - code
+    - name
+    - type
+    type: object
   dto.UpdateCylinderRequest:
     properties:
       barcode_sn:
@@ -1348,6 +1442,16 @@ definitions:
       item_id:
         type: string
       last_hydrotest_date:
+        type: string
+      location_id:
+        type: string
+      location_type:
+        enum:
+        - WAREHOUSE
+        - FILLING_STATION
+        - WORKSHOP
+        - CUSTOMER
+        - VENDOR
         type: string
       owner_id:
         type: string
@@ -1770,6 +1874,19 @@ definitions:
       status:
         type: string
     type: object
+  global.Response-dto_CylinderLocationResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CylinderLocationResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   global.Response-dto_CylinderResponse:
     properties:
       code:
@@ -1971,6 +2088,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.PaginatedCylinderList'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_PaginatedCylinderLocationList:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.PaginatedCylinderLocationList'
       error_code:
         type: string
       message:
@@ -2774,6 +2904,134 @@ paths:
       summary: Update customer
       tags:
       - Customer
+  /cylinder-locations:
+    get:
+      consumes:
+      - application/json
+      description: Find all company-owned cylinder locations (warehouse, filling station,
+        workshop)
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_PaginatedCylinderLocationList'
+      security:
+      - Bearer: []
+      summary: Find all cylinder locations
+      tags:
+      - Cylinder Location
+    post:
+      consumes:
+      - application/json
+      description: Create a cylinder location (warehouse, filling station or workshop)
+      parameters:
+      - description: Create cylinder location request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCylinderLocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create cylinder location
+      tags:
+      - Cylinder Location
+  /cylinder-locations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a cylinder location by id (blocked while still assigned
+        to cylinders)
+      parameters:
+      - description: Cylinder location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete cylinder location
+      tags:
+      - Cylinder Location
+    get:
+      consumes:
+      - application/json
+      description: Find a cylinder location by id
+      parameters:
+      - description: Cylinder location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CylinderLocationResponse'
+      security:
+      - Bearer: []
+      summary: Find cylinder location by id
+      tags:
+      - Cylinder Location
+    put:
+      consumes:
+      - application/json
+      description: Update a cylinder location by id
+      parameters:
+      - description: Cylinder location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update cylinder location request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCylinderLocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update cylinder location
+      tags:
+      - Cylinder Location
   /cylinders:
     get:
       consumes:

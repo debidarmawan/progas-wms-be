@@ -15,7 +15,7 @@ import (
 )
 
 type CylinderRepository interface {
-	FindAll(page, limit int, search string) ([]model.Cylinder, int64, global.ErrorResponse)
+	FindAll(page, limit int, search, locationType, locationId string) ([]model.Cylinder, int64, global.ErrorResponse)
 	FindById(id string) (*model.Cylinder, global.ErrorResponse)
 	FindByIdForUpdate(tx helper.Tx, id string) (*model.Cylinder, global.ErrorResponse)
 	FindByBarcode(barcode string) (*model.Cylinder, global.ErrorResponse)
@@ -28,6 +28,7 @@ type CylinderRepository interface {
 	CountByVendorId(vendorId string) (int64, global.ErrorResponse)
 	Update(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 	UpdateStatusByIds(tx helper.Tx, ids []string, status enum.CylinderStatus) global.ErrorResponse
+	UpdateLocationByIds(tx helper.Tx, ids []string, locationType enum.CylinderLocationType, locationId *string, locationName string) global.ErrorResponse
 	SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse
 	ClearOutstandingSince(tx helper.Tx, ids []string) global.ErrorResponse
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
@@ -50,34 +51,33 @@ func (r *cylinderRepository) dbFromTx(tx helper.Tx) *gorm.DB {
 	return r.db
 }
 
-func (r *cylinderRepository) FindAll(page, limit int, search string) ([]model.Cylinder, int64, global.ErrorResponse) {
-	var cylinders []model.Cylinder
-	var total int64
-
-	query := r.db.Model(&model.Cylinder{})
+func (r *cylinderRepository) applyFilters(query *gorm.DB, search, locationType, locationId string) *gorm.DB {
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		query = query.Joins("MasterItem").Where(
-			"cylinder.barcode_sn LIKE ? OR cylinder.ownership_type LIKE ? OR cylinder.status LIKE ? OR master_item.name LIKE ? OR master_item.sku LIKE ? OR master_item.gas_type LIKE ?",
-			pattern, pattern, pattern, pattern, pattern, pattern,
+			"cylinder.barcode_sn LIKE ? OR cylinder.ownership_type LIKE ? OR cylinder.status LIKE ? OR cylinder.location_name LIKE ? OR master_item.name LIKE ? OR master_item.sku LIKE ? OR master_item.gas_type LIKE ?",
+			pattern, pattern, pattern, pattern, pattern, pattern, pattern,
 		)
 	}
+	if locationType != "" {
+		query = query.Where("cylinder.location_type = ?", locationType)
+	}
+	if locationId != "" {
+		query = query.Where("cylinder.location_id = ?", locationId)
+	}
+	return query
+}
 
-	if err := query.Count(&total).Error; err != nil {
+func (r *cylinderRepository) FindAll(page, limit int, search, locationType, locationId string) ([]model.Cylinder, int64, global.ErrorResponse) {
+	var total int64
+	if err := r.applyFilters(r.db.Model(&model.Cylinder{}), search, locationType, locationId).Count(&total).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 
+	var cylinders []model.Cylinder
 	offset := (page - 1) * limit
-	findQuery := r.db.Preload("MasterItem").Order("cylinder.created_at desc").Offset(offset).Limit(limit)
-	if helper.HasSearch(search) {
-		pattern := helper.SearchPattern(search)
-		findQuery = findQuery.Joins("MasterItem").Where(
-			"cylinder.barcode_sn LIKE ? OR cylinder.ownership_type LIKE ? OR cylinder.status LIKE ? OR master_item.name LIKE ? OR master_item.sku LIKE ? OR master_item.gas_type LIKE ?",
-			pattern, pattern, pattern, pattern, pattern, pattern,
-		)
-	}
-
-	if err := findQuery.Find(&cylinders).Error; err != nil {
+	if err := r.applyFilters(r.db.Preload("MasterItem"), search, locationType, locationId).
+		Order("cylinder.created_at desc").Offset(offset).Limit(limit).Find(&cylinders).Error; err != nil {
 		return nil, 0, global.InternalServerError(err)
 	}
 	return cylinders, total, nil
@@ -246,6 +246,20 @@ func (r *cylinderRepository) UpdateStatusByIds(tx helper.Tx, ids []string, statu
 		return nil
 	}
 	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("status", status).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *cylinderRepository) UpdateLocationByIds(tx helper.Tx, ids []string, locationType enum.CylinderLocationType, locationId *string, locationName string) global.ErrorResponse {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Updates(map[string]any{
+		"location_type": locationType,
+		"location_id":   locationId,
+		"location_name": locationName,
+	}).Error; err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil

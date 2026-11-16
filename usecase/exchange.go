@@ -122,6 +122,14 @@ func (u *exchangeUsecase) Process(actorUserId string, req *dto.ProcessExchangeRe
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, outIds, enum.CylinderLocationCustomer, &customer.Id, customer.Name); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, inIds, enum.CylinderLocationWarehouse, nil, ""); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if netDelta != 0 {
 		if err := u.customerRepo.AdjustOutstanding(tx, customer.Id, netDelta); err != nil {

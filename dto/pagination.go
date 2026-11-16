@@ -10,6 +10,8 @@ type ListQuery struct {
 	ItemType     string `query:"item_type"`
 	GasType      string `query:"gas_type"`
 	IsSerialized *bool  `query:"is_serialized"`
+	LocationType string `query:"location_type"`
+	LocationId   string `query:"location_id"`
 }
 
 type PaginationMeta struct {

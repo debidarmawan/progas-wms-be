@@ -104,6 +104,10 @@ func (u *fillingBatchUsecase) Submit(actorUserId string, req *dto.SubmitFillingB
 		tx.Rollback()
 		return nil, err
 	}
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, cylinderIds, enum.CylinderLocationFillingStation, nil, ""); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()

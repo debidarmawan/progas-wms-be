@@ -30,14 +30,15 @@ type CylinderUsecase interface {
 }
 
 type cylinderUsecase struct {
-	txManager      helper.TxManager
-	cylinderRepo   repository.CylinderRepository
-	masterItemRepo repository.MasterItemRepository
-	customerRepo   repository.CustomerRepository
-	vendorRepo     repository.VendorRepository
-	ledgerRepo     repository.CylinderLedgerRepository
-	userRepo       repository.UserRepository
-	auditLogRepo   repository.AuditLogRepository
+	txManager            helper.TxManager
+	cylinderRepo         repository.CylinderRepository
+	masterItemRepo       repository.MasterItemRepository
+	customerRepo         repository.CustomerRepository
+	vendorRepo           repository.VendorRepository
+	cylinderLocationRepo repository.CylinderLocationRepository
+	ledgerRepo           repository.CylinderLedgerRepository
+	userRepo             repository.UserRepository
+	auditLogRepo         repository.AuditLogRepository
 }
 
 func NewCylinderUsecase(
@@ -46,26 +47,29 @@ func NewCylinderUsecase(
 	masterItemRepo repository.MasterItemRepository,
 	customerRepo repository.CustomerRepository,
 	vendorRepo repository.VendorRepository,
+	cylinderLocationRepo repository.CylinderLocationRepository,
 	ledgerRepo repository.CylinderLedgerRepository,
 	userRepo repository.UserRepository,
 	auditLogRepo repository.AuditLogRepository,
 ) CylinderUsecase {
 	return &cylinderUsecase{
-		txManager:      txManager,
-		cylinderRepo:   cylinderRepo,
-		masterItemRepo: masterItemRepo,
-		customerRepo:   customerRepo,
-		vendorRepo:     vendorRepo,
-		ledgerRepo:     ledgerRepo,
-		userRepo:       userRepo,
-		auditLogRepo:   auditLogRepo,
+		txManager:            txManager,
+		cylinderRepo:         cylinderRepo,
+		masterItemRepo:       masterItemRepo,
+		customerRepo:         customerRepo,
+		vendorRepo:           vendorRepo,
+		cylinderLocationRepo: cylinderLocationRepo,
+		ledgerRepo:           ledgerRepo,
+		userRepo:             userRepo,
+		auditLogRepo:         auditLogRepo,
 	}
 }
 
 func (u *cylinderUsecase) FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.CylinderResponse], global.ErrorResponse) {
 	page, limit, _ := helper.NormalizePagination(query)
 	search := helper.NormalizeSearch(query.Search)
-	cylinders, total, err := u.cylinderRepo.FindAll(page, limit, search)
+	cylinders, total, err := u.cylinderRepo.FindAll(page, limit, search,
+		strings.ToUpper(strings.TrimSpace(query.LocationType)), strings.TrimSpace(query.LocationId))
 	if err != nil {
 		return nil, err
 	}
@@ -273,6 +277,11 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		return nil, global.BadRequestError("last hydrotest date is invalid or expired")
 	}
 
+	locationType, locationId, locationName, locationErr := u.resolveCylinderLocation(req.LocationType, req.LocationId, enum.CylinderLocationWarehouse, nil, "")
+	if locationErr != nil {
+		return nil, locationErr
+	}
+
 	cylinder := &model.Cylinder{
 		BarcodeSN:         barcode,
 		ItemId:            req.ItemId,
@@ -281,6 +290,9 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		Status:            enum.CylinderStatusEmpty,
 		LastHydrotestDate: hydrotestDate,
 		Remarks:           req.Remarks,
+		LocationType:      locationType,
+		LocationId:        locationId,
+		LocationName:      locationName,
 	}
 
 	tx := u.txManager.New()
@@ -303,6 +315,8 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		{Field: "owner_id", Label: "Pemilik", New: ownerName},
 		{Field: "last_hydrotest_date", Label: "Tanggal Hydrotest", New: cylinder.LastHydrotestDate.Format("2006-01-02")},
 		{Field: "remarks", Label: "Remarks", New: cylinder.Remarks},
+		{Field: "location_type", Label: "Lokasi", New: string(cylinder.LocationType)},
+		{Field: "location_name", Label: "Detail Lokasi", New: cylinder.LocationName},
 	}
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderCreate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
@@ -448,6 +462,18 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	appendCylinderChange(&changes, "last_hydrotest_date", "Tanggal Hydrotest", cylinder.LastHydrotestDate.Format("2006-01-02"), hydrotestDate.Format("2006-01-02"))
 	appendCylinderChange(&changes, "remarks", "Remarks", cylinder.Remarks, req.Remarks)
 
+	if strings.TrimSpace(req.LocationType) != "" || strings.TrimSpace(req.LocationId) != "" {
+		locationType, locationId, locationName, locationErr := u.resolveCylinderLocation(req.LocationType, req.LocationId, cylinder.LocationType, cylinder.LocationId, cylinder.LocationName)
+		if locationErr != nil {
+			return locationErr
+		}
+		appendCylinderChange(&changes, "location_type", "Lokasi", string(cylinder.LocationType), string(locationType))
+		appendCylinderChange(&changes, "location_name", "Detail Lokasi", cylinder.LocationName, locationName)
+		cylinder.LocationType = locationType
+		cylinder.LocationId = locationId
+		cylinder.LocationName = locationName
+	}
+
 	if barcodeChanged {
 		cylinder.BarcodeSN = barcode
 	}
@@ -475,6 +501,72 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	})
 
 	return nil
+}
+
+// resolveCylinderLocation turns manual location input into (type, id, snapshot name) and validates
+// it against the referenced master row or party. IN_TRANSIT/MAINTENANCE/UNKNOWN are flow-driven
+// states, so only internal places, customers and vendors are accepted from a request.
+func (u *cylinderUsecase) resolveCylinderLocation(locationType, locationId string, fallbackType enum.CylinderLocationType, fallbackId *string, fallbackName string) (enum.CylinderLocationType, *string, string, global.ErrorResponse) {
+	if strings.TrimSpace(locationType) == "" && strings.TrimSpace(locationId) == "" {
+		return fallbackType, fallbackId, fallbackName, nil
+	}
+
+	resolvedType := enum.CylinderLocationType(strings.ToUpper(strings.TrimSpace(locationType)))
+	if resolvedType == "" {
+		resolvedType = fallbackType
+	}
+	resolvedId := strings.TrimSpace(locationId)
+	if resolvedId == "" && fallbackId != nil {
+		resolvedId = *fallbackId
+	}
+
+	var ref *model.CylinderLocation
+	name := fallbackName
+	switch {
+	case resolvedType.IsInternalPlace():
+		location, err := u.cylinderLocationRepo.FindById(resolvedId)
+		if err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return "", nil, "", global.BadRequestError("invalid location_id")
+			}
+			return "", nil, "", err
+		}
+		ref = location
+		name = location.Name
+	case resolvedType == enum.CylinderLocationCustomer:
+		customer, err := u.customerRepo.FindById(resolvedId)
+		if err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return "", nil, "", global.BadRequestError("invalid location_id")
+			}
+			return "", nil, "", err
+		}
+		name = customer.Name
+	case resolvedType == enum.CylinderLocationVendor:
+		vendor, err := u.vendorRepo.FindById(resolvedId)
+		if err != nil {
+			if err.GetCode() == fiber.StatusNotFound {
+				return "", nil, "", global.BadRequestError("invalid location_id")
+			}
+			return "", nil, "", err
+		}
+		if !vendor.IsActive {
+			return "", nil, "", global.BadRequestError("vendor is not active")
+		}
+		name = vendor.Name
+	}
+
+	if validationErr := helper.ValidateCylinderLocation(resolvedType, resolvedId, ref); validationErr != nil {
+		return "", nil, "", global.BadRequestError(validationErr.Error())
+	}
+
+	var id *string
+	if resolvedId == "" {
+		name = ""
+	} else {
+		id = &resolvedId
+	}
+	return resolvedType, id, name, nil
 }
 
 func appendCylinderChange(changes *[]dto.CylinderHistoryChange, field, label, oldV, newV string) {

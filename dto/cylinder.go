@@ -1,5 +1,7 @@
 package dto
 
+// Manual location input only accepts real places/parties; IN_TRANSIT, MAINTENANCE and
+// UNKNOWN are set by the flow usecases, never by hand.
 type CreateCylinderRequest struct {
 	BarcodeSN         string `json:"barcode_sn"` // optional: auto-generated when empty
 	ItemId            string `json:"item_id" validate:"required"`
@@ -7,6 +9,8 @@ type CreateCylinderRequest struct {
 	OwnerId           string `json:"owner_id"`
 	LastHydrotestDate string `json:"last_hydrotest_date" validate:"required"`
 	Remarks           string `json:"remarks"`
+	LocationType      string `json:"location_type" validate:"omitempty,oneof=WAREHOUSE FILLING_STATION WORKSHOP CUSTOMER VENDOR"`
+	LocationId        string `json:"location_id"`
 }
 
 type UpdateCylinderRequest struct {
@@ -16,6 +20,8 @@ type UpdateCylinderRequest struct {
 	OwnerId           string `json:"owner_id"`
 	LastHydrotestDate string `json:"last_hydrotest_date" validate:"required"`
 	Remarks           string `json:"remarks"`
+	LocationType      string `json:"location_type" validate:"omitempty,oneof=WAREHOUSE FILLING_STATION WORKSHOP CUSTOMER VENDOR"`
+	LocationId        string `json:"location_id"`
 }
 
 type CylinderResponse struct {
@@ -31,6 +37,9 @@ type CylinderResponse struct {
 	LastHydrotestDate string `json:"last_hydrotest_date"`
 	Remarks           string `json:"remarks,omitempty"`
 	LabelPrintedAt    string `json:"label_printed_at,omitempty"`
+	LocationType      string `json:"location_type"`
+	LocationId        string `json:"location_id,omitempty"`
+	LocationName      string `json:"location_name,omitempty"`
 }
 
 type CylinderHistoryChange struct {

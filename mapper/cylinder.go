@@ -21,6 +21,10 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 	if cylinder.LabelPrintedAt != nil {
 		labelPrintedAt = cylinder.LabelPrintedAt.Format(time.RFC3339)
 	}
+	locationId := ""
+	if cylinder.LocationId != nil {
+		locationId = *cylinder.LocationId
+	}
 	return &dto.CylinderResponse{
 		Id:                cylinder.Id,
 		BarcodeSN:         cylinder.BarcodeSN,
@@ -33,6 +37,9 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 		LastHydrotestDate: cylinder.LastHydrotestDate.Format(time.RFC3339),
 		Remarks:           cylinder.Remarks,
 		LabelPrintedAt:    labelPrintedAt,
+		LocationType:      string(cylinder.LocationType),
+		LocationId:        locationId,
+		LocationName:      cylinder.LocationName,
 	}
 }
 

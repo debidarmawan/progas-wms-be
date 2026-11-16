@@ -203,6 +203,11 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		tx.Rollback()
 		return nil, err
 	}
+	fleetId := fleet.Id
+	if err := u.cylinderRepo.UpdateLocationByIds(tx, cylinderIds, enum.CylinderLocationInTransit, &fleetId, fleet.PlateNumber); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if salesOrder != nil {
 		salesOrder.Status = enum.SalesOrderStatusCompleted

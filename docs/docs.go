@@ -773,6 +773,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/cylinder-locations": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find all company-owned cylinder locations (warehouse, filling station, workshop)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder Location"
+                ],
+                "summary": "Find all cylinder locations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name or code",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_PaginatedCylinderLocationList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a cylinder location (warehouse, filling station or workshop)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder Location"
+                ],
+                "summary": "Create cylinder location",
+                "parameters": [
+                    {
+                        "description": "Create cylinder location request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCylinderLocationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/cylinder-locations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find a cylinder location by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder Location"
+                ],
+                "summary": "Find cylinder location by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CylinderLocationResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update a cylinder location by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder Location"
+                ],
+                "summary": "Update cylinder location",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update cylinder location request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCylinderLocationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a cylinder location by id (blocked while still assigned to cylinders)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder Location"
+                ],
+                "summary": "Delete cylinder location",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/cylinders": {
             "get": {
                 "security": [
@@ -3818,6 +4019,40 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCylinderLocationRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "code": {
+                    "type": "string",
+                    "maxLength": 32
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "WAREHOUSE",
+                        "FILLING_STATION",
+                        "WORKSHOP"
+                    ]
+                }
+            }
+        },
         "dto.CreateCylinderRequest": {
             "type": "object",
             "required": [
@@ -3835,6 +4070,19 @@ const docTemplate = `{
                 },
                 "last_hydrotest_date": {
                     "type": "string"
+                },
+                "location_id": {
+                    "type": "string"
+                },
+                "location_type": {
+                    "type": "string",
+                    "enum": [
+                        "WAREHOUSE",
+                        "FILLING_STATION",
+                        "WORKSHOP",
+                        "CUSTOMER",
+                        "VENDOR"
+                    ]
                 },
                 "owner_id": {
                     "type": "string"
@@ -4378,6 +4626,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CylinderLocationResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CylinderResponse": {
             "type": "object",
             "properties": {
@@ -4400,6 +4674,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "last_hydrotest_date": {
+                    "type": "string"
+                },
+                "location_id": {
+                    "type": "string"
+                },
+                "location_name": {
+                    "type": "string"
+                },
+                "location_type": {
                     "type": "string"
                 },
                 "owner_id": {
@@ -5021,6 +5304,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaginatedCylinderLocationList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CylinderLocationResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/dto.PaginationMeta"
+                }
+            }
+        },
         "dto.PaginatedDeliveryOrderList": {
             "type": "object",
             "properties": {
@@ -5607,6 +5904,43 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateCylinderLocationRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "code": {
+                    "type": "string",
+                    "maxLength": 32
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "WAREHOUSE",
+                        "FILLING_STATION",
+                        "WORKSHOP"
+                    ]
+                }
+            }
+        },
         "dto.UpdateCylinderRequest": {
             "type": "object",
             "required": [
@@ -5624,6 +5958,19 @@ const docTemplate = `{
                 },
                 "last_hydrotest_date": {
                     "type": "string"
+                },
+                "location_id": {
+                    "type": "string"
+                },
+                "location_type": {
+                    "type": "string",
+                    "enum": [
+                        "WAREHOUSE",
+                        "FILLING_STATION",
+                        "WORKSHOP",
+                        "CUSTOMER",
+                        "VENDOR"
+                    ]
                 },
                 "owner_id": {
                     "type": "string"
@@ -6251,6 +6598,26 @@ const docTemplate = `{
                 }
             }
         },
+        "global.Response-dto_CylinderLocationResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CylinderLocationResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "global.Response-dto_CylinderResponse": {
             "type": "object",
             "properties": {
@@ -6559,6 +6926,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.PaginatedCylinderList"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_PaginatedCylinderLocationList": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.PaginatedCylinderLocationList"
                 },
                 "error_code": {
                     "type": "string"
