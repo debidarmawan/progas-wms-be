@@ -194,6 +194,12 @@ definitions:
         - CUSTOMER
         - VENDOR
         type: string
+      max_days_at_customer:
+        description: 'Pointer: nil inherits MasterItem.MaxDaysAtCustomer, 0 means
+          "no limit".'
+        maximum: 3650
+        minimum: 0
+        type: integer
       owner_id:
         type: string
       ownership_type:
@@ -586,10 +592,14 @@ definitions:
     properties:
       barcode_sn:
         type: string
+      days_at_customer:
+        type: integer
       gas_type:
         type: string
       id:
         type: string
+      is_overdue:
+        type: boolean
       item_id:
         type: string
       item_name:
@@ -603,6 +613,10 @@ definitions:
       location_name:
         type: string
       location_type:
+        type: string
+      max_days_at_customer:
+        type: integer
+      outstanding_since:
         type: string
       owner_id:
         type: string
@@ -1435,6 +1449,15 @@ definitions:
     - name
     - type
     type: object
+  dto.UpdateCylinderMaxDaysRequest:
+    properties:
+      max_days_at_customer:
+        maximum: 3650
+        minimum: 0
+        type: integer
+    required:
+    - max_days_at_customer
+    type: object
   dto.UpdateCylinderRequest:
     properties:
       barcode_sn:
@@ -1453,6 +1476,11 @@ definitions:
         - CUSTOMER
         - VENDOR
         type: string
+      max_days_at_customer:
+        description: 'Pointer: nil keeps the current value, 0 means "no limit".'
+        maximum: 3650
+        minimum: 0
+        type: integer
       owner_id:
         type: string
       ownership_type:
@@ -3158,6 +3186,36 @@ paths:
       security:
       - Bearer: []
       summary: Get cylinder change history
+      tags:
+      - Cylinder
+  /cylinders/{id}/max-days:
+    patch:
+      consumes:
+      - application/json
+      description: Change the aging limit of a cylinder in any lifecycle state except
+        LOST/WRITE_OFF (0 = no limit)
+      parameters:
+      - description: Cylinder ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Max days at customer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCylinderMaxDaysRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CylinderResponse'
+      security:
+      - Bearer: []
+      summary: Update cylinder max days at customer
       tags:
       - Cylinder
   /cylinders/by-barcode/{sn}:

@@ -1348,6 +1348,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/cylinders/{id}/max-days": {
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Change the aging limit of a cylinder in any lifecycle state except LOST/WRITE_OFF (0 = no limit)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cylinder"
+                ],
+                "summary": "Update cylinder max days at customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cylinder ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Max days at customer request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCylinderMaxDaysRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CylinderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/summary": {
             "get": {
                 "security": [
@@ -4084,6 +4130,12 @@ const docTemplate = `{
                         "VENDOR"
                     ]
                 },
+                "max_days_at_customer": {
+                    "description": "Pointer: nil inherits MasterItem.MaxDaysAtCustomer, 0 means \"no limit\".",
+                    "type": "integer",
+                    "maximum": 3650,
+                    "minimum": 0
+                },
                 "owner_id": {
                     "type": "string"
                 },
@@ -4658,11 +4710,17 @@ const docTemplate = `{
                 "barcode_sn": {
                     "type": "string"
                 },
+                "days_at_customer": {
+                    "type": "integer"
+                },
                 "gas_type": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_overdue": {
+                    "type": "boolean"
                 },
                 "item_id": {
                     "type": "string"
@@ -4683,6 +4741,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "location_type": {
+                    "type": "string"
+                },
+                "max_days_at_customer": {
+                    "type": "integer"
+                },
+                "outstanding_since": {
                     "type": "string"
                 },
                 "owner_id": {
@@ -5941,6 +6005,19 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateCylinderMaxDaysRequest": {
+            "type": "object",
+            "required": [
+                "max_days_at_customer"
+            ],
+            "properties": {
+                "max_days_at_customer": {
+                    "type": "integer",
+                    "maximum": 3650,
+                    "minimum": 0
+                }
+            }
+        },
         "dto.UpdateCylinderRequest": {
             "type": "object",
             "required": [
@@ -5971,6 +6048,12 @@ const docTemplate = `{
                         "CUSTOMER",
                         "VENDOR"
                     ]
+                },
+                "max_days_at_customer": {
+                    "description": "Pointer: nil keeps the current value, 0 means \"no limit\".",
+                    "type": "integer",
+                    "maximum": 3650,
+                    "minimum": 0
                 },
                 "owner_id": {
                     "type": "string"

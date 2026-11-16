@@ -17,7 +17,7 @@ These rules are always active. When unsure, mirror the closest existing file in 
 | `handler/` | `dto`, `usecase`, `global`, `helper`, fiber | repositories, models, gorm |
 | `usecase/` | `dto`, `model`, `mapper`, `repository`, `enum`, `helper`, `constant`, `global` | fiber, gorm directly |
 | `repository/` | `model`, `global`, `helper`, `enum`, gorm | usecase, dto, handler |
-| `mapper/` | `model`, `dto`, `enum` | repositories, gorm |
+| `mapper/` | `model`, `dto`, `enum`, `helper` | repositories, gorm |
 | `model/` | `enum` | app-specific packages |
 
 Keep the dependency direction one-way: `handler → usecase → repository → model`.

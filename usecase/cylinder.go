@@ -24,6 +24,7 @@ type CylinderUsecase interface {
 	ResolveScan(barcode, menu string) (*dto.ScanResolveResponse, global.ErrorResponse)
 	Create(actorUserId string, req *dto.CreateCylinderRequest) (*dto.CylinderResponse, global.ErrorResponse)
 	Update(actorUserId string, id string, req *dto.UpdateCylinderRequest) global.ErrorResponse
+	UpdateMaxDays(actorUserId string, id string, req *dto.UpdateCylinderMaxDaysRequest) (*dto.CylinderResponse, global.ErrorResponse)
 	FindLabels(ids []string, onlyUnlabeled bool, limit int) ([]dto.CylinderLabelResponse, global.ErrorResponse)
 	MarkLabelsPrinted(actorUserId string, req *dto.MarkLabelsPrintedRequest) global.ErrorResponse
 	History(id string) (*dto.CylinderHistoryResponse, global.ErrorResponse)
@@ -282,6 +283,11 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		return nil, locationErr
 	}
 
+	maxDays := item.MaxDaysAtCustomer
+	if req.MaxDaysAtCustomer != nil {
+		maxDays = *req.MaxDaysAtCustomer
+	}
+
 	cylinder := &model.Cylinder{
 		BarcodeSN:         barcode,
 		ItemId:            req.ItemId,
@@ -293,6 +299,7 @@ func (u *cylinderUsecase) Create(actorUserId string, req *dto.CreateCylinderRequ
 		LocationType:      locationType,
 		LocationId:        locationId,
 		LocationName:      locationName,
+		MaxDaysAtCustomer: maxDays,
 	}
 
 	tx := u.txManager.New()
@@ -462,6 +469,11 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	appendCylinderChange(&changes, "last_hydrotest_date", "Tanggal Hydrotest", cylinder.LastHydrotestDate.Format("2006-01-02"), hydrotestDate.Format("2006-01-02"))
 	appendCylinderChange(&changes, "remarks", "Remarks", cylinder.Remarks, req.Remarks)
 
+	if req.MaxDaysAtCustomer != nil {
+		appendCylinderChange(&changes, "max_days_at_customer", "Batas Hari di Customer", fmt.Sprint(cylinder.MaxDaysAtCustomer), fmt.Sprint(*req.MaxDaysAtCustomer))
+		cylinder.MaxDaysAtCustomer = *req.MaxDaysAtCustomer
+	}
+
 	if strings.TrimSpace(req.LocationType) != "" || strings.TrimSpace(req.LocationId) != "" {
 		locationType, locationId, locationName, locationErr := u.resolveCylinderLocation(req.LocationType, req.LocationId, cylinder.LocationType, cylinder.LocationId, cylinder.LocationName)
 		if locationErr != nil {
@@ -501,6 +513,45 @@ func (u *cylinderUsecase) Update(actorUserId string, id string, req *dto.UpdateC
 	})
 
 	return nil
+}
+
+// UpdateMaxDays changes the aging limit without the EMPTY/READY_TO_FILL restriction of Update,
+// because the limit matters most while the cylinder is already at a customer.
+func (u *cylinderUsecase) UpdateMaxDays(actorUserId string, id string, req *dto.UpdateCylinderMaxDaysRequest) (*dto.CylinderResponse, global.ErrorResponse) {
+	cylinder, err := u.cylinderRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	if !helper.CanSetMaxDaysAtCustomer(cylinder.Status) {
+		return nil, global.BadRequestError("cylinder has left the lifecycle (LOST/WRITE_OFF)")
+	}
+	if req.MaxDaysAtCustomer == nil || *req.MaxDaysAtCustomer == cylinder.MaxDaysAtCustomer {
+		return mapper.ToCylinderResponse(cylinder), nil
+	}
+
+	newDays := *req.MaxDaysAtCustomer
+	changes := []dto.CylinderHistoryChange{}
+	appendCylinderChange(&changes, "max_days_at_customer", "Batas Hari di Customer", fmt.Sprint(cylinder.MaxDaysAtCustomer), fmt.Sprint(newDays))
+
+	tx := u.txManager.New()
+	defer tx.CheckPanic()
+
+	if err := u.cylinderRepo.UpdateMaxDaysById(tx, cylinder.Id, newDays); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return nil, global.InternalServerError(err)
+	}
+
+	_ = u.auditLogRepo.Log(actorUserId, constant.AuditCylinderUpdate, constant.AuditObjectCylinder, cylinder.Id, map[string]any{
+		"changes": changes,
+	})
+
+	cylinder.MaxDaysAtCustomer = newDays
+	return mapper.ToCylinderResponse(cylinder), nil
 }
 
 // resolveCylinderLocation turns manual location input into (type, id, snapshot name) and validates

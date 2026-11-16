@@ -26,6 +26,7 @@ type MasterItemUsecase interface {
 type masterItemUsecase struct {
 	txManager          helper.TxManager
 	masterItemRepo     repository.MasterItemRepository
+	cylinderRepo       repository.CylinderRepository
 	sparepartStockRepo repository.SparepartStockRepository
 	uomRepo            repository.UomRepository
 	accountRepo        repository.AccountRepository
@@ -35,6 +36,7 @@ type masterItemUsecase struct {
 func NewMasterItemUsecase(
 	txManager helper.TxManager,
 	masterItemRepo repository.MasterItemRepository,
+	cylinderRepo repository.CylinderRepository,
 	sparepartStockRepo repository.SparepartStockRepository,
 	uomRepo repository.UomRepository,
 	accountRepo repository.AccountRepository,
@@ -43,6 +45,7 @@ func NewMasterItemUsecase(
 	return &masterItemUsecase{
 		txManager:          txManager,
 		masterItemRepo:     masterItemRepo,
+		cylinderRepo:       cylinderRepo,
 		sparepartStockRepo: sparepartStockRepo,
 		uomRepo:            uomRepo,
 		accountRepo:        accountRepo,
@@ -205,6 +208,7 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 	item.EmptyWeightKg = req.EmptyWeightKg
 	item.GasWeightKg = req.GasWeightKg
 	item.MinStockAlert = req.MinStockAlert
+	oldMaxDays := item.MaxDaysAtCustomer
 	item.MaxDaysAtCustomer = req.MaxDaysAtCustomer
 	item.InventoryAccountId = optionalId(req.InventoryAccountId)
 	item.RevenueAccountId = optionalId(req.RevenueAccountId)
@@ -218,13 +222,25 @@ func (u *masterItemUsecase) Update(actorUserId, id string, req *dto.UpdateMaster
 		return err
 	}
 
+	synced := int64(0)
+	// Only a changed, non-zero value is pushed to the cylinders: a blank master-item field
+	// must not silently remove per-cylinder limits.
+	if item.MaxDaysAtCustomer > 0 && item.MaxDaysAtCustomer != oldMaxDays {
+		synced, err = u.cylinderRepo.UpdateMaxDaysByItemId(tx, item.Id, item.MaxDaysAtCustomer)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
 		return global.InternalServerError(err)
 	}
 
 	_ = u.auditLogRepo.Log(actorUserId, constant.AuditMasterItemUpdate, constant.AuditObjectMasterItem, item.Id, map[string]any{
-		"sku": item.SKU,
+		"sku":                       item.SKU,
+		"max_days_synced_cylinders": synced,
 	})
 
 	return nil

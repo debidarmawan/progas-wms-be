@@ -119,7 +119,7 @@ func (u *dashboardUsecase) buildOverdueAlerts(alerts *[]dto.OverdueCylinderAlert
 	}
 
 	for _, cyl := range cylinders {
-		maxDays := cyl.MasterItem.MaxDaysAtCustomer
+		maxDays := cyl.MaxDaysAtCustomer
 		if !helper.IsOverdueAtCustomer(cyl.OutstandingSince, maxDays) {
 			continue
 		}

@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"progas-wms-be/dto"
+	"progas-wms-be/helper"
 	"progas-wms-be/model"
 	"time"
 )
@@ -25,6 +26,10 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 	if cylinder.LocationId != nil {
 		locationId = *cylinder.LocationId
 	}
+	outstandingSince := ""
+	if cylinder.OutstandingSince != nil {
+		outstandingSince = cylinder.OutstandingSince.Format(time.RFC3339)
+	}
 	return &dto.CylinderResponse{
 		Id:                cylinder.Id,
 		BarcodeSN:         cylinder.BarcodeSN,
@@ -40,6 +45,10 @@ func ToCylinderResponse(cylinder *model.Cylinder) *dto.CylinderResponse {
 		LocationType:      string(cylinder.LocationType),
 		LocationId:        locationId,
 		LocationName:      cylinder.LocationName,
+		MaxDaysAtCustomer: cylinder.MaxDaysAtCustomer,
+		OutstandingSince:  outstandingSince,
+		DaysAtCustomer:    helper.DaysAtCustomer(cylinder.OutstandingSince),
+		IsOverdue:         helper.IsOverdueAtCustomer(cylinder.OutstandingSince, cylinder.MaxDaysAtCustomer),
 	}
 }
 

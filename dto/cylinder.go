@@ -11,6 +11,8 @@ type CreateCylinderRequest struct {
 	Remarks           string `json:"remarks"`
 	LocationType      string `json:"location_type" validate:"omitempty,oneof=WAREHOUSE FILLING_STATION WORKSHOP CUSTOMER VENDOR"`
 	LocationId        string `json:"location_id"`
+	// Pointer: nil inherits MasterItem.MaxDaysAtCustomer, 0 means "no limit".
+	MaxDaysAtCustomer *int `json:"max_days_at_customer" validate:"omitempty,gte=0,lte=3650"`
 }
 
 type UpdateCylinderRequest struct {
@@ -22,6 +24,14 @@ type UpdateCylinderRequest struct {
 	Remarks           string `json:"remarks"`
 	LocationType      string `json:"location_type" validate:"omitempty,oneof=WAREHOUSE FILLING_STATION WORKSHOP CUSTOMER VENDOR"`
 	LocationId        string `json:"location_id"`
+	// Pointer: nil keeps the current value, 0 means "no limit".
+	MaxDaysAtCustomer *int `json:"max_days_at_customer" validate:"omitempty,gte=0,lte=3650"`
+}
+
+// UpdateCylinderMaxDaysRequest allows changing the aging limit for any cylinder that is
+// still in the lifecycle, including IN_TRANSIT/OUTSTANDING which PUT /cylinders/:id rejects.
+type UpdateCylinderMaxDaysRequest struct {
+	MaxDaysAtCustomer *int `json:"max_days_at_customer" validate:"required,gte=0,lte=3650"`
 }
 
 type CylinderResponse struct {
@@ -40,6 +50,10 @@ type CylinderResponse struct {
 	LocationType      string `json:"location_type"`
 	LocationId        string `json:"location_id,omitempty"`
 	LocationName      string `json:"location_name,omitempty"`
+	MaxDaysAtCustomer int    `json:"max_days_at_customer"`
+	OutstandingSince  string `json:"outstanding_since,omitempty"`
+	DaysAtCustomer    int    `json:"days_at_customer"`
+	IsOverdue         bool   `json:"is_overdue"`
 }
 
 type CylinderHistoryChange struct {

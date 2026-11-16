@@ -46,7 +46,7 @@ func (u *inventoryUsecase) VirtualWarehouse() (*dto.VirtualWarehouseResponse, gl
 		overdueCount := 0
 		if cyls, ok := grouped[customer.Id]; ok {
 			for _, cyl := range cyls {
-				maxDays := cyl.MasterItem.MaxDaysAtCustomer
+				maxDays := cyl.MaxDaysAtCustomer
 				days := helper.DaysAtCustomer(cyl.OutstandingSince)
 				isOverdue := helper.IsOverdueAtCustomer(cyl.OutstandingSince, maxDays)
 				if isOverdue {

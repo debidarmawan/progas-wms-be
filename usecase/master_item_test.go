@@ -4,7 +4,10 @@ import (
 	"testing"
 
 	"progas-wms-be/dto"
+	"progas-wms-be/global"
+	"progas-wms-be/helper"
 	"progas-wms-be/model"
+	"progas-wms-be/repository"
 )
 
 func TestOptionalId(t *testing.T) {
@@ -45,7 +48,7 @@ func TestMasterItemUsecaseUpdateBlankAccountMappingStoresNull(t *testing.T) {
 		IsSerialized: true,
 	}
 	repo := &fakeMasterItemRepo{byId: map[string]*model.MasterItem{"item-id": item}}
-	usecase := NewMasterItemUsecase(fakeTxManager{}, repo, nil, &fakeUomRepo{}, nil, fakeAuditLogRepo{})
+	usecase := NewMasterItemUsecase(fakeTxManager{}, repo, nil, nil, &fakeUomRepo{}, nil, fakeAuditLogRepo{})
 
 	err := usecase.Update("actor-id", "item-id", &dto.UpdateMasterItemRequest{Name: "Oxygen", ItemType: "gas", GasType: "O2"})
 	if err != nil {
@@ -64,4 +67,53 @@ func TestMasterItemUsecaseUpdateBlankAccountMappingStoresNull(t *testing.T) {
 
 func stringPtr(value string) *string {
 	return &value
+}
+
+// fakeCylinderSyncRepo records the bulk aging sync; the rest of the interface stays unused.
+type fakeCylinderSyncRepo struct {
+	repository.CylinderRepository
+	syncedDays int
+}
+
+func (f *fakeCylinderSyncRepo) UpdateMaxDaysByItemId(tx helper.Tx, itemId string, days int) (int64, global.ErrorResponse) {
+	f.syncedDays = days
+	return 3, nil
+}
+
+func TestMasterItemUsecaseUpdateSyncsMaxDaysToCylinders(t *testing.T) {
+	cases := []struct {
+		name        string
+		oldDays     int
+		requestDays int
+		wantSynced  int
+	}{
+		{"changed value syncs", 7, 30, 30},
+		{"unchanged value skips", 30, 30, 0},
+		{"zero does not wipe cylinders", 30, 0, 0},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			item := &model.MasterItem{
+				BaseModel:         model.BaseModel{Id: "item-id"},
+				Name:              "Oxygen",
+				SKU:               "GAS-O2",
+				ItemType:          "gas",
+				GasType:           "O2",
+				IsSerialized:      true,
+				MaxDaysAtCustomer: c.oldDays,
+			}
+			repo := &fakeMasterItemRepo{byId: map[string]*model.MasterItem{"item-id": item}}
+			cylinderRepo := &fakeCylinderSyncRepo{}
+			usecase := NewMasterItemUsecase(fakeTxManager{}, repo, cylinderRepo, nil, &fakeUomRepo{}, nil, fakeAuditLogRepo{})
+
+			req := &dto.UpdateMasterItemRequest{Name: "Oxygen", ItemType: "gas", GasType: "O2", MaxDaysAtCustomer: c.requestDays}
+			if err := usecase.Update("actor-id", "item-id", req); err != nil {
+				t.Fatalf("Update() error = %v, want nil", err.Error())
+			}
+			if cylinderRepo.syncedDays != c.wantSynced {
+				t.Fatalf("synced days = %v, want %v", cylinderRepo.syncedDays, c.wantSynced)
+			}
+		})
+	}
 }

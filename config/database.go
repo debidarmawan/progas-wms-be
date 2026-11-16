@@ -80,6 +80,7 @@ func ConnectDatabase(maxOpenConn int) (*gorm.DB, *ssh.Client, error) {
 		SeedBootstrapAdmin(db)
 		SeedAccounts(db)
 		SeedCustomerSites(db)
+		SeedCylinderMaxDays(db)
 		log.Println("Migration and seed completed.")
 	} else {
 		log.Println("Skipping migration and seed.")

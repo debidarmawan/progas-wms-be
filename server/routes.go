@@ -66,7 +66,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	authUsecase := usecase.NewAuthUseCase(userRepo, auditLogRepo, rbacRepo)
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
 	userUsecase := usecase.NewUserUsecase(txManager, userRepo, roleRepo, driverRepo, auditLogRepo)
-	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, sparepartStockRepo, uomRepo, accountRepo, auditLogRepo)
+	masterItemUsecase := usecase.NewMasterItemUsecase(txManager, masterItemRepo, cylinderRepo, sparepartStockRepo, uomRepo, accountRepo, auditLogRepo)
 	uomUsecase := usecase.NewUomUsecase(txManager, uomRepo, masterItemRepo, auditLogRepo)
 	cylinderUsecase := usecase.NewCylinderUsecase(txManager, cylinderRepo, masterItemRepo, customerRepo, vendorRepo, cylinderLocationRepo, cylinderLedgerRepo, userRepo, auditLogRepo)
 	cylinderLocationUsecase := usecase.NewCylinderLocationUsecase(txManager, cylinderLocationRepo, auditLogRepo)
@@ -207,6 +207,7 @@ func Routes(f *fiber.App, db *gorm.DB) {
 	cylinderWrite := middleware.Authorize(rbacRepo, constant.PermCylinderWrite)
 	protected.Post("/cylinders", cylinderWrite, cylinderHandler.Create)
 	protected.Put("/cylinders/:id", cylinderWrite, cylinderHandler.Update)
+	protected.Patch("/cylinders/:id/max-days", cylinderWrite, cylinderHandler.UpdateMaxDays)
 
 	customerRead := middleware.Authorize(rbacRepo, constant.PermCustomerRead)
 	protected.Get("/customers", customerRead, customerHandler.FindAll)

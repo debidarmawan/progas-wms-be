@@ -218,6 +218,31 @@ func (h *CylinderHandler) Create(c fiber.Ctx) error {
 	return global.CreateResponse(res, fiber.StatusOK, c)
 }
 
+// UpdateMaxDays godoc
+//
+//	@Summary		Update cylinder max days at customer
+//	@Description	Change the aging limit of a cylinder in any lifecycle state except LOST/WRITE_OFF (0 = no limit)
+//	@Tags			Cylinder
+//	@Accept			json
+//	@Produce		json
+//	@Security		Bearer
+//	@Param			id		path		string							true	"Cylinder ID"
+//	@Param			request	body		dto.UpdateCylinderMaxDaysRequest	true	"Max days at customer request"
+//	@Success		200		{object}	global.Response[dto.CylinderResponse]
+//	@Router			/cylinders/{id}/max-days [patch]
+func (h *CylinderHandler) UpdateMaxDays(c fiber.Ctx) error {
+	var req dto.UpdateCylinderMaxDaysRequest
+	if err := helper.ValidateBody(c, &req); err != nil {
+		return err.ToResponse(c)
+	}
+	actorUserId, _ := c.Locals("user_id").(string)
+	res, err := h.usecase.UpdateMaxDays(actorUserId, c.Params("id"), &req)
+	if err != nil {
+		return err.ToResponse(c)
+	}
+	return global.CreateResponse(res, fiber.StatusOK, c)
+}
+
 // Update godoc
 //
 //	@Summary		Update cylinder

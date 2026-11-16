@@ -31,6 +31,8 @@ type CylinderRepository interface {
 	UpdateLocationByIds(tx helper.Tx, ids []string, locationType enum.CylinderLocationType, locationId *string, locationName string) global.ErrorResponse
 	SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse
 	ClearOutstandingSince(tx helper.Tx, ids []string) global.ErrorResponse
+	UpdateMaxDaysById(tx helper.Tx, id string, days int) global.ErrorResponse
+	UpdateMaxDaysByItemId(tx helper.Tx, itemId string, days int) (int64, global.ErrorResponse)
 	Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse
 	FindForLabels(ids []string, onlyUnlabeled bool, limit int) ([]model.Cylinder, global.ErrorResponse)
 	MarkLabelPrinted(tx helper.Tx, ids []string, printedAt time.Time) global.ErrorResponse
@@ -283,6 +285,21 @@ func (r *cylinderRepository) ClearOutstandingSince(tx helper.Tx, ids []string) g
 		return global.InternalServerError(err)
 	}
 	return nil
+}
+
+func (r *cylinderRepository) UpdateMaxDaysById(tx helper.Tx, id string, days int) global.ErrorResponse {
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id = ?", id).Update("max_days_at_customer", days).Error; err != nil {
+		return global.InternalServerError(err)
+	}
+	return nil
+}
+
+func (r *cylinderRepository) UpdateMaxDaysByItemId(tx helper.Tx, itemId string, days int) (int64, global.ErrorResponse) {
+	result := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("item_id = ?", itemId).Update("max_days_at_customer", days)
+	if result.Error != nil {
+		return 0, global.InternalServerError(result.Error)
+	}
+	return result.RowsAffected, nil
 }
 
 func (r *cylinderRepository) Create(tx helper.Tx, cylinder *model.Cylinder) global.ErrorResponse {
