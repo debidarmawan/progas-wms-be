@@ -10,6 +10,7 @@ import (
 	"progas-wms-be/mapper"
 	"progas-wms-be/model"
 	"progas-wms-be/repository"
+	"strings"
 	"time"
 )
 
@@ -25,6 +26,7 @@ type deliveryOrderUsecase struct {
 	cylinderRepo      repository.CylinderRepository
 	ledgerRepo        repository.CylinderLedgerRepository
 	customerRepo      repository.CustomerRepository
+	customerSiteRepo  repository.CustomerSiteRepository
 	fleetRepo         repository.FleetRepository
 	auditLogRepo      repository.AuditLogRepository
 	pricingUsecase    CustomerItemPriceUsecase
@@ -38,6 +40,7 @@ func NewDeliveryOrderUsecase(
 	cylinderRepo repository.CylinderRepository,
 	ledgerRepo repository.CylinderLedgerRepository,
 	customerRepo repository.CustomerRepository,
+	customerSiteRepo repository.CustomerSiteRepository,
 	fleetRepo repository.FleetRepository,
 	auditLogRepo repository.AuditLogRepository,
 	pricingUsecase CustomerItemPriceUsecase,
@@ -50,6 +53,7 @@ func NewDeliveryOrderUsecase(
 		cylinderRepo:      cylinderRepo,
 		ledgerRepo:        ledgerRepo,
 		customerRepo:      customerRepo,
+		customerSiteRepo:  customerSiteRepo,
 		fleetRepo:         fleetRepo,
 		auditLogRepo:      auditLogRepo,
 		pricingUsecase:    pricingUsecase,
@@ -69,6 +73,11 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	}
 	if !customer.IsActive {
 		return nil, global.BadRequestError("customer is not active")
+	}
+
+	customerSite, siteErr := u.resolveCustomerSite(customer, req.CustomerSiteId)
+	if siteErr != nil {
+		return nil, siteErr
 	}
 
 	fleet, err := u.fleetRepo.FindById(req.FleetId)
@@ -135,16 +144,21 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	}
 
 	order := &model.DeliveryOrder{
-		BaseModel:     model.BaseModel{CreatedBy: actorUserId},
-		DONumber:      helper.GenerateDONumber(),
-		SalesOrderId:  req.SalesOrderId,
-		CustomerId:    customer.Id,
-		FleetId:       fleet.Id,
-		Status:        enum.DeliveryOrderStatusInTransit,
-		TotalWeightKg: totalWeight,
-		CylinderQty:   len(cylinders),
-		Notes:         req.Notes,
+		BaseModel:        model.BaseModel{CreatedBy: actorUserId},
+		DONumber:         helper.GenerateDONumber(),
+		SalesOrderId:     req.SalesOrderId,
+		CustomerId:       customer.Id,
+		ShipToName:       customer.Name,
+		ShipToAddress:    customer.Address,
+		ShipToPostalCode: customer.PostalCode,
+		ShipToPhone:      customer.Phone,
+		FleetId:          fleet.Id,
+		Status:           enum.DeliveryOrderStatusInTransit,
+		TotalWeightKg:    totalWeight,
+		CylinderQty:      len(cylinders),
+		Notes:            req.Notes,
 	}
+	applyShipToSite(order, customerSite)
 
 	if err := u.deliveryOrderRepo.Create(tx, order); err != nil {
 		tx.Rollback()
@@ -227,6 +241,58 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	order.FleetVehicle = *fleet
 	order.Details = details
 	return mapper.ToDeliveryOrderResponse(order, true), nil
+}
+
+// resolveCustomerSite picks the explicit ship-to site (must belong to the customer)
+// or falls back to the customer's primary active site. A nil site means the DO
+// uses the customer head-office address.
+func (u *deliveryOrderUsecase) resolveCustomerSite(customer *model.Customer, rawSiteId string) (*model.CustomerSite, global.ErrorResponse) {
+	siteId := strings.TrimSpace(rawSiteId)
+	sites, err := u.customerSiteRepo.FindByCustomer(customer.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if siteId != "" {
+		for i := range sites {
+			if sites[i].Id != siteId {
+				continue
+			}
+			if !sites[i].IsActive {
+				return nil, global.BadRequestError("customer site is inactive")
+			}
+			return &sites[i], nil
+		}
+		return nil, global.BadRequestError("customer site does not belong to this customer")
+	}
+
+	for i := range sites {
+		if sites[i].IsPrimary && sites[i].IsActive {
+			return &sites[i], nil
+		}
+	}
+	return nil, nil
+}
+
+// applyShipToSite overlays the chosen site on the DO snapshot, keeping the customer
+// value for any site field left blank.
+func applyShipToSite(order *model.DeliveryOrder, site *model.CustomerSite) {
+	if site == nil {
+		return
+	}
+	order.CustomerSiteId = &site.Id
+	if site.Name != "" {
+		order.ShipToName = site.Name
+	}
+	if site.Address != "" {
+		order.ShipToAddress = site.Address
+	}
+	if site.PostalCode != "" {
+		order.ShipToPostalCode = site.PostalCode
+	}
+	if site.Phone != "" {
+		order.ShipToPhone = site.Phone
+	}
 }
 
 func (u *deliveryOrderUsecase) FindAll(query *dto.ListQuery) (*dto.PaginatedResponse[dto.DeliveryOrderResponse], global.ErrorResponse) {

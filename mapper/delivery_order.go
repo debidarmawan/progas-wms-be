@@ -15,20 +15,29 @@ func ToDeliveryOrderResponse(do *model.DeliveryOrder, includeDetails bool) *dto.
 	if do.FleetVehicle.Id != "" {
 		plateNumber = do.FleetVehicle.PlateNumber
 	}
+	customerSiteId := ""
+	if do.CustomerSiteId != nil {
+		customerSiteId = *do.CustomerSiteId
+	}
 
 	res := &dto.DeliveryOrderResponse{
-		Id:            do.Id,
-		DONumber:      do.DONumber,
-		SalesOrderId:  do.SalesOrderId,
-		CustomerId:    do.CustomerId,
-		CustomerName:  customerName,
-		FleetId:       do.FleetId,
-		PlateNumber:   plateNumber,
-		Status:        string(do.Status),
-		TotalWeightKg: do.TotalWeightKg,
-		CylinderQty:   do.CylinderQty,
-		Notes:         do.Notes,
-		CreatedAt:     do.CreatedAt.Format(time.RFC3339),
+		Id:               do.Id,
+		DONumber:         do.DONumber,
+		SalesOrderId:     do.SalesOrderId,
+		CustomerId:       do.CustomerId,
+		CustomerName:     customerName,
+		CustomerSiteId:   customerSiteId,
+		ShipToName:       do.ShipToName,
+		ShipToAddress:    do.ShipToAddress,
+		ShipToPostalCode: do.ShipToPostalCode,
+		ShipToPhone:      do.ShipToPhone,
+		FleetId:          do.FleetId,
+		PlateNumber:      plateNumber,
+		Status:           string(do.Status),
+		TotalWeightKg:    do.TotalWeightKg,
+		CylinderQty:      do.CylinderQty,
+		Notes:            do.Notes,
+		CreatedAt:        do.CreatedAt.Format(time.RFC3339),
 	}
 
 	if includeDetails {

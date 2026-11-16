@@ -1,11 +1,12 @@
 package dto
 
 type IssueDeliveryOrderRequest struct {
-	CustomerId   string   `json:"customer_id" validate:"required"`
-	FleetId      string   `json:"fleet_id" validate:"required"`
-	SalesOrderId string   `json:"sales_order_id"`
-	Barcodes     []string `json:"barcodes" validate:"required,min=1,dive,required"`
-	Notes        string   `json:"notes"`
+	CustomerId     string   `json:"customer_id" validate:"required"`
+	CustomerSiteId string   `json:"customer_site_id"`
+	FleetId        string   `json:"fleet_id" validate:"required"`
+	SalesOrderId   string   `json:"sales_order_id"`
+	Barcodes       []string `json:"barcodes" validate:"required,min=1,dive,required"`
+	Notes          string   `json:"notes"`
 }
 
 type DeliveryOrderDetailResponse struct {
@@ -20,19 +21,24 @@ type DeliveryOrderDetailResponse struct {
 }
 
 type DeliveryOrderResponse struct {
-	Id            string                        `json:"id"`
-	DONumber      string                        `json:"do_number"`
-	SalesOrderId  string                        `json:"sales_order_id,omitempty"`
-	CustomerId    string                        `json:"customer_id"`
-	CustomerName  string                        `json:"customer_name"`
-	FleetId       string                        `json:"fleet_id"`
-	PlateNumber   string                        `json:"plate_number"`
-	Status        string                        `json:"status"`
-	TotalWeightKg float64                       `json:"total_weight_kg"`
-	CylinderQty   int                           `json:"cylinder_qty"`
-	Notes         string                        `json:"notes"`
-	CreatedAt     string                        `json:"created_at"`
-	Details       []DeliveryOrderDetailResponse `json:"details,omitempty"`
+	Id               string                        `json:"id"`
+	DONumber         string                        `json:"do_number"`
+	SalesOrderId     string                        `json:"sales_order_id,omitempty"`
+	CustomerId       string                        `json:"customer_id"`
+	CustomerName     string                        `json:"customer_name"`
+	CustomerSiteId   string                        `json:"customer_site_id,omitempty"`
+	ShipToName       string                        `json:"ship_to_name"`
+	ShipToAddress    string                        `json:"ship_to_address"`
+	ShipToPostalCode string                        `json:"ship_to_postal_code"`
+	ShipToPhone      string                        `json:"ship_to_phone"`
+	FleetId          string                        `json:"fleet_id"`
+	PlateNumber      string                        `json:"plate_number"`
+	Status           string                        `json:"status"`
+	TotalWeightKg    float64                       `json:"total_weight_kg"`
+	CylinderQty      int                           `json:"cylinder_qty"`
+	Notes            string                        `json:"notes"`
+	CreatedAt        string                        `json:"created_at"`
+	Details          []DeliveryOrderDetailResponse `json:"details,omitempty"`
 }
 
 type PaginatedDeliveryOrderList struct {

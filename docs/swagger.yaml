@@ -123,6 +123,33 @@ definitions:
     required:
     - name
     type: object
+  dto.CreateCustomerSiteRequest:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      is_active:
+        type: boolean
+      is_primary:
+        type: boolean
+      name:
+        maxLength: 128
+        type: string
+      notes:
+        maxLength: 255
+        type: string
+      phone:
+        maxLength: 32
+        type: string
+      pic:
+        maxLength: 128
+        type: string
+      postal_code:
+        maxLength: 16
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateCylinderRequest:
     properties:
       barcode_sn:
@@ -413,6 +440,36 @@ definitions:
       term_of_payment_name:
         type: string
     type: object
+  dto.CustomerSiteListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CustomerSiteResponse'
+        type: array
+    type: object
+  dto.CustomerSiteResponse:
+    properties:
+      address:
+        type: string
+      customer_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_primary:
+        type: boolean
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+      pic:
+        type: string
+      postal_code:
+        type: string
+    type: object
   dto.CylinderHistoryChange:
     properties:
       field:
@@ -554,6 +611,8 @@ definitions:
         type: string
       customer_name:
         type: string
+      customer_site_id:
+        type: string
       cylinder_qty:
         type: integer
       details:
@@ -571,6 +630,14 @@ definitions:
       plate_number:
         type: string
       sales_order_id:
+        type: string
+      ship_to_address:
+        type: string
+      ship_to_name:
+        type: string
+      ship_to_phone:
+        type: string
+      ship_to_postal_code:
         type: string
       status:
         type: string
@@ -694,6 +761,8 @@ definitions:
         minItems: 1
         type: array
       customer_id:
+        type: string
+      customer_site_id:
         type: string
       fleet_id:
         type: string
@@ -1245,6 +1314,33 @@ definitions:
     required:
     - name
     type: object
+  dto.UpdateCustomerSiteRequest:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      is_active:
+        type: boolean
+      is_primary:
+        type: boolean
+      name:
+        maxLength: 128
+        type: string
+      notes:
+        maxLength: 255
+        type: string
+      phone:
+        maxLength: 32
+        type: string
+      pic:
+        maxLength: 128
+        type: string
+      postal_code:
+        maxLength: 16
+        type: string
+    required:
+    - name
+    type: object
   dto.UpdateCylinderRequest:
     properties:
       barcode_sn:
@@ -1641,6 +1737,19 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/dto.CustomerResponse'
+      error_code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  global.Response-dto_CustomerSiteListResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CustomerSiteListResponse'
       error_code:
         type: string
       message:
@@ -2501,6 +2610,119 @@ paths:
       summary: Update future customer item price
       tags:
       - Customer Pricing
+  /customers/{customerId}/sites:
+    get:
+      consumes:
+      - application/json
+      description: List every site/branch address of a customer
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_CustomerSiteListResponse'
+      security:
+      - Bearer: []
+      summary: List customer sites
+      tags:
+      - Customer Site
+    post:
+      consumes:
+      - application/json
+      description: Create a site/branch address used as delivery ship-to
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Create customer site request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCustomerSiteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Create customer site
+      tags:
+      - Customer Site
+  /customers/{customerId}/sites/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a site/branch address of a customer (existing delivery
+        orders keep their ship-to snapshot)
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Customer site ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Delete customer site
+      tags:
+      - Customer Site
+    put:
+      consumes:
+      - application/json
+      description: Update a site/branch address of a customer
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - description: Customer site ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update customer site request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCustomerSiteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/global.Response-dto_Message'
+      security:
+      - Bearer: []
+      summary: Update customer site
+      tags:
+      - Customer Site
   /customers/{id}:
     get:
       consumes:

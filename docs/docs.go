@@ -516,6 +516,182 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/{customerId}/sites": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List every site/branch address of a customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Site"
+                ],
+                "summary": "List customer sites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_CustomerSiteListResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a site/branch address used as delivery ship-to",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Site"
+                ],
+                "summary": "Create customer site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create customer site request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCustomerSiteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{customerId}/sites/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update a site/branch address of a customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Site"
+                ],
+                "summary": "Update customer site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer site ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update customer site request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCustomerSiteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Soft delete a site/branch address of a customer (existing delivery orders keep their ship-to snapshot)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Site"
+                ],
+                "summary": "Delete customer site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer site ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/global.Response-dto_Message"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/{id}": {
             "get": {
                 "security": [
@@ -3604,6 +3780,44 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCustomerSiteRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 32
+                },
+                "pic": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "postal_code": {
+                    "type": "string",
+                    "maxLength": 16
+                }
+            }
+        },
         "dto.CreateCylinderRequest": {
             "type": "object",
             "required": [
@@ -4026,6 +4240,52 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CustomerSiteListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CustomerSiteResponse"
+                    }
+                }
+            }
+        },
+        "dto.CustomerSiteResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "pic": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CylinderHistoryChange": {
             "type": "object",
             "properties": {
@@ -4241,6 +4501,9 @@ const docTemplate = `{
                 "customer_name": {
                     "type": "string"
                 },
+                "customer_site_id": {
+                    "type": "string"
+                },
                 "cylinder_qty": {
                     "type": "integer"
                 },
@@ -4266,6 +4529,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sales_order_id": {
+                    "type": "string"
+                },
+                "ship_to_address": {
+                    "type": "string"
+                },
+                "ship_to_name": {
+                    "type": "string"
+                },
+                "ship_to_phone": {
+                    "type": "string"
+                },
+                "ship_to_postal_code": {
                     "type": "string"
                 },
                 "status": {
@@ -4459,6 +4734,9 @@ const docTemplate = `{
                     }
                 },
                 "customer_id": {
+                    "type": "string"
+                },
+                "customer_site_id": {
                     "type": "string"
                 },
                 "fleet_id": {
@@ -5291,6 +5569,44 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateCustomerSiteRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 32
+                },
+                "pic": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "postal_code": {
+                    "type": "string",
+                    "maxLength": 16
+                }
+            }
+        },
         "dto.UpdateCylinderRequest": {
             "type": "object",
             "required": [
@@ -5883,6 +6199,26 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/dto.CustomerResponse"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "global.Response-dto_CustomerSiteListResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/dto.CustomerSiteListResponse"
                 },
                 "error_code": {
                     "type": "string"
