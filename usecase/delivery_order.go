@@ -203,6 +203,12 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		tx.Rollback()
 		return nil, err
 	}
+	// Aging ("Hari di Customer") starts when the cylinders leave the warehouse on the DO, so the
+	// list shows a live day count for IN_TRANSIT too, not only after the gate exchange.
+	if err := u.cylinderRepo.SetOutstandingSince(tx, cylinderIds, time.Now()); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	fleetId := fleet.Id
 	if err := u.cylinderRepo.UpdateLocationByIds(tx, cylinderIds, enum.CylinderLocationInTransit, &fleetId, fleet.PlateNumber); err != nil {
 		tx.Rollback()

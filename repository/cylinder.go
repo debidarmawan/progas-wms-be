@@ -267,11 +267,15 @@ func (r *cylinderRepository) UpdateLocationByIds(tx helper.Tx, ids []string, loc
 	return nil
 }
 
+// SetOutstandingSince starts the aging clock only when it is not running yet: DO issue sets it,
+// and the later exchange-out must not reset it to the gate date.
 func (r *cylinderRepository) SetOutstandingSince(tx helper.Tx, ids []string, since time.Time) global.ErrorResponse {
 	if len(ids) == 0 {
 		return nil
 	}
-	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).Where("id IN ?", ids).Update("outstanding_since", since).Error; err != nil {
+	if err := r.dbFromTx(tx).Model(&model.Cylinder{}).
+		Where("id IN ? AND outstanding_since IS NULL", ids).
+		Update("outstanding_since", since).Error; err != nil {
 		return global.InternalServerError(err)
 	}
 	return nil
