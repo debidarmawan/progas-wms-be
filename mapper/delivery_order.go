@@ -19,6 +19,12 @@ func ToDeliveryOrderResponse(do *model.DeliveryOrder, includeDetails bool) *dto.
 	if do.CustomerSiteId != nil {
 		customerSiteId = *do.CustomerSiteId
 	}
+	driverId := ""
+	driverName := ""
+	if do.Driver != nil {
+		driverId = do.Driver.Id
+		driverName = do.Driver.Name
+	}
 
 	res := &dto.DeliveryOrderResponse{
 		Id:               do.Id,
@@ -33,6 +39,8 @@ func ToDeliveryOrderResponse(do *model.DeliveryOrder, includeDetails bool) *dto.
 		ShipToPhone:      do.ShipToPhone,
 		FleetId:          do.FleetId,
 		PlateNumber:      plateNumber,
+		DriverId:         driverId,
+		DriverName:       driverName,
 		Status:           string(do.Status),
 		TotalWeightKg:    do.TotalWeightKg,
 		CylinderQty:      do.CylinderQty,

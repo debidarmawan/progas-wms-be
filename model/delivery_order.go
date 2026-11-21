@@ -12,17 +12,20 @@ type DeliveryOrder struct {
 	CustomerSiteId *string       `gorm:"type:varchar(36);index"`
 	CustomerSite   *CustomerSite `gorm:"foreignKey:CustomerSiteId"`
 	// Ship-to is snapshotted so editing or deleting a customer site never rewrites an issued DO.
-	ShipToName       string                   `gorm:"type:varchar(128)"`
-	ShipToAddress    string                   `gorm:"type:varchar(255)"`
-	ShipToPostalCode string                   `gorm:"type:varchar(16)"`
-	ShipToPhone      string                   `gorm:"type:varchar(32)"`
-	FleetId          string                   `gorm:"not null;type:varchar(36);index"`
-	FleetVehicle     FleetVehicle             `gorm:"foreignKey:FleetId"`
-	Status           enum.DeliveryOrderStatus `gorm:"not null;type:varchar(30)"`
-	TotalWeightKg    float64                  `gorm:"type:decimal(10,2);not null;default:0"`
-	CylinderQty      int                      `gorm:"not null;default:0"`
-	Notes            string                   `gorm:"type:varchar(255)"`
-	Details          []DeliveryOrderDetail    `gorm:"foreignKey:DeliveryOrderId"`
+	ShipToName       string       `gorm:"type:varchar(128)"`
+	ShipToAddress    string       `gorm:"type:varchar(255)"`
+	ShipToPostalCode string       `gorm:"type:varchar(16)"`
+	ShipToPhone      string       `gorm:"type:varchar(32)"`
+	FleetId          string       `gorm:"not null;type:varchar(36);index"`
+	FleetVehicle     FleetVehicle `gorm:"foreignKey:FleetId"`
+	// Nullable: DOs issued before the driver field existed have no driver.
+	DriverId      *string                  `gorm:"type:varchar(36);index"`
+	Driver        *Driver                  `gorm:"foreignKey:DriverId"`
+	Status        enum.DeliveryOrderStatus `gorm:"not null;type:varchar(30)"`
+	TotalWeightKg float64                  `gorm:"type:decimal(10,2);not null;default:0"`
+	CylinderQty   int                      `gorm:"not null;default:0"`
+	Notes         string                   `gorm:"type:varchar(255)"`
+	Details       []DeliveryOrderDetail    `gorm:"foreignKey:DeliveryOrderId"`
 }
 
 type DeliveryOrderDetail struct {

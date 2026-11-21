@@ -4863,6 +4863,12 @@ const docTemplate = `{
                 "do_number": {
                     "type": "string"
                 },
+                "driver_id": {
+                    "type": "string"
+                },
+                "driver_name": {
+                    "type": "string"
+                },
                 "fleet_id": {
                     "type": "string"
                 },
@@ -5084,6 +5090,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "customer_site_id": {
+                    "type": "string"
+                },
+                "driver_id": {
                     "type": "string"
                 },
                 "fleet_id": {

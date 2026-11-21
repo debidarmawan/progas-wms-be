@@ -693,6 +693,10 @@ definitions:
         type: array
       do_number:
         type: string
+      driver_id:
+        type: string
+      driver_name:
+        type: string
       fleet_id:
         type: string
       id:
@@ -835,6 +839,8 @@ definitions:
       customer_id:
         type: string
       customer_site_id:
+        type: string
+      driver_id:
         type: string
       fleet_id:
         type: string

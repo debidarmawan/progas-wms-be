@@ -4,6 +4,7 @@ type IssueDeliveryOrderRequest struct {
 	CustomerId     string   `json:"customer_id" validate:"required"`
 	CustomerSiteId string   `json:"customer_site_id"`
 	FleetId        string   `json:"fleet_id" validate:"required"`
+	DriverId       string   `json:"driver_id"`
 	SalesOrderId   string   `json:"sales_order_id"`
 	Barcodes       []string `json:"barcodes" validate:"required,min=1,dive,required"`
 	Notes          string   `json:"notes"`
@@ -33,6 +34,8 @@ type DeliveryOrderResponse struct {
 	ShipToPhone      string                        `json:"ship_to_phone"`
 	FleetId          string                        `json:"fleet_id"`
 	PlateNumber      string                        `json:"plate_number"`
+	DriverId         string                        `json:"driver_id,omitempty"`
+	DriverName       string                        `json:"driver_name,omitempty"`
 	Status           string                        `json:"status"`
 	TotalWeightKg    float64                       `json:"total_weight_kg"`
 	CylinderQty      int                           `json:"cylinder_qty"`

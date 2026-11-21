@@ -49,7 +49,7 @@ func (r *deliveryOrderRepository) FindAll(page, limit int, search string) ([]mod
 	}
 
 	offset := (page - 1) * limit
-	findQuery := r.db.Preload("Customer").Preload("FleetVehicle").Order("delivery_order.created_at desc").Offset(offset).Limit(limit)
+	findQuery := r.db.Preload("Customer").Preload("FleetVehicle").Preload("Driver").Order("delivery_order.created_at desc").Offset(offset).Limit(limit)
 	if helper.HasSearch(search) {
 		pattern := helper.SearchPattern(search)
 		findQuery = findQuery.Joins("Customer").Where(
@@ -66,7 +66,7 @@ func (r *deliveryOrderRepository) FindAll(page, limit int, search string) ([]mod
 
 func (r *deliveryOrderRepository) FindById(id string) (*model.DeliveryOrder, global.ErrorResponse) {
 	var order model.DeliveryOrder
-	err := r.db.Preload("Customer").Preload("FleetVehicle").Preload("Details.Cylinder.MasterItem").
+	err := r.db.Preload("Customer").Preload("FleetVehicle").Preload("Driver").Preload("Details.Cylinder.MasterItem").
 		Where("id = ?", id).First(&order).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

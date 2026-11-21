@@ -28,6 +28,7 @@ type deliveryOrderUsecase struct {
 	customerRepo      repository.CustomerRepository
 	customerSiteRepo  repository.CustomerSiteRepository
 	fleetRepo         repository.FleetRepository
+	driverRepo        repository.DriverRepository
 	auditLogRepo      repository.AuditLogRepository
 	pricingUsecase    CustomerItemPriceUsecase
 	salesOrderRepo    repository.SalesOrderRepository
@@ -42,6 +43,7 @@ func NewDeliveryOrderUsecase(
 	customerRepo repository.CustomerRepository,
 	customerSiteRepo repository.CustomerSiteRepository,
 	fleetRepo repository.FleetRepository,
+	driverRepo repository.DriverRepository,
 	auditLogRepo repository.AuditLogRepository,
 	pricingUsecase CustomerItemPriceUsecase,
 	salesOrderRepo repository.SalesOrderRepository,
@@ -55,6 +57,7 @@ func NewDeliveryOrderUsecase(
 		customerRepo:      customerRepo,
 		customerSiteRepo:  customerSiteRepo,
 		fleetRepo:         fleetRepo,
+		driverRepo:        driverRepo,
 		auditLogRepo:      auditLogRepo,
 		pricingUsecase:    pricingUsecase,
 		salesOrderRepo:    salesOrderRepo,
@@ -86,6 +89,18 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 	}
 	if !fleet.IsActive {
 		return nil, global.BadRequestError("fleet vehicle is not active")
+	}
+
+	// Driver is optional for backward compatibility with clients that do not send it.
+	var driver *model.Driver
+	if req.DriverId != "" {
+		driver, err = u.driverRepo.FindById(req.DriverId)
+		if err != nil {
+			return nil, err
+		}
+		if !driver.IsActive {
+			return nil, global.BadRequestError("driver is not active")
+		}
 	}
 
 	var salesOrder *model.SalesOrder
@@ -143,6 +158,11 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		))
 	}
 
+	var driverId *string
+	if driver != nil {
+		driverId = &driver.Id
+	}
+
 	order := &model.DeliveryOrder{
 		BaseModel:        model.BaseModel{CreatedBy: actorUserId},
 		DONumber:         helper.GenerateDONumber(),
@@ -153,6 +173,7 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		ShipToPostalCode: customer.PostalCode,
 		ShipToPhone:      customer.Phone,
 		FleetId:          fleet.Id,
+		DriverId:         driverId,
 		Status:           enum.DeliveryOrderStatusInTransit,
 		TotalWeightKg:    totalWeight,
 		CylinderQty:      len(cylinders),
@@ -238,6 +259,7 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 		"do_number":       order.DONumber,
 		"customer_id":     order.CustomerId,
 		"fleet_id":        order.FleetId,
+		"driver_id":       req.DriverId,
 		"total_weight_kg": order.TotalWeightKg,
 		"cylinder_qty":    order.CylinderQty,
 	})
@@ -250,6 +272,7 @@ func (u *deliveryOrderUsecase) Issue(actorUserId string, req *dto.IssueDeliveryO
 
 	order.Customer = *customer
 	order.FleetVehicle = *fleet
+	order.Driver = driver
 	order.Details = details
 	return mapper.ToDeliveryOrderResponse(order, true), nil
 }
