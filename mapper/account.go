@@ -13,8 +13,10 @@ func ToAccountResponse(account *model.Account) *dto.AccountResponse {
 		Name:          account.Name,
 		Type:          string(account.Type),
 		NormalBalance: helper.AccountNormalBalance(account.Type),
-		ParentId:      account.ParentId,
 		IsActive:      account.IsActive,
+	}
+	if account.ParentId != nil {
+		res.ParentId = *account.ParentId
 	}
 	if account.Parent != nil {
 		res.ParentCode = account.Parent.Code

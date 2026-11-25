@@ -98,7 +98,7 @@ func (u *accountUsecase) Create(actorUserId string, req *dto.CreateAccountReques
 		IsActive: req.IsActive == nil || *req.IsActive,
 	}
 	if parent != nil {
-		account.ParentId = parent.Id
+		account.ParentId = &parent.Id
 	}
 
 	tx := u.txManager.New()
@@ -151,9 +151,9 @@ func (u *accountUsecase) Update(actorUserId, id string, req *dto.UpdateAccountRe
 	account.Code = code
 	account.Name = name
 	account.Type = accountType
-	account.ParentId = ""
+	account.ParentId = nil
 	if parent != nil {
-		account.ParentId = parent.Id
+		account.ParentId = &parent.Id
 	}
 	if req.IsActive != nil {
 		account.IsActive = *req.IsActive

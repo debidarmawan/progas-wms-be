@@ -83,7 +83,8 @@ func ensureAccount(db *gorm.DB, seed accountSeed, byCode map[string]*model.Accou
 		if !ok {
 			return nil, errors.New("parent account " + seed.ParentCode + " not seeded")
 		}
-		account.ParentId = parent.Id
+		parentId := parent.Id
+		account.ParentId = &parentId
 	}
 	if err := db.Create(&account).Error; err != nil {
 		return nil, err
